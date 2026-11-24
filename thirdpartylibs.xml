@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<libraries>
+  <library>
+    <location>assets/vendor/katex</location>
+    <name>KaTeX</name>
+    <description>Typesets the formulas in Tarsus's texts (stylesheet and woff2 fonts).</description>
+    <version>0.16.47</version>
+    <license>MIT</license>
+    <licenseversion></licenseversion>
+    <repository>https://github.com/KaTeX/KaTeX</repository>
+  </library>
+  <library>
+    <location>assets/js/vendor/tarsus-markdown.min.js</location>
+    <name>Tarsus Markdown (unified, remark-gfm, remark-math, rehype-katex, KaTeX)</name>
+    <description>React-Markdown's pipeline bundled for the browser. Sources in build/markdown; the licence of every bundled library in assets/js/vendor/tarsus-markdown.licenses.txt.</description>
+    <version>1.0.0</version>
+    <license>MIT</license>
+    <licenseversion></licenseversion>
+    <repository>https://github.com/unifiedjs/unified</repository>
+  </library>
+</libraries>

@@ -176,7 +176,7 @@ You do not need to know Moodle. Follow the pictures: the **red boxes** show wher
 1. **The e-mail from Tarsus** with three details: the *base URL*, the *API key* and the *brain ID*. Not there yet? Install anyway – the coach then shows sample answers until you enter them ([Getting access](#getting-access)).
 2. **A Moodle login with administrator rights.** After logging in you see *Site administration* in the bar at the top.
 
-Is your Moodle in German? Everything is in the same place; the German names are given in *(brackets)*.
+Is your Moodle in German? Everything is in the same place; the German names are given in *(brackets)*. The pictures show Moodle 4.5: Moodle 5 looks a little different, but the names and the order are the same – where a step differs, it says so.
 
 ### Part 1 – Download the plugin
 
@@ -260,7 +260,7 @@ The plugin is ready. Now give a course its coach.
 
 ![Edit mode](docs/screenshots/guide/g18_edit_mode.png)
 
-**19.** In the section where the coach should appear, click **Add an activity or resource** (2) *(Aktivität oder Material anlegen)*.
+**19.** In the section where the coach should appear, click **Add an activity or resource** (2) *(Aktivität oder Material anlegen)*. In Moodle 5.0 and newer, click the **+** at the end of the section instead – in Moodle 5.3 it says **Add content** *(Inhalt hinzufügen)* – and then **Activity or resource** *(Aktivität oder Material)*.
 
 ![Add an activity or resource](docs/screenshots/guide/g19_add_activity.png)
 
@@ -504,7 +504,7 @@ docs/screenshots/          the pictures in this README (not in the release zip)
 
 - **Demo mode** (default after installation) makes the whole interface usable without a brain: the demo client answers with fixed samples for every call, including interactive pages, a demo live page and sources. All demo brain names start with `mock-`.
 - Version 1.0.0 was tested end to end with Playwright on Moodle 4.1 (PHP 8.1), 4.5 (PHP 8.2), 5.0 (PHP 8.2), 5.1, 5.2 and 5.3 (PHP 8.4), all on PostgreSQL, in demo mode: the activity created through its form with a completion rule, the four modes, sources, the teacher panels, formulas and tables, the administration pages, axe on every screen, a learner's grade and completion, the scheduled task, the privacy export and deletion, course reset, *Duplicate* and backup and restore – with every PHP message from the plugin's files recorded, deprecation notices included: none.
-- The installation from the release zip through *Install plugins* was recorded on Moodle 4.5 (the pictures above), the update to a newer version through the same page on Moodle 5.0. On Moodle 4.5 the plugin then ran against a live Tarsus brain, reached through Moodle's web proxy: leaving demo mode sent the course material to the brain by itself; questions with sources, a test question with feedback, learning objectives and a learning unit, the live interaction, an AI-driven page and the teacher panels worked as shown above; *Reset chat history* erased the conversations in the brain, and removing the material took it out of the brain again.
+- The installation from the release zip through *Install plugins* was recorded on Moodle 4.5 (the pictures above), the update to a newer version through the same page on Moodle 5.0, and the zip published on GitHub was installed the same way on Moodle 5.3. On Moodle 4.5 the plugin then ran against a live Tarsus brain, reached through Moodle's web proxy: leaving demo mode sent the course material to the brain by itself; questions with sources, a test question with feedback, learning objectives and a learning unit, the live interaction, an AI-driven page and the teacher panels worked as shown above; *Reset chat history* erased the conversations in the brain, and removing the material took it out of the brain again.
 - The renderer is React-Markdown's own pipeline (remark-gfm, remark-math, rehype-katex) bundled with esbuild; compared with React-Markdown 10 it gives identical output for 36 sample texts (formulas, tables, lists, links, HTML, footnotes).
 - **Releases** are published by the [Release workflow](.github/workflows/release.yml): raise `$plugin->version` and `$plugin->release` in `version.php`, add the version's section to `CHANGELOG.md` and push to `main` – the workflow tags the commit, builds `Tarsus-moodle-plugin-<version>.zip` (folder `tarsus`) with `git archive` (repository-only files such as `docs/` are left out) and creates the GitHub release with the changelog section as notes.
 

@@ -449,6 +449,7 @@ $string['qtype_singlechoice'] = 'Single choice';
 $string['qtype_tradecosting'] = 'Spreadsheet calculation';
 $string['qtype_truefalse'] = 'True / false';
 $string['qtype_unknown'] = 'Unknown question type';
+$string['questiontypes'] = 'Question types';
 $string['questiontypes_grade'] = 'Question types: {$a->grade}';
 $string['questiontypes_help'] = 'Which question types the assistant may generate in each difficulty grade of the Test knowledge mode. Every grade needs at least one type.';
 $string['ratelimit'] = 'Rate limit (calls per minute)';

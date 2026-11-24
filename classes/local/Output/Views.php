@@ -88,7 +88,7 @@ final class Views
                 . '</div>';
         }
 
-        $drawer = '<div class="tarsus-drawer" data-region="drawer" hidden>'
+        $drawer = '<div class="tarsus-drawer" data-region="tarsus-drawer" hidden>'
             . '<div class="tarsus-drawer__backdrop" data-action="drawer-close"></div>'
             . '<aside class="tarsus-drawer__panel" role="dialog" aria-modal="true" aria-labelledby="' . Html::e($containerid) . '-drawer-title" tabindex="-1">'
             . '<header class="tarsus-drawer__head"><h2 class="tarsus-drawer__title" id="' . Html::e($containerid) . '-drawer-title" data-region="drawer-title"></h2>'

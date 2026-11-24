@@ -1,5 +1,5 @@
 /**
- * Tarsus for ILIAS - browser side.
+ * Tarsus for Moodle - browser side (the same coach as Tarsus for ILIAS).
  *
  * Two screens share this file: the coach (one interleaved feed of
  * exchange, question and learning-unit cards; four modes - Ask a question,
@@ -9,8 +9,9 @@
  * learners' history) and the teacher's material list (index actions,
  * inclusion switches and the page sync). Everything shown comes from what
  * Tarsus returns; nothing about its behaviour is assumed here. Both boot from the JSON configuration the server puts
- * on their root element. No framework; MathJax is used when the page has
- * it.
+ * on their root element. No framework; Tarsus's texts are rendered like in
+ * the Tarsus app (React-Markdown with KaTeX formulas) by
+ * tarsus-markdown.min.js.
  *
  * @author  Tarsus GmbH
  * @license GPL-3.0-or-later
@@ -47,6 +48,7 @@
                 node.textContent = value;
             } else if (key === 'html') {
                 node.innerHTML = value;
+                typeset(node);
             } else if (key === 'class') {
                 node.className = value;
             } else if (value === true) {
@@ -94,56 +96,86 @@
         }
     }
 
+    // ------------------------------------------------------------------
+    // Tarsus's texts: Markdown rendered the way the Tarsus app renders it
+    // ------------------------------------------------------------------
+
     /**
-     * Render formulas MathJax finds in a freshly inserted node. Without
-     * MathJax the TeX delimiters are dropped so the formula at least
-     * reads as text.
+     * Render the Markdown texts in and under a node. The server sends each
+     * text escaped in a .tarsus-md element; tarsus-markdown.min.js turns it
+     * into HTML with React-Markdown's pipeline (GitHub tables, KaTeX
+     * formulas), so it looks as it does in the Tarsus app. Without that
+     * script a text stays readable as plain text.
      */
-    function typeset(node, attempt) {
-        if (!node) {
+    function typeset(node) {
+        var renderer = window.TarsusMarkdown;
+        if (!node || !node.querySelectorAll || !renderer || typeof renderer.render !== 'function') {
             return;
         }
-        var mj = window.MathJax;
-        attempt = attempt || 0;
-        if (!mj) {
-            // No MathJax on the page: drop the delimiters right away so the
-            // formula at least reads as text. A MathJax script that is
-            // still loading gets a few seconds.
-            var loading = document.querySelector('script[src*="athjax"], script[src*="athJax"]');
-            if (loading && attempt < 10) {
-                window.setTimeout(function () {
-                    typeset(node, attempt + 1);
-                }, 500);
-            } else {
-                stripTex(node);
-            }
+        var pending = Array.prototype.slice.call(node.querySelectorAll('.tarsus-md:not(.tarsus-md--rendered)'));
+        if (node.classList && node.classList.contains('tarsus-md') && !node.classList.contains('tarsus-md--rendered')) {
+            pending.unshift(node);
+        }
+        pending.forEach(function (holder) {
+            renderMarkdown(holder, renderer);
+        });
+    }
+
+    function renderMarkdown(holder, renderer) {
+        var html;
+        try {
+            html = renderer.render(holder.textContent);
+        } catch (e) {
             return;
         }
-        if (typeof mj.typesetPromise === 'function') {
-            mj.typesetPromise([node]).catch(noop);
-            return;
-        }
-        if (mj.Hub && mj.Hub.Queue) {
-            mj.Hub.Queue(['Typeset', mj.Hub, node]);
-            return;
-        }
-        if (mj.startup && mj.startup.promise) {
-            mj.startup.promise.then(function () {
-                typeset(node, attempt + 1);
-            }).catch(noop);
-            return;
-        }
-        if (attempt < 20) {
-            window.setTimeout(function () {
-                typeset(node, attempt + 1);
-            }, 300);
+        holder.innerHTML = html;
+        holder.classList.add('tarsus-md--rendered');
+        if (holder.classList.contains('tarsus-md--inline')) {
+            unwrapParagraph(holder);
         }
     }
 
-    function stripTex(node) {
-        node.querySelectorAll('.tarsus-math').forEach(function (span) {
-            span.textContent = span.textContent.replace(/\[\/?tex\]/g, '');
+    /** A short text of one paragraph (an answer option) reads inline, without the paragraph. */
+    function unwrapParagraph(holder) {
+        var parts = Array.prototype.filter.call(holder.childNodes, function (child) {
+            return child.nodeType === 1 || (child.nodeType === 3 && child.nodeValue.trim() !== '');
         });
+        if (parts.length !== 1 || parts[0].nodeType !== 1 || parts[0].tagName !== 'P') {
+            return;
+        }
+        var paragraph = parts[0];
+        while (paragraph.firstChild) {
+            holder.insertBefore(paragraph.firstChild, paragraph);
+        }
+        holder.removeChild(paragraph);
+    }
+
+    /**
+     * A short text Tarsus writes in Markdown (an answer option), rendered
+     * as an inline element with the given class.
+     */
+    function inlineMarkdown(className, text) {
+        var span = el('span', {'class': className + ' tarsus-md tarsus-md--inline', text: text});
+        typeset(span);
+        return span;
+    }
+
+    /**
+     * The text of rendered Markdown as a reader would quote it: a formula
+     * as its TeX rather than KaTeX's two copies of it (MathML and HTML).
+     */
+    function readableText(node) {
+        if (!node) {
+            return '';
+        }
+        var copy = node.cloneNode(true);
+        Array.prototype.forEach.call(copy.querySelectorAll('.katex'), function (math) {
+            var tex = math.querySelector('annotation[encoding="application/x-tex"]');
+            if (math.parentNode) {
+                math.parentNode.replaceChild(document.createTextNode(tex ? tex.textContent : ''), math);
+            }
+        });
+        return copy.textContent;
     }
 
     /**
@@ -514,6 +546,29 @@
         }
         this.navOffset = Math.round(offset);
         this.root.style.setProperty('--tarsus-nav-offset', this.navOffset + 'px');
+
+        // What the theme pins to the bottom of the window (Moodle's footer
+        // with Previous and Next): the composer stays above it. Small
+        // floating buttons do not count, only bars.
+        var bottom = 0;
+        var viewport = window.innerHeight;
+        var bars = document.querySelectorAll('[class*="sticky"], [id*="sticky"], footer, [class*="footer"]');
+        for (var j = 0; j < bars.length; j++) {
+            var bar = bars[j];
+            if (bar.closest('.tarsus-app')) {
+                continue;
+            }
+            var barstyle = window.getComputedStyle(bar);
+            if (barstyle.position !== 'sticky' && barstyle.position !== 'fixed') {
+                continue;
+            }
+            var barrect = bar.getBoundingClientRect();
+            if (barrect.height > 0 && barrect.height < 160 && barrect.width >= window.innerWidth * 0.4
+                    && Math.abs(barrect.bottom - viewport) <= 2) {
+                bottom = Math.max(bottom, viewport - barrect.top);
+            }
+        }
+        this.root.style.setProperty('--tarsus-bottom-offset', Math.round(bottom) + 'px');
     };
 
     // --- cards ---------------------------------------------------------
@@ -765,7 +820,7 @@
             choices.forEach(function (choice) {
                 group.appendChild(el('label', {'class': 'tarsus-practice-choice', 'data-value': choice.value}, [
                     el('input', {type: 'radio', 'class': 'tarsus-practice-choice__input', name: 'practice-' + widget.id, value: choice.value}),
-                    el('span', {'class': 'tarsus-practice-choice__label', text: choice.label}),
+                    inlineMarkdown('tarsus-practice-choice__label', choice.label),
                     el('span', {'class': 'tarsus-practice-choice__clarification tarsus-hidden', 'data-region': 'clarification'})
                 ]));
             });
@@ -1845,7 +1900,7 @@
         if (card.matches('[data-region="practice-card"]')) {
             var id = card.getAttribute('data-widget-id') || '';
             var question = card.querySelector('.tarsus-practice-card__question');
-            reply = id ? {id: id, title: shorten(question ? question.textContent : '', 90)} : null;
+            reply = id ? {id: id, title: shorten(readableText(question), 90)} : null;
         } else if (card.matches('[data-region="learn-card"]')) {
             var stack = card.getAttribute('data-stack-id') || '';
             var slide = card.querySelector('[data-region="slide"]:not(.tarsus-hidden)');
@@ -1854,7 +1909,7 @@
         } else {
             var widget = card.getAttribute('data-widget-id') || '';
             var asked = card.querySelector('.tarsus-card__question-text');
-            reply = widget ? {id: widget, title: shorten(asked ? asked.textContent : '', 90)} : null;
+            reply = widget ? {id: widget, title: shorten(readableText(asked), 90)} : null;
         }
         if (!reply) {
             return;
@@ -2333,7 +2388,7 @@
     // --- the panel sliding in from the right ---------------------------
 
     Chat.prototype.openDrawer = function (title, wide) {
-        var drawer = this.q('[data-region="drawer"]');
+        var drawer = this.q('[data-region="tarsus-drawer"]');
         if (!drawer) {
             return el('div');
         }
@@ -2352,7 +2407,7 @@
     };
 
     Chat.prototype.closeDrawer = function () {
-        var drawer = this.q('[data-region="drawer"]');
+        var drawer = this.q('[data-region="tarsus-drawer"]');
         if (!drawer || drawer.hidden) {
             return;
         }
@@ -3220,6 +3275,16 @@
         window.addEventListener('resize', function () {
             self.measureChrome();
         }, {passive: true});
+        // Themes show some bars by script after the page loaded (Moodle's
+        // footer with Previous and Next): measure again once they are there.
+        window.addEventListener('load', function () {
+            self.measureChrome();
+        });
+        [400, 1500, 4000].forEach(function (delay) {
+            window.setTimeout(function () {
+                self.measureChrome();
+            }, delay);
+        });
 
         this.scroller.listen(function () {
             self.toggleJumpTop();

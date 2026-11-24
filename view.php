@@ -80,7 +80,11 @@ if ($action === 'doreset') {
 tarsus_view($tarsus, $course, $cm, $context);
 
 $version = \mod_tarsus\local\Support\Platform::pluginVersion();
+// Tarsus's texts are Markdown with KaTeX formulas: the coach renders them
+// like the Tarsus app, with KaTeX's stylesheet and the bundled renderer.
+$PAGE->requires->css(new moodle_url('/mod/tarsus/assets/vendor/katex/katex.min.css', ['v' => $version]));
 $PAGE->requires->css(new moodle_url('/mod/tarsus/assets/css/tarsus.css', ['v' => $version]));
+$PAGE->requires->js(new moodle_url('/mod/tarsus/assets/js/vendor/tarsus-markdown.min.js', ['v' => $version]));
 $PAGE->requires->js(new moodle_url('/mod/tarsus/assets/js/tarsus.js', ['v' => $version]));
 
 echo $OUTPUT->header();

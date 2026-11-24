@@ -73,7 +73,6 @@ class mod_tarsus_mod_form extends moodleform_mod {
                 Plan::allowsAiDriven() ? [] : ['disabled' => 'disabled']),
         ];
         $mform->addGroup($radios, 'interactiontypegroup', get_string('interactiontype', 'mod_tarsus'), html_writer::empty_tag('br'), false);
-        $mform->addHelpButton('interactiontypegroup', 'interactiontype', 'mod_tarsus');
         if (!Plan::allowsAiDriven()) {
             $mform->addElement('static', 'interactionlocked', '', html_writer::tag('strong',
                 get_string('plan_interaction_unavailable', 'mod_tarsus', (object) ['plan' => $plan])));

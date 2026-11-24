@@ -115,7 +115,8 @@ final class Coach {
     }
 
     /**
-     * The texts of the given identifiers, by identifier.
+     * The texts of the given identifiers, by identifier, for the browser:
+     * the script fills {name} placeholders where Moodle writes {$a->name}.
      *
      * @param string[] $keys The identifiers.
      * @return array
@@ -123,7 +124,7 @@ final class Coach {
     public static function strings(array $keys): array {
         $strings = [];
         foreach ($keys as $key) {
-            $strings[$key] = Platform::txt($key);
+            $strings[$key] = str_replace('{$a->', '{', Platform::txt($key));
         }
         return $strings;
     }

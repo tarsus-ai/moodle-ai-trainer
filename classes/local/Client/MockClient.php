@@ -198,7 +198,7 @@ class MockClient implements ClientInterface
                 . "| Einstellung | Wert |\n|---|---|\n"
                 . "| Gesprächsstil | " . (int) ($params['conversationstyle'] ?? 3) . " |\n"
                 . "| DQR-Niveau | " . (int) ($params['dqr'] ?? 6) . " |\n\n"
-                . 'Eine Formel zur Probe: $a^2 + b^2 = c^2$';
+                . "Eine Formel zur Probe:\n\n$$\na^2 + b^2 = c^2\n$$";
         } else {
             $answer = "You asked: *" . $query . "*\n\n"
                 . "In demo mode I reply with a simulated answer. With the real brain it would be grounded in the "
@@ -207,7 +207,7 @@ class MockClient implements ClientInterface
                 . "| Setting | Value |\n|---|---|\n"
                 . "| Conversation style | " . (int) ($params['conversationstyle'] ?? 3) . " |\n"
                 . "| DQR level | " . (int) ($params['dqr'] ?? 6) . " |\n\n"
-                . 'A formula for good measure: $a^2 + b^2 = c^2$';
+                . "A formula for good measure:\n\n$$\na^2 + b^2 = c^2\n$$";
         }
         $html = '';
         if (($params['interactiontype'] ?? '') === 'ai-driven') {
@@ -237,7 +237,7 @@ class MockClient implements ClientInterface
      */
     private static function page(string $name, bool $de): string
     {
-        $file = dirname(__DIR__, 2) . '/templates/mock/' . $name . '.html';
+        $file = dirname(__DIR__, 3) . '/assets/mock/' . $name . '.html';
         $html = is_file($file) ? (string) file_get_contents($file) : '';
         return str_replace('{{lang}}', $de ? 'de' : 'en', $html);
     }
@@ -657,7 +657,7 @@ class MockClient implements ClientInterface
     public function startDiscuss(array $params): array
     {
         $this->maybeFail();
-        $file = dirname(__DIR__, 2) . '/templates/mock/live.html';
+        $file = dirname(__DIR__, 3) . '/assets/mock/live.html';
         $page = is_file($file) ? (string) file_get_contents($file) : '';
         $page = str_replace(['{{lang}}', '{{name}}'], [self::de($params) ? 'de' : 'en', htmlspecialchars((string) ($params['robotname'] ?? 'Tarsus'), ENT_QUOTES)], $page);
         return ['page' => $page, 'progress' => self::progressOf($this->load($params))];

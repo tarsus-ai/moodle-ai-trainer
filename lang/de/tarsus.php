@@ -449,6 +449,7 @@ $string['qtype_singlechoice'] = 'Single Choice';
 $string['qtype_tradecosting'] = 'Tabellenkalkulation';
 $string['qtype_truefalse'] = 'Wahr / Falsch';
 $string['qtype_unknown'] = 'Unbekannter Fragetyp';
+$string['questiontypes'] = 'Fragetypen';
 $string['questiontypes_grade'] = 'Fragetypen: {$a->grade}';
 $string['questiontypes_help'] = 'Welche Fragetypen der Assistent je Schwierigkeitsgrad des Modus „Wissen testen“ erzeugen darf. Jeder Schwierigkeitsgrad braucht mindestens einen Typ.';
 $string['ratelimit'] = 'Ratenbegrenzung (Aufrufe pro Minute)';

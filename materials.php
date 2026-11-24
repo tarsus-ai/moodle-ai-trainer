@@ -57,7 +57,6 @@ $PAGE->set_heading(format_string($course->fullname));
 $PAGE->set_secondary_active_tab('mod_tarsus_materials');
 $version = Platform::pluginVersion();
 $PAGE->requires->css(new moodle_url('/mod/tarsus/assets/css/tarsus.css', ['v' => $version]));
-$PAGE->requires->js(new moodle_url('/mod/tarsus/assets/js/tarsus.js', ['v' => $version]));
 
 $resolver = new Resolver();
 $repo = new Repository();
@@ -146,4 +145,6 @@ if ($help !== '') {
     echo html_writer::div($help, 'tarsus-app tarsus-help-row');
 }
 echo Views::materials('tarsus-materials-' . $tarsus->id, $pageentries, $pager, $config, $counts);
+// Deferred, see Platform::deferredScripts().
+echo Platform::deferredScripts(['js/tarsus.js']);
 echo $OUTPUT->footer();

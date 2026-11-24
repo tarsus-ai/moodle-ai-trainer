@@ -32,6 +32,7 @@ use mod_tarsus\local\Output\Views;
 use mod_tarsus\local\Page\Coach;
 use mod_tarsus\local\Support\Budget;
 use mod_tarsus\local\Support\Help;
+use mod_tarsus\local\Support\Platform;
 
 $id = required_param('id', PARAM_INT);
 $action = optional_param('action', '', PARAM_ALPHA);
@@ -79,13 +80,12 @@ if ($action === 'doreset') {
 
 tarsus_view($tarsus, $course, $cm, $context);
 
-$version = \mod_tarsus\local\Support\Platform::pluginVersion();
+$version = Platform::pluginVersion();
 // Tarsus's texts are Markdown with KaTeX formulas: the coach renders them
-// like the Tarsus app, with KaTeX's stylesheet and the bundled renderer.
+// like the Tarsus app, with KaTeX's stylesheet and the bundled renderer
+// (the scripts follow the coach, deferred: see Platform::deferredScripts()).
 $PAGE->requires->css(new moodle_url('/mod/tarsus/assets/vendor/katex/katex.min.css', ['v' => $version]));
 $PAGE->requires->css(new moodle_url('/mod/tarsus/assets/css/tarsus.css', ['v' => $version]));
-$PAGE->requires->js(new moodle_url('/mod/tarsus/assets/js/vendor/tarsus-markdown.min.js', ['v' => $version]));
-$PAGE->requires->js(new moodle_url('/mod/tarsus/assets/js/tarsus.js', ['v' => $version]));
 
 echo $OUTPUT->header();
 
@@ -132,5 +132,6 @@ echo Views::chat(
     Coach::config($cm, $settings, $teacher),
     Views::help(Help::links(), 'tarsus-help-chat')
 );
+echo Platform::deferredScripts(['js/vendor/tarsus-markdown.min.js', 'js/tarsus.js']);
 
 echo $OUTPUT->footer();

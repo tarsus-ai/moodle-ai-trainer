@@ -4,6 +4,12 @@ All notable changes to the Tarsus plugin for Moodle. The plugin follows
 [semantic versioning](https://semver.org/); the version is `$plugin->release`
 in `version.php`.
 
+## [1.0.1] – 2026-11-24
+
+### Fixed
+
+- Moodle's message drawer could fail to start on the coach and the *Materials* page (Moodle 5: "Cannot read properties of undefined (reading 'querySelectorAll')" in the browser console; before Moodle 5 the drawer just did not open on that page). The plugin's scripts held up the page while they loaded, so Moodle's own start-up code sometimes looked for the drawer before it was there. They now load alongside the page and run once it has been read.
+
 ## [1.0.0] – 2026-11-24
 
 The Tarsus AI learning coach as a Moodle activity – the same coach as Tarsus for ILIAS 2.1.0.

@@ -35,7 +35,7 @@ use mod_tarsus\local\Support\Voices;
 $hidden = $module->is_enabled() === false;
 $ADMIN->add('modsettings', new admin_category('modtarsusfolder', new lang_string('pluginname', 'mod_tarsus'), $hidden));
 
-$settings = new admin_settingpage($section, new lang_string('cfg_tab_settings', 'mod_tarsus'), 'moodle/site:config', $hidden);
+$settings = new admin_settingpage($section, new lang_string('settings_title', 'mod_tarsus'), 'moodle/site:config', $hidden);
 $pageurl = static fn(string $tab): string => (new moodle_url('/mod/tarsus/admin.php', ['tab' => $tab]))->out(false);
 
 if ($ADMIN->fulltree) {

@@ -1,7 +1,6 @@
-/* Tarsus for ILIAS.
+/* Tarsus for Moodle (the same screens as Tarsus for ILIAS).
    The screens paint their own surfaces (cards, pads, chips, tracks) so they
-   look the same in every ILIAS skin: a light palette here, a dark one for
-   browsers that ask for it. */
+   look the same in every Moodle theme. */
 .tarsus-app,
 .tarsus-lightbox {
     --tz-fg: #1d2125;
@@ -1061,6 +1060,8 @@
 .tarsus-app .tarsus-md {
     line-height: 1.6;
     overflow-wrap: break-word;
+    -webkit-hyphens: manual;
+    hyphens: manual;
 }
 
 .tarsus-app .tarsus-md > :first-child {

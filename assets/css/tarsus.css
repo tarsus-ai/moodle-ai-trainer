@@ -3336,6 +3336,8 @@ html.tarsus-drawer-lock {
 
 .tarsus-app .tarsus-skip:focus {
     display: inline-block;
+    align-self: flex-start;
+    width: auto;
     margin: 0 0 0.75rem;
     padding: 0.5rem 0.9rem;
     border-radius: 0.5rem;

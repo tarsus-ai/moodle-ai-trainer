@@ -2858,6 +2858,17 @@ html.tarsus-drawer-lock {
     margin: 0.25rem 0;
 }
 
+/* The boxes keep their size in every theme (some stretch them to the row). */
+.tarsus-settings__check input,
+.tarsus-settings__radio input,
+.tarsus-settings__card input {
+    flex: 0 0 auto;
+    align-self: flex-start;
+    width: 1.1rem;
+    height: 1.1rem;
+    margin: 0.15rem 0 0;
+}
+
 .tarsus-settings__radio .tarsus-settings__option,
 .tarsus-settings__card .tarsus-settings__option {
     display: flex;

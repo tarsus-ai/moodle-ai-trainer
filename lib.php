@@ -55,7 +55,8 @@ function tarsus_supports($feature) {
         case FEATURE_GROUPINGS:
             return false;
         case FEATURE_MOD_PURPOSE:
-            return MOD_PURPOSE_INTERACTIVECONTENT;
+            // "Interactive content" exists from Moodle 4.4 on; before, "content".
+            return defined('MOD_PURPOSE_INTERACTIVECONTENT') ? constant('MOD_PURPOSE_INTERACTIVECONTENT') : MOD_PURPOSE_CONTENT;
         default:
             return null;
     }

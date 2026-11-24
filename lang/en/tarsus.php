@@ -24,6 +24,25 @@
 
 defined('MOODLE_INTERNAL') || die();
 
+$string['a11y_answer_missing'] = 'Please choose an answer or fill in every field first.';
+$string['a11y_answered'] = '{$a->name} answers:';
+$string['a11y_composer'] = 'Your input';
+$string['a11y_correct'] = 'Correct.';
+$string['a11y_feed'] = 'Conversation';
+$string['a11y_incorrect'] = 'Not correct.';
+$string['a11y_learning_unit'] = 'Learning unit';
+$string['a11y_mode_ask'] = 'Type your question and press Enter.';
+$string['a11y_mode_discuss'] = 'The button “{$a->button}” starts the conversation.';
+$string['a11y_mode_next'] = 'The button “{$a->button}” brings the next step.';
+$string['a11y_not_correct'] = '(not correct)';
+$string['a11y_partial'] = 'Partly correct: {$a->score} %.';
+$string['a11y_question'] = 'Question';
+$string['a11y_region'] = 'AI trainer';
+$string['a11y_skip'] = 'Skip to the input field';
+$string['a11y_working'] = '{$a->name} is working on it.';
+$string['a11y_you_asked'] = 'You asked:';
+$string['a11y_your_answer_correct'] = '(your answer, correct)';
+$string['a11y_your_answer_incorrect'] = '(your answer, not correct)';
 $string['action_failed'] = 'The requested action could not be applied to this resource.';
 $string['action_index'] = 'Index';
 $string['action_reindex'] = 'Re-index';

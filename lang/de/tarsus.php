@@ -24,6 +24,25 @@
 
 defined('MOODLE_INTERNAL') || die();
 
+$string['a11y_answer_missing'] = 'Bitte wählen Sie zuerst eine Antwort aus oder füllen Sie alle Felder aus.';
+$string['a11y_answered'] = '{$a->name} antwortet:';
+$string['a11y_composer'] = 'Ihre Eingabe';
+$string['a11y_correct'] = 'Richtig.';
+$string['a11y_feed'] = 'Unterhaltung';
+$string['a11y_incorrect'] = 'Nicht richtig.';
+$string['a11y_learning_unit'] = 'Lerneinheit';
+$string['a11y_mode_ask'] = 'Geben Sie Ihre Frage ein und drücken Sie die Eingabetaste.';
+$string['a11y_mode_discuss'] = 'Die Schaltfläche „{$a->button}“ startet das Gespräch.';
+$string['a11y_mode_next'] = 'Die Schaltfläche „{$a->button}“ bringt den nächsten Schritt.';
+$string['a11y_not_correct'] = '(nicht richtig)';
+$string['a11y_partial'] = 'Teilweise richtig: {$a->score} %.';
+$string['a11y_question'] = 'Frage';
+$string['a11y_region'] = 'KI-Trainer';
+$string['a11y_skip'] = 'Zum Eingabefeld springen';
+$string['a11y_working'] = '{$a->name} arbeitet daran.';
+$string['a11y_you_asked'] = 'Ihre Frage:';
+$string['a11y_your_answer_correct'] = '(Ihre Antwort, richtig)';
+$string['a11y_your_answer_incorrect'] = '(Ihre Antwort, nicht richtig)';
 $string['action_failed'] = 'Die angeforderte Aktion konnte nicht auf diese Ressource angewendet werden.';
 $string['action_index'] = 'Indexieren';
 $string['action_reindex'] = 'Neu indexieren';

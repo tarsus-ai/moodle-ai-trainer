@@ -12,6 +12,11 @@ on:
       - .github/workflows/release.yml
       - .github/scripts/release.sh
   workflow_dispatch:
+    inputs:
+      rebuild:
+        description: "Build a published version again, e.g. v1.0.0: its release and tag are deleted first, then it is built from the newest commit that declares it"
+        required: false
+        default: ""
 
 permissions:
   contents: write
@@ -31,4 +36,5 @@ jobs:
       - name: Tag, build and publish missing releases
         env:
           GH_TOKEN: ${{ github.token }}
+          REBUILD: ${{ inputs.rebuild }}
         run: bash .github/scripts/release.sh

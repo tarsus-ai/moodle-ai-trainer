@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 # Publish a GitHub release for every version listed in CHANGELOG.md that has
 # no tag yet. For each such version the newest commit whose version.php
-# declares it ($plugin->release) is tagged v<version>, the plugin zip is
+# declares it ($plugin->release) is tagged v<version> - the newest commit at
+# all, also one that did not change version.php, since fixes made after the
+# version was set belong to the release - the plugin zip is
 # built from the tag with `git archive` (docs/ and .github/ are
 # export-ignored, see .gitattributes) - one folder "tarsus", as Moodle's
 # plugin installer expects - and the release notes are the version's
@@ -23,6 +25,13 @@ highest=$(echo "$versions" | tail -n 1)
 
 for v in $versions; do
     tag="v$v"
+    if [ -n "${REBUILD:-}" ] && [ "$REBUILD" = "$tag" ]; then
+        # Asked for by hand (workflow_dispatch): the release and its tag go,
+        # and the version is built again below.
+        echo "rebuilding $tag"
+        gh release delete "$tag" --cleanup-tag --yes || true
+        git tag -d "$tag" >/dev/null 2>&1 || true
+    fi
     if git ls-remote --exit-code --tags origin "refs/tags/$tag" >/dev/null 2>&1; then
         echo "$tag exists, skipping"
         continue
@@ -30,8 +39,8 @@ for v in $versions; do
 
     # The newest commit on this branch whose version.php declares the release.
     commit=""
-    for c in $(git log --format=%H -- version.php); do
-        if git show "$c:version.php" | grep -Fq "\$plugin->release = '$v';"; then
+    for c in $(git rev-list HEAD); do
+        if git show "$c:version.php" 2>/dev/null | grep -Fq "\$plugin->release = '$v';"; then
             commit=$c
             break
         fi

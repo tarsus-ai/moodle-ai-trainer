@@ -52,6 +52,29 @@ final class Scoring {
     /** Status: the progress reached the completion threshold. */
     public const LP_COMPLETED = 2;
 
+    /** @var bool Whether the current learner's grade and completion wait for a follow-up request. */
+    private static bool $deferred = false;
+
+    /** @var array<string, int[]> The activity and learner of each waiting update. */
+    private static array $pending = [];
+
+    /**
+     * From here on, the current learner's grade and completion wait for a
+     * follow-up request: this request has closed its session.
+     */
+    public static function deferPushes(): void {
+        self::$deferred = true;
+    }
+
+    /**
+     * Whether a grade or completion update waits for the follow-up request.
+     *
+     * @return bool
+     */
+    public static function pushesPending(): bool {
+        return self::$pending !== [];
+    }
+
     /**
      * Store the figures the brain just reported and refresh the grade and
      * completion when anything changed.
@@ -277,7 +300,14 @@ final class Scoring {
      * @param int $userid The learner.
      */
     public static function pushLearningProgress(int $objid, int $userid): void {
-        global $CFG;
+        global $CFG, $USER;
+        if (self::$deferred && $userid === (int) ($USER->id ?? 0)) {
+            // Moodle keeps some of the learner's course caches in the
+            // session, which this request already closed: the grade and the
+            // completion are written by the browser's follow-up request.
+            self::$pending[$objid . ':' . $userid] = [$objid, $userid];
+            return;
+        }
         try {
             require_once($CFG->dirroot . '/mod/tarsus/lib.php');
             require_once($CFG->libdir . '/completionlib.php');

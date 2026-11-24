@@ -140,6 +140,9 @@ final class Platform {
      * @param int $status The HTTP status.
      */
     public static function sendJson(array $data, int $status = 200): void {
+        if (self::$completeJson !== null) {
+            $data = (self::$completeJson)($data);
+        }
         $json = json_encode($data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PARTIAL_OUTPUT_ON_ERROR);
         if ($json === false) {
             $json = '{"ok":false,"error":"encoding"}';
@@ -151,6 +154,18 @@ final class Platform {
         }
         echo $json;
         exit;
+    }
+
+    /** @var callable|null What completes every JSON response of this request. */
+    private static $completeJson = null;
+
+    /**
+     * Complete every JSON response of this request before it is sent.
+     *
+     * @param callable $complete Takes the response array, returns it completed.
+     */
+    public static function completeJson(callable $complete): void {
+        self::$completeJson = $complete;
     }
 
     /**

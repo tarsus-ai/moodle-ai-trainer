@@ -42,7 +42,7 @@ final class Coach {
 
     /** @var string[] Requests of the coach that only need the right to use it. */
     public const LEARNER_ACTIONS = [
-        'feed', 'ask', 'askVoice', 'practiceNext', 'practiceCheck', 'learnNext', 'audio', 'discuss', 'references',
+        'feed', 'ask', 'askVoice', 'practiceNext', 'practiceCheck', 'learnNext', 'audio', 'discuss', 'references', 'progress',
     ];
 
     /** @var string[] Requests that need the right to manage the activity. */
@@ -162,6 +162,7 @@ final class Coach {
                 'audio' => 'audio',
                 'discuss' => 'discuss',
                 'references' => 'references',
+                'progress' => 'progress',
             ]),
             // The teacher's panels: settings, evaluation, history.
             'teacher' => $teacher ? [

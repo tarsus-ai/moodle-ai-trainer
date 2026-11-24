@@ -28,6 +28,7 @@ define('AJAX_SCRIPT', true);
 require(__DIR__ . '/../../config.php');
 require_once(__DIR__ . '/lib.php');
 
+use mod_tarsus\local\Activity\Scoring;
 use mod_tarsus\local\Activity\Settings;
 use mod_tarsus\local\Page\Coach;
 use mod_tarsus\local\Service\SettingsApi;
@@ -56,9 +57,20 @@ if ($isteacher && !has_capability('mod/tarsus:manage', $context)) {
     Platform::sendJson(['status' => 'error', 'ok' => false, 'error' => get_string('nopermissions', 'error', '')], 403);
 }
 
-// AI requests take a while: free the session so the learner can go on
-// working in other tabs meanwhile. Nothing below writes to the session.
-\core\session\manager::write_close();
+// Requests to Tarsus take a while: free the session so the learner can go
+// on working in other tabs meanwhile. Moodle keeps some course caches in
+// the session, so the learner's grade and completion are then written by
+// a quick follow-up request ("progress") that keeps its session.
+if (!in_array($action, ['progress', 'settings', 'saveSettings'], true)) {
+    \core\session\manager::write_close();
+    Scoring::deferPushes();
+    Platform::completeJson(static function (array $data): array {
+        if (Scoring::pushesPending()) {
+            $data['progressSync'] = true;
+        }
+        return $data;
+    });
+}
 
 $settings = Settings::load((int) $tarsus->id);
 $payload = Platform::jsonPayload();
@@ -116,6 +128,11 @@ try {
             break;
         case 'discuss':
             Platform::sendJson(Coach::learnerApi($tarsus, $settings)->discuss());
+            break;
+        case 'progress':
+            // The grade and completion a request with a closed session left.
+            Scoring::pushLearningProgress((int) $tarsus->id, (int) $USER->id);
+            Platform::sendJson(['status' => 'success', 'error' => '']);
             break;
         case 'references':
             Platform::sendJson(Coach::learnerApi($tarsus, $settings)->references(

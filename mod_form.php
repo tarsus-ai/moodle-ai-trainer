@@ -208,7 +208,7 @@ class mod_tarsus_mod_form extends moodleform_mod {
                 $defaultvalues['qtypes' . $grade][$type] = in_array($type, $settings->questiontypes[$grade] ?? [], true) ? 1 : 0;
             }
         }
-        $suffix = $this->get_suffix();
+        $suffix = $this->suffix();
         $progress = (int) $settings->completionprogress;
         $defaultvalues['completionprogressenabled' . $suffix] = $progress > 0 ? 1 : 0;
         $defaultvalues['completionprogress' . $suffix] = $progress > 0 ? $progress : Settings::DEFAULT_COMPLETION;
@@ -225,14 +225,23 @@ class mod_tarsus_mod_form extends moodleform_mod {
         $errors = parent::validation($data, $files);
         $settings = !empty($this->current->instance) ? Settings::load((int) $this->current->instance) : new Settings();
         $object = (object) $data;
-        if (empty($object->{'completionprogressenabled' . $this->get_suffix()})) {
+        if (empty($object->{'completionprogressenabled' . $this->suffix()})) {
             $object->completionprogress = 0;
         }
         foreach ((new SettingsApi($settings))->apply(tarsus_form_values($object)) as $field => $message) {
-            $map = ['askenabled' => 'askenabled', 'completionprogress' => 'completionprogressgroup' . $this->get_suffix()];
+            $map = ['askenabled' => 'askenabled', 'completionprogress' => 'completionprogressgroup' . $this->suffix()];
             $errors[$map[$field] ?? $field] = $message;
         }
         return $errors;
+    }
+
+    /**
+     * The suffix Moodle 4.3 and newer add to completion elements (none before).
+     *
+     * @return string
+     */
+    private function suffix(): string {
+        return method_exists($this, 'get_suffix') ? (string) $this->get_suffix() : '';
     }
 
     /**
@@ -242,7 +251,7 @@ class mod_tarsus_mod_form extends moodleform_mod {
      */
     public function add_completion_rules() {
         $mform = $this->_form;
-        $suffix = $this->get_suffix();
+        $suffix = $this->suffix();
         $group = [
             $mform->createElement('checkbox', 'completionprogressenabled' . $suffix, '', get_string('completionprogress_enable', 'mod_tarsus')),
             $mform->createElement('text', 'completionprogress' . $suffix, '', ['size' => 3]),
@@ -262,7 +271,7 @@ class mod_tarsus_mod_form extends moodleform_mod {
      * @return bool
      */
     public function completion_rule_enabled($data) {
-        $suffix = $this->get_suffix();
+        $suffix = $this->suffix();
         return !empty($data['completionprogressenabled' . $suffix]) && (int) ($data['completionprogress' . $suffix] ?? 0) > 0;
     }
 
@@ -273,7 +282,7 @@ class mod_tarsus_mod_form extends moodleform_mod {
      */
     public function data_postprocessing($data) {
         parent::data_postprocessing($data);
-        $suffix = $this->get_suffix();
+        $suffix = $this->suffix();
         if (!empty($data->completionunlocked)) {
             $automatic = !empty($data->{'completion' . $suffix}) && $data->{'completion' . $suffix} == COMPLETION_TRACKING_AUTOMATIC;
             if (empty($data->{'completionprogressenabled' . $suffix}) || !$automatic) {

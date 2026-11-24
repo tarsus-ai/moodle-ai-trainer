@@ -511,7 +511,21 @@
     };
 
     Chat.prototype.call = function (endpoint, payload) {
-        return post(this.config.endpoints[endpoint], payload, this.strings);
+        var self = this;
+        return post(this.config.endpoints[endpoint], payload, this.strings).then(function (result) {
+            self.syncProgress(result);
+            return result;
+        });
+    };
+
+    /**
+     * Moodle: a request that waited for Tarsus could not write the grade
+     * and completion (its session was closed); a quick follow-up does.
+     */
+    Chat.prototype.syncProgress = function (result) {
+        if (result && result.progressSync && this.config.endpoints.progress) {
+            post(this.config.endpoints.progress, {}, this.strings).catch(noop);
+        }
     };
 
     Chat.prototype.alert = function (message) {
@@ -2558,6 +2572,7 @@
         };
         postForm(this.config.endpoints.askVoice, form, this.strings).then(function (result) {
             unlock();
+            self.syncProgress(result);
             if (result.status !== 'success') {
                 self.alert(result.error || self.t('unexpected_error'));
                 return;

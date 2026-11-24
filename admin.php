@@ -318,8 +318,11 @@ function mod_tarsus_feature_panel(): string {
  */
 function mod_tarsus_action_button(moodle_url $url, string $action, string $label, bool $primary = false, array $params = []): string {
     global $OUTPUT;
-    $button = new single_button(new moodle_url($url, ['action' => $action] + $params), $label, 'post',
-        $primary ? single_button::BUTTON_PRIMARY : single_button::BUTTON_SECONDARY);
+    // Moodle 4.2 and newer name the style; 4.1 takes "primary or not".
+    $style = defined('single_button::BUTTON_PRIMARY')
+        ? ($primary ? constant('single_button::BUTTON_PRIMARY') : constant('single_button::BUTTON_SECONDARY'))
+        : $primary;
+    $button = new single_button(new moodle_url($url, ['action' => $action] + $params), $label, 'post', $style);
     $button->class = 'tarsus-inline-form d-inline-block me-2 mr-2';
     return $OUTPUT->render($button);
 }

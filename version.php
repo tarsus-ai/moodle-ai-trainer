@@ -25,8 +25,8 @@
 defined('MOODLE_INTERNAL') || die();
 
 $plugin->component = 'mod_tarsus';
-$plugin->version = 2026112400;
+$plugin->version = 2026112401;
 $plugin->release = '1.0.0';
-$plugin->requires = 2024100700; // Moodle 4.5.
-$plugin->supported = [405, 503];
+$plugin->requires = 2022112800; // Moodle 4.1.
+$plugin->supported = [401, 503];
 $plugin->maturity = MATURITY_STABLE;

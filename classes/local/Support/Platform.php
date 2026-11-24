@@ -65,6 +65,28 @@ final class Platform {
     }
 
     /**
+     * The plugin's scripts as deferred script tags, for the page body.
+     *
+     * Moodle prints a script added with $PAGE->requires->js() between its
+     * own start-up code and the rest of the page, where the message drawer
+     * follows. Such a script stops the browser until it has loaded, and
+     * meanwhile Moodle's start-up code may look for the drawer before it
+     * exists (Moodle 5: "Cannot read properties of undefined"; before, the
+     * drawer just does not open on that page). Deferred scripts load
+     * alongside the page and run once it has been read, in the order given.
+     *
+     * @param string[] $relative Paths below the plugin's assets folder.
+     * @return string HTML.
+     */
+    public static function deferredScripts(array $relative): string {
+        $html = '';
+        foreach ($relative as $path) {
+            $html .= \html_writer::tag('script', '', ['src' => self::assetUrl($path), 'defer' => 'defer']);
+        }
+        return $html;
+    }
+
+    /**
      * The plugin's release (version.php), for the user agent and cache busting.
      *
      * @return string

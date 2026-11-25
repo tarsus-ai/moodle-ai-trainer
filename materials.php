@@ -56,7 +56,6 @@ $PAGE->set_title(format_string($tarsus->name) . ': ' . get_string('tab_materials
 $PAGE->set_heading(format_string($course->fullname));
 $PAGE->set_secondary_active_tab('mod_tarsuscoach_materials');
 $version = platform::plugin_version();
-$PAGE->requires->css(new moodle_url('/mod/tarsuscoach/assets/css/tarsus.css', ['v' => $version]));
 
 $resolver = new resolver();
 $repo = new repository();

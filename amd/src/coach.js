@@ -3724,7 +3724,7 @@ Chat.prototype.openDrawer = function(title, wide) {
         drawer.classList.add('tarsus-drawer--open');
         drawer.querySelector('.tarsus-drawer__panel').focus();
     });
-    document.documentElement.classList.add('tarsus-drawer-lock');
+    document.documentElement.classList.add('tarsuscoach-drawer-lock');
     return body;
 };
 
@@ -3739,7 +3739,7 @@ Chat.prototype.closeDrawer = function() {
             drawer.hidden = true;
         }
     }, 220);
-    document.documentElement.classList.remove('tarsus-drawer-lock');
+    document.documentElement.classList.remove('tarsuscoach-drawer-lock');
     if (this.lastFocus && typeof this.lastFocus.focus === 'function') {
         this.lastFocus.focus();
     }

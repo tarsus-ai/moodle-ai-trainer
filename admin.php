@@ -56,7 +56,6 @@ $action = optional_param('action', '', PARAM_ALPHA);
 admin_externalpage_setup('mod_tarsuscoach_' . $tab);
 $url = new moodle_url('/mod/tarsuscoach/admin.php', ['tab' => $tab]);
 $PAGE->set_url($url);
-$PAGE->requires->css(new moodle_url('/mod/tarsuscoach/assets/css/tarsus.css', ['v' => platform::plugin_version()]));
 
 $t = static fn(string $key, array $params = []): string => platform::txt($key, $params);
 $yesno = static fn(bool $value): string => get_string($value ? 'yes' : 'no');

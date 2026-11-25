@@ -1,0 +1,3545 @@
+/* Tarsus coach (mod_tarsuscoach): the coach, the materials list and the plugin's admin pages.
+ * Every rule is limited to the plugin's own pages (the body classes path-mod-tarsuscoach and
+ * path-admin-mod-tarsuscoach), as Moodle loads this file on every page.
+ * The screens paint their own surfaces (cards, pads, chips, tracks) from the --tz-* colours, so they look
+ * the same in every theme; in Moodle's dark colour mode they take dark ones (end of the file). */
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-app,
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-lightbox {
+    --tz-fg: #1d2125;
+    --tz-ink: #23282d;
+    --tz-muted: #50555c;
+    --tz-faint: #6a7076;
+    --tz-card: #fff;
+    --tz-line: rgba(0, 0, 0, 0.08);
+    --tz-line-soft: rgba(0, 0, 0, 0.06);
+    --tz-line-strong: rgba(0, 0, 0, 0.18);
+    --tz-line-table: rgba(0, 0, 0, 0.125);
+    --tz-pad: #efeff0;
+    --tz-pad-active: #fff;
+    --tz-pad-active-line: rgba(0, 0, 0, 0.1);
+    --tz-pad-active-shadow: 0 1px 2px rgba(0, 0, 0, 0.12);
+    --tz-chip: rgba(255, 255, 255, 0.45);
+    --tz-chip-ink: #23282d;
+    --tz-reply-pad: rgba(35, 40, 45, 0.07);
+    --tz-reply-hover: rgba(0, 0, 0, 0.08);
+    --tz-soft: #f4f4f2;
+    --tz-badge: #f1f0ec;
+    --tz-row-alt: #f3f5f9;
+    --tz-number-bg: #e3e8f2;
+    --tz-number-fg: #2c3e5a;
+    --tz-track: #e6e9ef;
+    --tz-track-ink: rgba(35, 40, 45, 0.22);
+    --tz-ring-track: rgba(0, 0, 0, 0.08);
+    --tz-band-ring-track: rgba(0, 0, 0, 0.12);
+    --tz-wave: rgba(0, 0, 0, 0.18);
+    --tz-loading-ring: rgba(0, 0, 0, 0.1);
+    --tz-loading-glyph: rgba(35, 40, 45, 0.35);
+    --tz-accent: #2f6fb1;
+    --tz-accent-deep: #275f99;
+    --tz-accent-stroke: #2f6fb1;
+    --tz-accent-soft: rgba(47, 111, 177, 0.12);
+    --tz-focus: #0f6cbf;
+    --tz-success: #57b87b;
+    --tz-success-soft: #e9f7ec;
+    --tz-danger-soft: #fdeef0;
+    --tz-warning-soft: #fff4e0;
+    --tz-danger: #d9534f;
+    --tz-warning: #c77b14;
+    --tz-level-1: #3e9e6f;
+    --tz-level-2: #d98a2b;
+    --tz-level-3: #c8405e;
+    --tz-processing-track: #e3eef6;
+    --tz-composer: #f6f7f9;
+    --tz-card-shadow: 0 4px 16px rgba(35, 23, 90, 0.06);
+    --tz-frame-welcome: linear-gradient(135deg, #b39ddb 0%, #d8a7e8 35%, #f8b5c1 70%, #ffd9a0 100%);
+    --tz-frame-practice: linear-gradient(135deg, #9cc6dc 0%, #aedfd8 35%, #d8f0ec 70%, #a3c3e4 100%);
+    --tz-frame-learn: linear-gradient(135deg, #b8a8e6 0%, #cdb9ec 35%, #ead9f4 70%, #a9b4ea 100%);
+    --tz-frame-complete: linear-gradient(135deg, #a8e0b8 0%, #c4ecc9 35%, #e2f6df 70%, #a9dcc2 100%);
+    --tz-frame-motivation: linear-gradient(135deg, #a9d8ee 0%, #c3e6f4 35%, #e3f3fa 70%, #a5cfe9 100%);
+    --tz-frame-objectives: linear-gradient(135deg, #d9e88a 0%, #e8f2a8 35%, #f4f9d4 70%, #cfe27f 100%);
+    color: var(--tz-fg);
+    font-variant-numeric: tabular-nums;
+}
+
+/* ------------------------------------------------------------------ */
+/* Utilities                                                            */
+/* ------------------------------------------------------------------ */
+
+/* Hidden stays hidden whatever else applies. The id in :is() belongs to no
+   element: it ranks these rules above every class-based rule of the plugin,
+   so they need no !important (the same for .tarsus-sr-only below). */
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) :is(.tarsus-hidden, #tarsus-hidden) {
+    display: none;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-app :is([hidden], #tarsus-hidden) {
+    display: none;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-app .tarsus-center {
+    text-align: center;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-app .tarsus-muted {
+    color: var(--tz-muted);
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-app .tarsus-small {
+    font-size: 0.85rem;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-app .tarsus-nowrap {
+    white-space: nowrap;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-app .tarsus-h3,
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-h3 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin: 1.5rem 0 0.5rem;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-app .tarsus-icon {
+    width: 1em;
+    height: 1em;
+    font-size: 1rem;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    flex-shrink: 0;
+    vertical-align: -0.15em;
+}
+
+/* Buttons: the plugin's own, so they look alike in every skin. */
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-app .tarsus-btn,
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    padding: 0.45rem 1rem;
+    border: 1px solid var(--tz-line-strong);
+    border-radius: 0.5rem;
+    background: var(--tz-card);
+    color: var(--tz-fg);
+    font-size: 0.9rem;
+    line-height: 1.4;
+    font-weight: 500;
+    white-space: nowrap;
+    cursor: pointer;
+    text-decoration: none;
+    transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-app .tarsus-btn:hover,
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-btn:hover {
+    background: var(--tz-soft);
+    color: var(--tz-fg);
+    text-decoration: none;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-app .tarsus-btn:focus-visible,
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-btn:focus-visible {
+    outline: 2px solid var(--tz-focus);
+    outline-offset: 2px;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-app .tarsus-btn:disabled,
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-btn:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-app .tarsus-btn--primary,
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-btn--primary {
+    background: var(--tz-accent);
+    border-color: var(--tz-accent);
+    color: #fff;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-app .tarsus-btn--primary:hover,
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-btn--primary:hover {
+    background: var(--tz-accent-deep);
+    border-color: var(--tz-accent-deep);
+    color: #fff;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-app .tarsus-btn--warning {
+    border-color: var(--tz-warning);
+    color: var(--tz-warning);
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-app .tarsus-btn--danger {
+    border-color: var(--tz-danger);
+    color: var(--tz-danger);
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-app .tarsus-btn--sm,
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-btn--sm {
+    padding: 0.25rem 0.65rem;
+    font-size: 0.82rem;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-inline-form {
+    display: inline-block;
+    margin: 0 0.5rem 0.75rem 0;
+}
+
+/* Inputs inside cards. */
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-app .tarsus-input {
+    display: block;
+    width: 100%;
+    padding: 0.45rem 0.65rem;
+    border: 1px solid var(--tz-line-strong);
+    border-radius: 0.5rem;
+    background: var(--tz-card);
+    color: var(--tz-fg);
+    font: inherit;
+    line-height: 1.4;
+    box-sizing: border-box;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-app .tarsus-input:focus {
+    outline: 2px solid var(--tz-focus);
+    outline-offset: 1px;
+}
+
+/* Badges. */
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-app .tarsus-badge,
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-badge {
+    display: inline-flex;
+    align-items: center;
+    height: 24px;
+    padding: 0 0.5rem;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    line-height: 1;
+    font-weight: 500;
+    white-space: nowrap;
+    background: var(--tz-badge, #f1f0ec);
+    color: var(--tz-fg, #1d2125);
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-badge--light {
+    background: var(--tz-badge);
+    color: var(--tz-fg);
+    font-weight: 400;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-badge--neutral {
+    background: var(--tz-pad, #efeff0);
+    color: var(--tz-muted, #50555c);
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-badge--muted {
+    background: var(--tz-pad, #efeff0);
+    color: var(--tz-faint, #6a7076);
+    font-style: italic;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-badge--warning {
+    background: var(--tz-warning-soft, #fff4e0);
+    color: #7a4a05;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-badge--success {
+    background: var(--tz-success-soft, #e9f7ec);
+    color: #1f6b3a;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-badge--danger {
+    background: var(--tz-danger-soft, #fdeef0);
+    color: #9b2c2c;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-badge--info {
+    background: var(--tz-accent-soft, rgba(47, 111, 177, 0.12));
+    color: var(--tz-accent, #2f6fb1);
+}
+
+/* Spinners. */
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-app .tarsus-spinner,
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-spinner {
+    display: inline-block;
+    width: 1rem;
+    height: 1rem;
+    border: 2px solid var(--tz-loading-ring, rgba(0, 0, 0, 0.1));
+    border-top-color: var(--tz-accent, #2f6fb1);
+    border-radius: 50%;
+    animation: tarsuscoach-turn 0.9s linear infinite;
+    vertical-align: middle;
+    flex-shrink: 0;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-app .tarsus-spinner--light {
+    border-color: rgba(255, 255, 255, 0.35);
+    border-top-color: #fff;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-app .tarsus-spinner--inline {
+    width: 0.8rem;
+    height: 0.8rem;
+    margin-left: 0.35rem;
+}
+
+/* Tables (materials, learners, admin). */
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-app .tarsus-table-wrap {
+    overflow-x: auto;
+    margin-bottom: 1rem;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-app .tarsus-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.92rem;
+    background: var(--tz-card);
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-app .tarsus-table th,
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-app .tarsus-table td {
+    padding: 0.6rem 0.75rem;
+    border-bottom: 1px solid var(--tz-line);
+    text-align: left;
+    vertical-align: middle;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-app .tarsus-table thead th {
+    font-size: 0.8rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    color: var(--tz-faint);
+    border-bottom: 1px solid var(--tz-line-strong);
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-app .tarsus-table tbody tr:nth-child(even) {
+    background: var(--tz-row-alt);
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-app .tarsus-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+}
+
+/* A switch for the Included column. */
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-app .tarsus-switch {
+    position: relative;
+    display: inline-block;
+    width: 38px;
+    height: 22px;
+    margin: 0;
+    cursor: pointer;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-app .tarsus-switch input {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    opacity: 0;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    cursor: pointer;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-app .tarsus-switch__track {
+    position: absolute;
+    inset: 0;
+    border-radius: 999px;
+    background: var(--tz-track-ink);
+    transition: background 0.15s ease;
+    pointer-events: none;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-app .tarsus-switch__track::after {
+    content: "";
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: #fff;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+    transition: transform 0.15s ease;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-app .tarsus-switch input:checked + .tarsus-switch__track {
+    background: var(--tz-success);
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-app .tarsus-switch input:checked + .tarsus-switch__track::after {
+    transform: translateX(16px);
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-app .tarsus-switch input:disabled + .tarsus-switch__track {
+    opacity: 0.4;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-app .tarsus-switch input:focus-visible + .tarsus-switch__track {
+    outline: 2px solid var(--tz-focus);
+    outline-offset: 2px;
+}
+
+/* ------------------------------------------------------------------ */
+/* Teacher: materials                                                   */
+/* ------------------------------------------------------------------ */
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-dashboard__intro {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.75rem 1.5rem;
+    margin-bottom: 1rem;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-dashboard__intro p {
+    flex: 1 1 24rem;
+    margin: 0;
+    max-width: 48rem;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-dashboard__stats {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-stat {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.35rem;
+    padding: 0.4rem 0.75rem;
+    border-radius: 0.65rem;
+    background: var(--tz-pad);
+    color: var(--tz-muted);
+    font-size: 0.85rem;
+    white-space: nowrap;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-stat strong {
+    font-size: 1.1rem;
+    color: var(--tz-fg);
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-dashboard__bulk {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-dashboard__message {
+    font-size: 0.85rem;
+    color: var(--tz-muted);
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-dashboard__message--error {
+    color: var(--tz-danger);
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-empty {
+    padding: 2rem 1rem;
+    text-align: center;
+    border: 1px dashed var(--tz-line-strong);
+    border-radius: 16px;
+    color: var(--tz-muted);
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-pager {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin: 0.5rem 0 1rem;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-pager__state {
+    font-size: 0.85rem;
+    color: var(--tz-muted);
+}
+
+/* ------------------------------------------------------------------ */
+/* Teacher: learners                                                    */
+/* ------------------------------------------------------------------ */
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-summary {
+    display: grid;
+    grid-template-columns: minmax(16rem, 1fr) minmax(16rem, 1.2fr);
+    gap: 1.5rem;
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 1rem;
+    border: 1px solid var(--tz-line);
+    border-radius: 16px;
+    background: var(--tz-card);
+    box-shadow: var(--tz-card-shadow);
+}
+
+@media (max-width: 767.98px) {
+    :is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-summary {
+        grid-template-columns: 1fr;
+    }
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-summary__hero {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-summary__text {
+    min-width: 0;
+    padding-left: 16px;
+    border-left: 1px solid var(--tz-line);
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-eyebrow {
+    font-size: 0.8rem;
+    color: var(--tz-muted);
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-headline {
+    font-size: 1.25rem;
+    font-weight: 600;
+    line-height: 1.2;
+    letter-spacing: -0.01em;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-ring {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: var(--tarsus-ring, 36px);
+    height: var(--tarsus-ring, 36px);
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-ring svg {
+    position: absolute;
+    inset: 0;
+    transform: rotate(-90deg);
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-ring__track,
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-ring__fill {
+    fill: none;
+    stroke-width: 3.6;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-ring__track {
+    stroke: var(--tz-ring-track);
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-ring__fill {
+    stroke: var(--tz-accent);
+    stroke-linecap: round;
+    stroke-dasharray: 56.55;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-ring__value {
+    position: relative;
+    font-size: calc(var(--tarsus-ring, 36px) * 0.27);
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    line-height: 1;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-summary__dist {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-stack {
+    display: flex;
+    gap: 2px;
+    height: 6px;
+    overflow: hidden;
+    border-radius: 999px;
+    background: var(--tz-track);
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-stack__part--done,
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-dot--done {
+    background: var(--tz-success);
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-stack__part--open,
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-dot--open {
+    background: var(--tz-accent);
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-stack__part--none,
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-dot--none {
+    background: var(--tz-track);
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2px 12px;
+    font-size: 0.8rem;
+    color: var(--tz-muted);
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-dot {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    margin-right: 5px;
+    border-radius: 50%;
+    vertical-align: middle;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-histogram {
+    display: flex;
+    align-items: flex-end;
+    gap: 8px;
+    height: 72px;
+    padding-top: 4px;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-histogram__bucket {
+    display: flex;
+    flex: 1 1 0;
+    flex-direction: column;
+    align-items: center;
+    height: 100%;
+    min-width: 0;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-histogram__count {
+    font-size: 0.7rem;
+    line-height: 1;
+    color: var(--tz-muted);
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-histogram__bar {
+    display: flex;
+    align-items: flex-end;
+    flex-grow: 1;
+    width: 100%;
+    margin: 3px 0;
+    border-radius: 5px;
+    background: var(--tz-soft);
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-histogram__fill {
+    width: 100%;
+    min-height: 3px;
+    border-radius: 5px;
+    background: linear-gradient(180deg, #60a5fa 0%, #2563eb 100%);
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-histogram__label {
+    font-size: 0.65rem;
+    line-height: 1;
+    white-space: nowrap;
+    color: var(--tz-muted);
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-minibar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 9rem;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-minibar__track {
+    display: block;
+    flex-grow: 1;
+    height: 6px;
+    overflow: hidden;
+    border-radius: 999px;
+    background: var(--tz-track);
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-minibar__fill {
+    display: block;
+    height: 100%;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #2563eb 0%, #60a5fa 100%);
+}
+
+/* ------------------------------------------------------------------ */
+/* The learner's chat                                                   */
+/* ------------------------------------------------------------------ */
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-chat-box {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    min-height: 60vh;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-demo-note {
+    margin: 0 auto 1rem;
+    max-width: 46rem;
+    padding: 0.5rem 0.9rem;
+    border-radius: 0.65rem;
+    background: var(--tz-warning-soft);
+    color: #6b4a0c;
+    font-size: 0.85rem;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-chat-box .tarsus-chat-flow {
+    flex: 1 1 auto;
+    padding: 0.75rem 0 1rem;
+    overflow-anchor: none;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-feed-loading,
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-feed-older {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 2rem 0;
+    color: var(--tz-muted);
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-feed-older {
+    padding: 0.5rem 0;
+}
+
+/* Back to top: a round button pinned under the top edge of the scrolling column. */
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-chat-box .tarsus-top-dock {
+    position: sticky;
+    top: calc(var(--tarsus-nav-offset, 0px) + 0.75rem);
+    height: 0;
+    z-index: 996;
+    display: flex;
+    justify-content: flex-end;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-chat-box .tarsus-jump-top {
+    width: 2.25rem;
+    height: 2.25rem;
+    padding: 0;
+    border-radius: 50%;
+    border: 1px solid var(--tz-line);
+    background: var(--tz-card);
+    color: var(--tz-fg);
+    box-shadow: var(--tz-card-shadow);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+/* Progress: a slim fill bar pinned to the top while the feed scrolls. */
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-chat-box .tarsus-progress {
+    position: sticky;
+    top: calc(var(--tarsus-nav-offset, 0px) + 4px);
+    z-index: 996;
+    height: 6px;
+    margin-bottom: 0.6rem;
+    border-radius: 999px;
+    background: var(--tz-track);
+    overflow: hidden;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-chat-box .tarsus-progress__fill {
+    height: 100%;
+    width: 0;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #2563eb 0%, #60a5fa 100%);
+    box-shadow: 0 0 6px rgba(37, 99, 235, 0.35);
+    transition: width 0.5s ease;
+}
+
+/* The composer, pinned to the bottom of the viewport, above any bar the
+   theme pins there (Moodle's Previous/Next footer). */
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-chat-box .tarsus-chat-form {
+    position: sticky;
+    bottom: var(--tarsus-bottom-offset, 0);
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin: 0;
+    padding: 0.6rem 0.75rem;
+    border: 1px solid var(--tz-line);
+    border-radius: 16px;
+    background: var(--tz-composer);
+    box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.06);
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-chat-box .tarsus-chat-alert {
+    padding: 0.5rem 0.75rem;
+    border-radius: 0.5rem;
+    background: var(--tz-danger-soft);
+    color: #9b2c2c;
+    font-size: 0.9rem;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-chat-box .tarsus-chat-input {
+    display: block;
+    width: 100%;
+    min-height: 38px;
+    max-height: 160px;
+    padding: 0.5rem 0.4rem;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+    color: var(--tz-fg);
+    font: inherit;
+    line-height: 1.4;
+    resize: none;
+    box-sizing: border-box;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-chat-box .tarsus-chat-input:focus {
+    outline: none;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-chat-box .tarsus-composer-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-chat-box .tarsus-composer-left {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    min-width: 0;
+}
+
+/* Interaction mode switcher: a segmented pill toggle inside the composer. */
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-mode-switch__group {
+    display: inline-flex;
+    gap: 2px;
+    padding: 3px;
+    border-radius: 0.65rem;
+    background: var(--tz-pad);
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-mode-switch__btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    border: 1px solid transparent;
+    background: transparent;
+    border-radius: 0.5rem;
+    padding: 0.375rem 1rem;
+    font-size: 0.875rem;
+    line-height: 1.4;
+    color: var(--tz-muted);
+    white-space: nowrap;
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-mode-switch__btn:hover {
+    color: var(--tz-fg);
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-mode-switch__btn:focus-visible {
+    outline: 2px solid var(--tz-focus);
+    outline-offset: 2px;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-mode-switch__btn--active {
+    background: var(--tz-pad-active);
+    border-color: var(--tz-pad-active-line);
+    color: var(--tz-fg);
+    font-weight: 600;
+    box-shadow: var(--tz-pad-active-shadow);
+}
+
+@media (max-width: 575.98px) {
+    :is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-mode-switch__btn span {
+        display: none;
+    }
+
+    :is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-mode-switch__btn {
+        padding: 0.375rem 0.7rem;
+    }
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-chat-box .tarsus-xp-badge {
+    font-size: 0.875rem;
+    line-height: 1.4;
+    color: var(--tz-muted);
+    white-space: nowrap;
+}
+
+/* The reference chip above the composer. */
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-chat-box .tarsus-reply-chip {
+    display: inline-flex;
+    align-self: flex-start;
+    align-items: center;
+    gap: 0.35rem;
+    max-width: 100%;
+    min-height: 24px;
+    padding: 0.2rem 0.25rem 0.2rem 0.5rem;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    line-height: 1.25;
+    background: var(--tz-reply-pad);
+    color: var(--tz-ink);
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-chat-box .tarsus-reply-chip__title {
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-chat-box .tarsus-reply-chip__clear {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 18px;
+    height: 18px;
+    padding: 0;
+    border: 0;
+    border-radius: 4px;
+    background: transparent;
+    color: var(--tz-muted);
+    cursor: pointer;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-chat-box .tarsus-reply-chip__clear:hover,
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-chat-box .tarsus-reply-chip__clear:focus-visible {
+    background: var(--tz-reply-hover);
+    color: var(--tz-ink);
+}
+
+/* Conversation cards: centred, comfortably wide, stacked with air. */
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-chat-box .tarsus-card {
+    max-width: 46rem;
+    margin: 0 auto 1.25rem;
+    border: 1px solid var(--tz-line);
+    border-radius: 16px;
+    background: var(--tz-card);
+    box-shadow: var(--tz-card-shadow);
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-chat-box .tarsus-card__inner {
+    padding: 1.25rem 1.5rem;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-chat-box .tarsus-card__question,
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-chat-box .tarsus-card__answer {
+    display: flex;
+    align-items: flex-start;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-chat-box .tarsus-card__avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+    margin-right: 0.85rem;
+    background: var(--tz-pad);
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-chat-box .tarsus-card__avatar--empty {
+    display: inline-block;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-chat-box .tarsus-card__question-text {
+    white-space: pre-wrap;
+    font-weight: 500;
+    align-self: center;
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-chat-box .tarsus-card__divider {
+    border: 0;
+    border-top: 2px solid var(--tz-line-strong);
+    border-radius: 1px;
+    margin: 1rem 0;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-chat-box .tarsus-card__answer-body {
+    min-width: 0;
+    flex: 1 1 auto;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-chat-box .tarsus-card__reply {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    margin-bottom: 0.5rem;
+    font-size: 0.8rem;
+    color: var(--tz-muted);
+}
+
+/* The top line of an answer: what it replies to on the left, its
+   sources at the top right. */
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-chat-box .tarsus-card__top {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-chat-box .tarsus-card__top .tarsus-card__reply {
+    margin-bottom: 0;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-chat-box .tarsus-card__top [data-action="sources"] {
+    margin-left: auto;
+}
+
+/* The welcome card: a gradient frame around a white body. */
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-chat-box .tarsus-card--welcome {
+    border: 0;
+    padding: 8px;
+    background: var(--tz-frame-welcome);
+    box-shadow: 0 10px 28px rgba(35, 23, 90, 0.12);
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-chat-box .tarsus-card--welcome .tarsus-card__inner {
+    background: var(--tz-card);
+    border-radius: 13px;
+    padding: 2rem 1.75rem 1.75rem;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-chat-box .tarsus-welcome-art {
+    margin-bottom: 1rem;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-chat-box .tarsus-welcome-art img {
+    width: 130px;
+    max-width: 80%;
+    height: auto;
+    max-height: none;
+    margin: 0;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-chat-box .tarsus-card__welcome-text {
+    font-size: 1.05rem;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-chat-box .tarsus-card__welcome-text > :last-child,
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-chat-box .tarsus-card__answer-body > :last-child,
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-chat-box .tarsus-practice-card__feedback > :last-child,
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-chat-box .tarsus-learn-slide__text > :last-child {
+    margin-bottom: 0;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-chat-box .tarsus-card__answer-body > :first-child {
+    margin-top: 0;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-chat-box .tarsus-card__title {
+    font-size: 1.6rem;
+    font-weight: 700;
+    line-height: 1.25;
+    margin: 0 0 0.75rem;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-chat-box .tarsus-card--complete {
+    background: var(--tz-frame-complete);
+    box-shadow: 0 10px 28px rgba(40, 110, 60, 0.1);
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-chat-box .tarsus-card--motivation {
+    background: var(--tz-frame-motivation);
+    box-shadow: 0 10px 28px rgba(40, 90, 130, 0.1);
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-chat-box .tarsus-card--objectives {
+    background: var(--tz-frame-objectives);
+    box-shadow: 0 10px 28px rgba(100, 120, 30, 0.1);
+}
+
+/* Tarsus's texts: Markdown rendered like in the Tarsus app (React-Markdown
+   with KaTeX), styled the same in every theme. */
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-app .tarsus-md {
+    line-height: 1.6;
+    overflow-wrap: break-word;
+    -webkit-hyphens: manual;
+    hyphens: manual;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-app .tarsus-md > :first-child {
+    margin-top: 0;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-app .tarsus-md > :last-child {
+    margin-bottom: 0;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-app .tarsus-md p {
+    margin: 0 0 0.75em;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-app .tarsus-md h1,
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-app .tarsus-md h2,
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-app .tarsus-md h3,
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-app .tarsus-md h4,
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-app .tarsus-md h5,
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-app .tarsus-md h6 {
+    margin: 1.1em 0 0.5em;
+    padding: 0;
+    color: inherit;
+    font-family: inherit;
+    font-weight: 700;
+    line-height: 1.3;
+    text-transform: none;
+    letter-spacing: normal;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-app .tarsus-md h1 {
+    font-size: 1.35em;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-app .tarsus-md h2 {
+    font-size: 1.2em;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-app .tarsus-md h3 {
+    font-size: 1.08em;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-app .tarsus-md h4,
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-app .tarsus-md h5,
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-app .tarsus-md h6 {
+    font-size: 1em;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-app .tarsus-md ul,
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-app .tarsus-md ol {
+    margin: 0 0 0.75em;
+    padding: 0;
+    padding-inline-start: 1.5em;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-app .tarsus-md ul {
+    list-style: disc;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-app .tarsus-md ol {
+    list-style: decimal;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-app .tarsus-md ul ul {
+    list-style: circle;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-app .tarsus-md li {
+    margin: 0.25em 0;
+    padding: 0;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-app .tarsus-md li > p {
+    margin: 0 0 0.35em;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-app .tarsus-md li > ul,
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-app .tarsus-md li > ol {
+    margin: 0.25em 0 0;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-app .tarsus-md li::marker {
+    color: var(--tz-accent);
+}
+
+/* GitHub task lists: the box takes the place of the bullet. */
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-app .tarsus-md .contains-task-list {
+    list-style: none;
+    padding-inline-start: 0.25em;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-app .tarsus-md .task-list-item input {
+    margin: 0;
+    margin-inline-end: 0.5em;
+    vertical-align: middle;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-app .tarsus-md a {
+    color: var(--tz-accent);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-app .tarsus-md strong {
+    font-weight: 700;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-app .tarsus-md blockquote {
+    margin: 0 0 0.75em;
+    padding: 0.2em 0;
+    padding-inline-start: 1em;
+    border: 0;
+    border-inline-start: 3px solid var(--tz-line-strong);
+    color: var(--tz-muted);
+    font-size: 1em;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-app .tarsus-md hr {
+    height: 0;
+    margin: 1.25em 0;
+    border: 0;
+    border-top: 1px solid var(--tz-line-strong);
+    opacity: 1;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-app .tarsus-md img {
+    max-width: 100%;
+    height: auto;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-app .tarsus-md code {
+    padding: 0.1em 0.35em;
+    border: 1px solid var(--tz-line);
+    border-radius: 0.35em;
+    background: var(--tz-soft);
+    color: inherit;
+    font-family: "SFMono-Regular", Menlo, Consolas, "Liberation Mono", monospace;
+    font-size: 0.9em;
+    word-break: break-word;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-app .tarsus-md pre {
+    margin: 0 0 0.75em;
+    padding: 0.85em 1em;
+    overflow-x: auto;
+    border: 0;
+    border-radius: 0.6em;
+    background: #0f172a;
+    color: #e2e8f0;
+    font-size: 0.88em;
+    line-height: 1.55;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-app .tarsus-md pre code {
+    padding: 0;
+    border: 0;
+    background: none;
+    color: inherit;
+    font-size: inherit;
+    white-space: pre;
+    word-break: normal;
+}
+
+/* Tables, as in the Tarsus app: rules between the rows, a stronger one
+   under the header; they scroll sideways on narrow screens. Themes style
+   plain tables with long selectors (Moodle draws a grid on them), so these
+   rules name their classes twice to stay in charge. */
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-app.tarsus-app .tarsus-md.tarsus-md .tarsus-table-wrap {
+    margin: 0 0 0.75em;
+    overflow-x: auto;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-app.tarsus-app .tarsus-md.tarsus-md .tarsus-table-wrap table {
+    width: 100%;
+    margin: 0;
+    border: 0;
+    border-collapse: collapse;
+    background: transparent;
+    font-size: 0.95em;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-app.tarsus-app .tarsus-md.tarsus-md .tarsus-table-wrap thead,
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-app.tarsus-app .tarsus-md.tarsus-md .tarsus-table-wrap tbody,
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-app.tarsus-app .tarsus-md.tarsus-md .tarsus-table-wrap tfoot,
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-app.tarsus-app .tarsus-md.tarsus-md .tarsus-table-wrap tr {
+    border: 0;
+    background: transparent;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-app.tarsus-app .tarsus-md.tarsus-md .tarsus-table-wrap th,
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-app.tarsus-app .tarsus-md.tarsus-md .tarsus-table-wrap td {
+    padding: 0.5em 0.75em;
+    border: 0;
+    border-bottom: 1px solid var(--tz-line-table);
+    background: transparent;
+    text-align: start;
+    vertical-align: top;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-app.tarsus-app .tarsus-md.tarsus-md .tarsus-table-wrap th {
+    border-bottom: 2px solid var(--tz-line-strong);
+    color: var(--tz-muted);
+    font-weight: 600;
+}
+
+/* Formulas (KaTeX): a wide one scrolls instead of overflowing the card. */
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-app .tarsus-md .katex-display {
+    margin: 0.75em 0;
+    padding: 2px 0;
+    overflow-x: auto;
+    overflow-y: hidden;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-app .tarsus-md .katex-error {
+    white-space: pre-wrap;
+}
+
+/* Footnotes. */
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-app .tarsus-md .footnotes {
+    margin-top: 1em;
+    padding-top: 0.5em;
+    border-top: 1px solid var(--tz-line);
+    color: var(--tz-muted);
+    font-size: 0.88em;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-app .tarsus-md .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+/* An answer option reads inline; a richer one keeps its blocks tight. */
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-app .tarsus-md--inline {
+    display: inline;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-app .tarsus-md--inline > p,
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-app .tarsus-md--inline > ul,
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-app .tarsus-md--inline > ol {
+    margin-bottom: 0.25em;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-app .tarsus-practice-choice__label.tarsus-md--inline {
+    display: block;
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-app .tarsus-table-wrap table {
+    width: 100%;
+    margin-bottom: 0.5rem;
+    border-collapse: collapse;
+}
+
+/* Practice question cards (Test knowledge). */
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-chat-box .tarsus-practice-card {
+    border: 0;
+    padding: 0 8px 8px;
+    background: var(--tz-frame-practice);
+    box-shadow: 0 10px 28px rgba(24, 74, 90, 0.1);
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-chat-box .tarsus-practice-card .tarsus-practice-card__inner {
+    background: var(--tz-card);
+    border-radius: 13px;
+    padding: 1rem;
+}
+
+/* The frame band at the top of practice and learning cards. */
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-chat-box .tarsus-card__band {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    min-height: 2.5rem;
+    padding: 0.5rem 1rem;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-chat-box .tarsus-card__band .tarsus-badge,
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-chat-box .tarsus-card__band .tarsus-difficulty,
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-chat-box .tarsus-card__band .tarsus-learn-ring {
+    height: 24px;
+    box-sizing: border-box;
+    border-radius: 6px;
+    background: var(--tz-chip);
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-chat-box .tarsus-card__band .tarsus-badge {
+    color: var(--tz-chip-ink);
+    font-weight: 400;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-chat-box .tarsus-card__band .tarsus-difficulty {
+    padding: 0 0.4rem 5px;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-chat-box .tarsus-card__band .tarsus-learn-ring {
+    width: 24px;
+    padding: 3px;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-chat-box .tarsus-card__band .tarsus-learn-ring__track {
+    stroke: var(--tz-band-ring-track);
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-chat-box .tarsus-card__band .tarsus-learn-ring__fill {
+    stroke: var(--tz-accent-stroke);
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-chat-box .tarsus-card__band .tarsus-learn-ask {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    height: 24px;
+    margin-left: auto;
+    padding: 0 0.5rem;
+    border: 0;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    line-height: 1;
+    white-space: nowrap;
+    background: var(--tz-chip);
+    color: var(--tz-chip-ink);
+    cursor: pointer;
+    transition: background 0.2s ease, color 0.2s ease;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-chat-box .tarsus-card__band .tarsus-learn-ask:hover,
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-chat-box .tarsus-card__band .tarsus-learn-ask:focus-visible {
+    background: var(--tz-accent);
+    color: #fff;
+}
+
+/* Difficulty as three ascending bars, filled up to the grade. */
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-difficulty {
+    display: inline-flex;
+    align-items: flex-end;
+    gap: 2px;
+    align-self: center;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-difficulty__bar {
+    width: 4px;
+    border-radius: 1px;
+    background: var(--tz-track-ink);
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-difficulty__bar:nth-child(1) {
+    height: 6px;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-difficulty__bar:nth-child(2) {
+    height: 10px;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-difficulty__bar:nth-child(3) {
+    height: 14px;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-difficulty__bar--filled {
+    background: var(--tz-ink);
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-difficulty--1 .tarsus-difficulty__bar--filled {
+    background: var(--tz-level-1);
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-difficulty--2 .tarsus-difficulty__bar--filled {
+    background: var(--tz-level-2);
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-difficulty--3 .tarsus-difficulty__bar--filled {
+    background: var(--tz-level-3);
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-practice-card__question {
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-practice-card__question > :last-child {
+    margin-bottom: 0;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-practice-card__choices {
+    display: flex;
+    flex-direction: column;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-practice-choice {
+    display: flex;
+    align-items: baseline;
+    gap: 0.6rem;
+    margin: 0;
+    padding: 0.75rem 0.9rem;
+    border-radius: 0.5rem;
+    border-bottom: 1px solid var(--tz-line-soft);
+    cursor: pointer;
+    font-weight: 400;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-practice-choice__input {
+    margin: 0;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-practice-card--answered .tarsus-practice-choice {
+    cursor: default;
+    color: var(--tz-faint);
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-practice-choice--correct {
+    background: var(--tz-success-soft);
+    color: var(--tz-fg);
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-practice-choice--incorrect {
+    background: var(--tz-danger-soft);
+    color: var(--tz-fg);
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-practice-card__actions {
+    margin-top: 0.75rem;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-practice-card__feedback {
+    margin-top: 1rem;
+    padding: 0.9rem 1.1rem;
+    border-radius: 0.75rem;
+    background: var(--tz-soft);
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-practice-card__feedback--correct {
+    background: var(--tz-success-soft);
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-practice-card__feedback--incorrect {
+    background: var(--tz-danger-soft);
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-practice-card__feedback--partial {
+    background: var(--tz-warning-soft);
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-practice-card__score {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-top: 1rem;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-practice-card__score-track {
+    flex: 1 1 auto;
+    height: 6px;
+    border-radius: 999px;
+    background: var(--tz-track);
+    overflow: hidden;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-practice-card__score-fill {
+    height: 100%;
+    width: 0;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #f0932b 0%, #f6c453 100%);
+    transition: width 0.5s ease;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-practice-card__score-value {
+    flex: 0 0 auto;
+    font-size: 0.875rem;
+    color: var(--tz-muted);
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-practice-card__variables {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-bottom: 0.25rem;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-practice-variable {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin: 0;
+    font-weight: 400;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-practice-variable__name {
+    min-width: 5rem;
+    font-family: "SFMono-Regular", Menlo, Consolas, monospace;
+    font-size: 0.9rem;
+    color: var(--tz-fg);
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-practice-variable--incorrect .tarsus-practice-variable__input {
+    border-color: var(--tz-danger);
+    background: var(--tz-danger-soft);
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-practice-card__table-wrap {
+    overflow-x: auto;
+    margin-bottom: 0.25rem;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-practice-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-practice-table th {
+    text-align: left;
+    font-weight: 600;
+    color: var(--tz-faint);
+    font-size: 0.8rem;
+    letter-spacing: 0.02em;
+    padding: 0.35rem 0.5rem;
+    border-bottom: 1px solid var(--tz-line);
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-practice-table td {
+    padding: 0.3rem 0.5rem;
+    border-bottom: 1px solid var(--tz-line-soft);
+    vertical-align: middle;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-practice-table__position {
+    white-space: nowrap;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-practice-table__cell {
+    min-width: 7rem;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-practice-table__input {
+    max-width: 10rem;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-practice-table__cell--incorrect .tarsus-practice-table__input {
+    border-color: var(--tz-danger);
+    background: var(--tz-danger-soft);
+}
+
+/* Build knowledge cards. */
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-chat-box .tarsus-learn-card {
+    border: 0;
+    padding: 0 8px 8px;
+    background: var(--tz-frame-learn);
+    box-shadow: 0 10px 28px rgba(70, 50, 120, 0.1);
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-chat-box .tarsus-learn-card .tarsus-learn-card__inner {
+    background: var(--tz-card);
+    border-radius: 13px;
+    padding: 1rem;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-learn-ring {
+    flex-shrink: 0;
+    transform: rotate(-90deg);
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-learn-ring__track,
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-learn-ring__fill {
+    fill: none;
+    stroke-width: 5.33;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-learn-ring__track {
+    stroke: var(--tz-ring-track);
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-learn-ring__fill {
+    stroke: var(--tz-ink);
+    stroke-linecap: round;
+    stroke-dasharray: 56.55;
+    transition: stroke-dashoffset 0.3s ease;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-learn-slide__title {
+    font-size: 1.05rem;
+    font-weight: 600;
+    margin: 0 0 0.6rem;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-learn-slide__body {
+    display: flex;
+    gap: 1rem;
+    align-items: flex-start;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-learn-slide__body--left {
+    flex-direction: row;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-learn-slide__body--right {
+    flex-direction: row-reverse;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-learn-slide__image {
+    flex: 0 0 38%;
+    max-width: 38%;
+    height: auto;
+    border-radius: 8px;
+    cursor: zoom-in;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-learn-slide__image:focus-visible {
+    outline: 3px solid var(--tz-focus);
+    outline-offset: 2px;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-learn-slide__text {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+@media (max-width: 575.98px) {
+    :is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-learn-slide__body,
+    :is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-learn-slide__body--right {
+        flex-direction: column;
+    }
+
+    :is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-learn-slide__image {
+        max-width: 100%;
+        flex-basis: auto;
+    }
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-learn-card__nav {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
+    margin-top: 1rem;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-chat-box .tarsus-learn-card .tarsus-practice-card--inslide {
+    padding: 0;
+    background: none;
+    box-shadow: none;
+    margin: 0;
+    border: 0;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach)
+.tarsus-chat-box .tarsus-learn-card .tarsus-practice-card--inslide .tarsus-practice-card__inner {
+    padding: 0;
+    border-radius: 0;
+}
+
+/* The objectives list. */
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-learn-objectives {
+    list-style: none;
+    margin: 1.25rem 0 0;
+    padding: 0;
+    text-align: left;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-learn-objectives__item {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 0.6rem 0.75rem;
+    border-radius: 8px;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-learn-objectives__item:nth-child(odd) {
+    background: var(--tz-row-alt);
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-learn-objectives__number {
+    flex: 0 0 1.75rem;
+    height: 1.75rem;
+    border-radius: 6px;
+    background: var(--tz-number-bg);
+    color: var(--tz-number-fg);
+    font-weight: 600;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-learn-objectives__text {
+    flex: 1 1 auto;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-learn-objectives__item--done .tarsus-learn-objectives__text {
+    text-decoration: line-through;
+    color: var(--tz-faint);
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-learn-objectives__item .tarsus-badge {
+    flex: 0 0 auto;
+    align-self: center;
+}
+
+/* The narration control. */
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-chat-box .tarsus-learn-player {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    min-width: 0;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-chat-box .tarsus-learn-player__toggle {
+    position: relative;
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    border: 0;
+    border-radius: 6px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--tz-chip);
+    color: var(--tz-chip-ink);
+    cursor: pointer;
+    transition: background 0.2s ease, color 0.2s ease;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-chat-box .tarsus-learn-player__toggle .tarsus-icon {
+    font-size: 0.85rem;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach)
+.tarsus-chat-box .tarsus-learn-player[data-state="loading"] .tarsus-learn-player__toggle {
+    color: var(--tz-loading-glyph);
+    cursor: progress;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach)
+.tarsus-chat-box .tarsus-learn-player[data-state="loading"] .tarsus-learn-player__toggle .tarsus-icon {
+    font-size: 0.6rem;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach)
+.tarsus-chat-box .tarsus-learn-player[data-state="loading"] .tarsus-learn-player__toggle::after {
+    content: "";
+    position: absolute;
+    inset: 2px;
+    border-radius: 50%;
+    border: 2px solid var(--tz-loading-ring);
+    border-top-color: var(--tz-accent-stroke);
+    animation: tarsuscoach-turn 0.9s linear infinite;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach)
+.tarsus-chat-box .tarsus-learn-player[data-state="ready"] .tarsus-learn-player__toggle,
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach)
+.tarsus-chat-box .tarsus-learn-player[data-state="playing"] .tarsus-learn-player__toggle {
+    background: var(--tz-accent);
+    color: #fff;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-chat-box .tarsus-learn-player__wave {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    height: 20px;
+    width: 12rem;
+    max-width: 40vw;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-chat-box .tarsus-learn-player__bar {
+    flex: 1 1 0;
+    min-width: 1px;
+    border-radius: 1px;
+    background: var(--tz-wave);
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-chat-box .tarsus-learn-player__bar--played {
+    background: var(--tz-accent-stroke);
+}
+
+/* The lightbox for slide illustrations. */
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-lightbox {
+    border: 0;
+    padding: 0;
+    background: transparent;
+    max-width: 100vw;
+    max-height: 100vh;
+    width: 100vw;
+    height: 100vh;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    cursor: zoom-out;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-lightbox[open] {
+    display: flex;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-lightbox::backdrop {
+    background: rgba(20, 24, 30, 0.72);
+    backdrop-filter: blur(4px);
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-lightbox__image {
+    --tz-max-width-1: min(92vw, 1400px);
+    max-width: var(--tz-max-width-1);
+    max-height: 90vh;
+    width: auto;
+    height: auto;
+    border-radius: 12px;
+    background: var(--tz-card);
+    padding: 12px;
+    box-shadow: 0 24px 64px rgba(0, 0, 0, 0.45);
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-lightbox__close {
+    position: fixed;
+    top: 1rem;
+    right: 1rem;
+    width: 2.75rem;
+    height: 2.75rem;
+    border-radius: 50%;
+    border: 0;
+    background: rgba(255, 255, 255, 0.92);
+    color: #23282d;
+    font-size: 1.5rem;
+    line-height: 1;
+    cursor: pointer;
+}
+
+/* The processing indicator under the feed. */
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-chat-box .tarsus-processing {
+    padding: 0.9rem 1.25rem 0.85rem;
+    background: var(--tz-card);
+    border: 1px solid var(--tz-line-soft);
+    box-shadow: var(--tz-card-shadow);
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-processing__row {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin-bottom: 0.6rem;
+    font-size: 1.05rem;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-processing__glyph {
+    font-size: 1.25rem;
+    animation: tarsuscoach-turn 3s linear infinite;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-processing__bar {
+    height: 8px;
+    border-radius: 999px;
+    background: var(--tz-processing-track);
+    overflow: hidden;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-processing__fill {
+    height: 100%;
+    width: 60%;
+    border-radius: 999px;
+    background: #4a98cf;
+    animation: tarsuscoach-run 1.6s ease-in-out infinite;
+}
+
+@keyframes tarsuscoach-turn {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes tarsuscoach-run {
+    0% {
+        transform: translateX(-100%);
+    }
+
+    100% {
+        transform: translateX(170%);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    :is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-processing__glyph,
+    :is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-processing__fill,
+    :is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach)
+    .tarsus-chat-box .tarsus-learn-player[data-state="loading"] .tarsus-learn-player__toggle::after {
+        animation: none;
+    }
+
+    :is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-practice-card__score-fill,
+    :is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-chat-box .tarsus-progress__fill,
+    :is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-learn-ring__fill {
+        transition: none;
+    }
+}
+
+/* ------------------------------------------------------------------
+   Interactive pages (ai-driven interaction): sandboxed frames
+   ------------------------------------------------------------------ */
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-frame {
+    position: relative;
+    margin-top: 0.75rem;
+    border: 1px solid var(--tz-line);
+    border-radius: 12px;
+    background: var(--tz-card);
+    overflow: hidden;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-card__answer-body .tarsus-frame:first-child {
+    margin-top: 0;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-frame__iframe {
+    display: block;
+    width: 100%;
+    height: 420px;
+    border: 0;
+    background: #fff;
+    transition: height 0.2s ease;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-frame__enlarge {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    width: 2rem;
+    height: 2rem;
+    padding: 0;
+    border-radius: 50%;
+    border: 1px solid var(--tz-line);
+    background: rgba(255, 255, 255, 0.92);
+    color: var(--tz-fg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    opacity: 0.75;
+    transition: opacity 0.15s ease;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-frame__enlarge:hover,
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-frame__enlarge:focus-visible {
+    opacity: 1;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-lightbox--page {
+    cursor: default;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-lightbox__page {
+    --tz-width-2: min(94vw, 1500px);
+    width: var(--tz-width-2);
+    height: 90vh;
+    border: 0;
+    border-radius: 12px;
+    background: #fff;
+    box-shadow: 0 24px 64px rgba(0, 0, 0, 0.45);
+}
+
+/* ------------------------------------------------------------------
+   Help button and panel
+   ------------------------------------------------------------------ */
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-help {
+    position: relative;
+    display: inline-flex;
+    pointer-events: auto;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-chat-box .tarsus-top-dock .tarsus-help {
+    margin-right: 0.5rem;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-help-row {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 0.5rem;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-help__button {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    height: 2.25rem;
+    padding: 0 0.85rem 0 0.6rem;
+    border-radius: 999px;
+    border: 1px solid var(--tz-line);
+    background: var(--tz-card);
+    color: var(--tz-fg);
+    font: inherit;
+    font-size: 0.9rem;
+    box-shadow: var(--tz-card-shadow);
+    cursor: pointer;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-help__button[aria-expanded="true"] {
+    background: var(--tz-accent);
+    border-color: var(--tz-accent);
+    color: #fff;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-help__panel {
+    position: absolute;
+    top: calc(100% + 0.5rem);
+    right: 0;
+    z-index: 997;
+    --tz-width-3: min(26rem, calc(100vw - 2rem));
+    width: var(--tz-width-3);
+    --tz-max-height-4: min(70vh, 36rem);
+    max-height: var(--tz-max-height-4);
+    overflow: auto;
+    padding: 0.75rem 1rem 1rem;
+    border-radius: 14px;
+    border: 1px solid var(--tz-line);
+    background: var(--tz-card);
+    box-shadow: 0 18px 48px rgba(0, 0, 0, 0.18);
+    color: var(--tz-fg);
+    text-align: left;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-help__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.5rem;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-help__close {
+    width: 2rem;
+    height: 2rem;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: transparent;
+    color: var(--tz-muted);
+    cursor: pointer;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-help__close:hover {
+    background: var(--tz-soft);
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-help__list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-help__item {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 0.25rem 0.5rem;
+    align-items: center;
+    padding: 0.5rem 0;
+    border-top: 1px solid var(--tz-line-soft);
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-help__item:first-child {
+    border-top: 0;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-help__icon {
+    color: var(--tz-accent);
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-help__embed {
+    grid-column: 1 / -1;
+    aspect-ratio: 16 / 9;
+    border-radius: 10px;
+    overflow: hidden;
+    background: #000;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-help__embed:empty {
+    display: none;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-help__video {
+    width: 100%;
+    height: 100%;
+    border: 0;
+}
+
+/* ------------------------------------------------------------------
+   Usage bar (monthly AI credits)
+   ------------------------------------------------------------------ */
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-usage {
+    --tz-usage: var(--tz-accent);
+    min-width: 12rem;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-usage--notice {
+    --tz-usage: #4b8bd1;
+}
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-usage--warning {
+    --tz-usage: var(--tz-warning);
+}
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-usage--critical {
+    --tz-usage: #d9641f;
+}
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-usage--exhausted {
+    --tz-usage: var(--tz-danger);
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-usage__track {
+    position: relative;
+    height: 10px;
+    border-radius: 999px;
+    background: var(--tz-track);
+    overflow: hidden;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-usage__fill {
+    display: block;
+    height: 100%;
+    border-radius: 999px;
+    background: var(--tz-usage);
+    transition: width 0.4s ease;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-usage__mark {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: rgba(255, 255, 255, 0.85);
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-usage__label {
+    margin-top: 0.35rem;
+    font-size: 0.85rem;
+    color: var(--tz-muted);
+}
+
+/* ------------------------------------------------------------------
+   Analytics and plan panels
+   ------------------------------------------------------------------ */
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-panel {
+    padding: 1rem 1.1rem;
+    margin-bottom: 1rem;
+    border: 1px solid var(--tz-line);
+    border-radius: 14px;
+    background: var(--tz-card);
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-stat-card {
+    padding: 0.9rem 1rem;
+    border: 1px solid var(--tz-line);
+    border-radius: 14px;
+    background: var(--tz-card);
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-stat-card__value {
+    font-size: 1.6rem;
+    font-weight: 700;
+    line-height: 1.1;
+    color: var(--tz-ink);
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-stat-card__label {
+    margin-top: 0.25rem;
+    font-size: 0.85rem;
+    color: var(--tz-muted);
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-analytics__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr));
+    gap: 1rem;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-chart {
+    display: block;
+    width: 100%;
+    height: auto;
+    margin-top: 0.5rem;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-chart__grid {
+    stroke: var(--tz-line-table);
+    stroke-width: 1;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-chart__tick {
+    fill: var(--tz-faint);
+    font-size: 12px;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-chart__bar {
+    fill: var(--tz-accent);
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-chart__bar--empty {
+    fill: var(--tz-track);
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-num {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-icon--inline {
+    vertical-align: -3px;
+    color: var(--tz-muted);
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-plan-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 0.75rem;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-plan-head__usage {
+    flex: 1 1 18rem;
+    max-width: 32rem;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-details summary {
+    cursor: pointer;
+    color: var(--tz-accent);
+    margin: 0.5rem 0;
+}
+
+/* The package matrix and the counting rules on the plan page. */
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-details--plan {
+    margin: 0.75rem 0;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-details--plan > p {
+    margin: 0.25rem 0 0.75rem;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-table--features th.tarsus-th--current,
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-table--features td.tarsus-td--current {
+    background: var(--tz-accent-soft, rgba(0, 119, 190, 0.08));
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-table--features th .tarsus-badge {
+    margin-top: 0.25rem;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-sandbox-note {
+    margin: 0 0 0.75rem;
+}
+
+@media (max-width: 600px) {
+    :is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-lightbox__page {
+        width: 100vw;
+        height: 100vh;
+        border-radius: 0;
+    }
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-readonly-note {
+    display: flex;
+    gap: 0.5rem;
+    align-items: flex-start;
+    padding: 0.85rem 1rem;
+    margin-bottom: 1rem;
+    border-radius: 12px;
+    background: var(--tz-soft);
+    color: var(--tz-muted);
+}
+
+/* ------------------------------------------------------------------ */
+/* Version 2: the whole width, four modes, spoken questions, the live  */
+/* interaction, sources and the teacher's panels                       */
+/* ------------------------------------------------------------------ */
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-app,
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-lightbox {
+    --tz-series-1: #2a78d6;
+    --tz-series-2: #eb6834;
+    --tz-live: #6250d6;
+    --tz-live-soft: #efedfc;
+    --tz-drawer-width: 34rem;
+    --tz-drawer-wide: min(76rem, 94vw);
+}
+
+/* Widgets as in Tarsus: a centred column, not the whole width. Answers,
+   questions and notices read best at about 780 px; a learning stack and
+   the live call get more room for their slides. The composer below keeps
+   the whole width. */
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-chat-box .tarsus-card {
+    max-width: 48.75rem;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-chat-box .tarsus-learn-card,
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-chat-box .tarsus-live {
+    max-width: 62.5rem;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-chat-box .tarsus-card--flash {
+    animation: tarsuscoach-flash 1.2s ease;
+}
+
+@keyframes tarsuscoach-flash {
+    0%,
+    100% {
+        box-shadow: var(--tz-card-shadow);
+    }
+    30% {
+        box-shadow: 0 0 0 4px var(--tz-accent-soft), var(--tz-card-shadow);
+    }
+}
+
+/* The teacher's buttons above the coach. */
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-chat-box .tarsus-teacher-bar {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 0.5rem;
+    margin: 0 0 0.75rem;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-chat-box .tarsus-teacher-bar__btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+/* The composer's right side: voice toggle, Next / Send. */
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-chat-box .tarsus-composer-right {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-left: auto;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-chat-box .tarsus-btn--ghost {
+    background: transparent;
+    border: 1px solid var(--tz-line-strong);
+    color: var(--tz-ink);
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-chat-box .tarsus-voice-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-chat-box .tarsus-grade-chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.2rem 0.6rem;
+    border-radius: 999px;
+    background: var(--tz-success-soft);
+    color: #23704a;
+    font-size: 0.85rem;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+/* Spoken question: the recorder in place of the text field. */
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-chat-box .tarsus-voice {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.6rem;
+    min-height: 38px;
+    padding: 0.35rem 0.4rem;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-chat-box .tarsus-voice__dot {
+    width: 0.7rem;
+    height: 0.7rem;
+    border-radius: 50%;
+    background: var(--tz-line-strong);
+    flex: none;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-chat-box .tarsus-voice[data-state="recording"] .tarsus-voice__dot {
+    background: #d64545;
+    box-shadow: 0 0 0 4px rgba(214, 69, 69, 0.18);
+    animation: tarsuscoach-pulse 1.2s ease-in-out infinite;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-chat-box .tarsus-voice[data-state="ready"] .tarsus-voice__dot {
+    background: var(--tz-success);
+}
+
+@keyframes tarsuscoach-pulse {
+    50% {
+        box-shadow: 0 0 0 7px rgba(214, 69, 69, 0.08);
+    }
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-chat-box .tarsus-voice__state {
+    font-weight: 600;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-chat-box .tarsus-voice__time {
+    font-variant-numeric: tabular-nums;
+    color: var(--tz-muted);
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-chat-box .tarsus-voice__wave {
+    flex: 1 1 4rem;
+    height: 1.1rem;
+    min-width: 3rem;
+    border-radius: 999px;
+    background: repeating-linear-gradient(90deg, var(--tz-track) 0 3px, transparent 3px 6px);
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-chat-box .tarsus-voice[data-state="recording"] .tarsus-voice__wave {
+    background: repeating-linear-gradient(90deg, rgba(214, 69, 69, 0.55) 0 3px, transparent 3px 6px);
+    animation: tarsuscoach-wave 0.9s linear infinite;
+}
+
+@keyframes tarsuscoach-wave {
+    to {
+        background-position: 12px 0;
+    }
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-chat-box .tarsus-voice__actions {
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-chat-box .tarsus-voice__btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.35rem 0.7rem;
+    border: 1px solid var(--tz-line);
+    border-radius: 8px;
+    background: var(--tz-card);
+    color: var(--tz-ink);
+    font: inherit;
+    font-size: 0.9rem;
+    cursor: pointer;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-chat-box .tarsus-voice__btn--record {
+    border-color: rgba(214, 69, 69, 0.4);
+    color: #b42c2c;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-chat-box .tarsus-voice__btn:focus-visible {
+    outline: 3px solid var(--tz-focus);
+    outline-offset: 2px;
+}
+
+/* The learner's recording above its transcript. */
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-chat-box .tarsus-card__question-main,
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-chat-box .tarsus-card__answer-main {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-chat-box .tarsus-card__voice {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.35rem;
+    color: var(--tz-muted);
+    font-size: 0.85rem;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-chat-box .tarsus-card__voice-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-chat-box .tarsus-card__voice-audio {
+    height: 2rem;
+    max-width: 100%;
+}
+
+/* Under an answer: View sources, Ask about this. */
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-chat-box .tarsus-card__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 0.75rem;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-chat-box .tarsus-chip-btn,
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-chat-box .tarsus-card__actions .tarsus-learn-ask {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.3rem 0.7rem;
+    border: 0;
+    border-radius: 8px;
+    background: var(--tz-reply-pad);
+    color: var(--tz-ink);
+    font: inherit;
+    font-size: 0.875rem;
+    cursor: pointer;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-chat-box .tarsus-chip-btn:hover,
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-chat-box .tarsus-chip-btn:focus-visible {
+    background: var(--tz-reply-hover);
+}
+
+/* Pictures where Tarsus puts them: above the text, or beside it. */
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-learn-slide__body--top {
+    flex-direction: column;
+    align-items: stretch;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-learn-slide__body--top .tarsus-learn-slide__image {
+    flex: none;
+    width: auto;
+    --tz-slide-image-width: min(100%, 56rem);
+    max-width: var(--tz-slide-image-width);
+    max-height: 60vh;
+    align-self: center;
+    object-fit: contain;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-learn-slide__body--text {
+    display: block;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-learn-slide__audio {
+    display: block;
+    width: 100%;
+    margin-top: 0.75rem;
+}
+
+/* A task table: the model value under a wrong cell. */
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-practice-table__model {
+    display: block;
+    margin-top: 0.25rem;
+    color: #9b2c2c;
+    font-size: 0.8rem;
+}
+
+/* The live interaction: Tarsus's page in its own frame. */
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-chat-box .tarsus-live-bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.4rem;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-chat-box .tarsus-live-bar__text {
+    flex: 1 1 16rem;
+    color: var(--tz-muted);
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-chat-box .tarsus-live {
+    overflow: hidden;
+    padding: 0;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-chat-box .tarsus-live__frame {
+    display: block;
+    width: 100%;
+    height: 72vh;
+    min-height: 420px;
+    border: 0;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-chat-box .tarsus-live__notice {
+    margin: 0;
+    padding: 0.7rem 1rem;
+    background: var(--tz-warning-soft);
+    color: #7a4b06;
+}
+
+/* The panel that slides in from the right. */
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-drawer {
+    position: fixed;
+    inset: 0;
+    z-index: 2000;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-drawer:is([hidden], #tarsus-hidden) {
+    display: none;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-drawer__backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(20, 24, 28, 0.28);
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-drawer__panel {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    flex-direction: column;
+    --tz-width-5: min(var(--tz-drawer-width), 100vw);
+    width: var(--tz-width-5);
+    background: var(--tz-card);
+    box-shadow: -12px 0 32px rgba(0, 0, 0, 0.14);
+    transform: translateX(100%);
+    transition: transform 0.22s ease;
+    outline: none;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-drawer--wide .tarsus-drawer__panel {
+    width: var(--tz-drawer-wide);
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-drawer--open .tarsus-drawer__backdrop {
+    opacity: 1;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-drawer--open .tarsus-drawer__panel {
+    transform: none;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-drawer__head {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid var(--tz-line);
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-drawer__title {
+    flex: 1 1 auto;
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 600;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-drawer__close {
+    display: inline-flex;
+    padding: 0.4rem;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    color: var(--tz-ink);
+    cursor: pointer;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-drawer__close:hover,
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-drawer__close:focus-visible {
+    background: var(--tz-reply-pad);
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-drawer__body {
+    flex: 1 1 auto;
+    overflow-y: auto;
+    padding: 1rem 1.25rem 2rem;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-drawer__loading {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 2rem 0;
+    color: var(--tz-muted);
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-drawer__lead {
+    margin: 0 0 0.75rem;
+    color: var(--tz-muted);
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-drawer__error {
+    padding: 0.6rem 0.8rem;
+    border-radius: 8px;
+    background: var(--tz-danger-soft);
+    color: #9b2c2c;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-drawer__warning {
+    padding: 0.6rem 0.8rem;
+    border-radius: 8px;
+    background: var(--tz-warning-soft);
+    color: #7a4b06;
+}
+
+html.tarsuscoach-drawer-lock {
+    overflow: hidden;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    :is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-drawer__panel,
+    :is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-drawer__backdrop {
+        transition: none;
+    }
+}
+
+/* Sources: every bit type as Tarsus sends it. */
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-source {
+    margin: 0 0 0.75rem;
+    padding: 0.75rem 0.9rem;
+    border: 1px solid var(--tz-line);
+    border-radius: 10px;
+    background: var(--tz-card);
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-source__head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-source__type {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.1rem 0.5rem;
+    border-radius: 6px;
+    background: var(--tz-number-bg);
+    color: var(--tz-number-fg);
+    font-size: 0.78rem;
+    font-weight: 600;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-source__title {
+    font-weight: 600;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-source__open {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    margin-left: auto;
+    font-size: 0.85rem;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-source__content {
+    margin-top: 0.45rem;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-source__text {
+    font-size: 0.92rem;
+    line-height: 1.5;
+    overflow-wrap: anywhere;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-source__label,
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-source__subtitle {
+    color: var(--tz-muted);
+    font-size: 0.8rem;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-source__image {
+    display: block;
+    max-width: 100%;
+    max-height: 18rem;
+    border-radius: 8px;
+    cursor: zoom-in;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-source__table-wrap {
+    overflow-x: auto;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-source__table {
+    border-collapse: collapse;
+    font-size: 0.85rem;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-source__table th,
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-source__table td {
+    padding: 0.3rem 0.55rem;
+    border: 1px solid var(--tz-line-table);
+    text-align: left;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-source__table th {
+    background: var(--tz-soft);
+}
+
+/* Settings panel. */
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-settings__section {
+    padding: 0.75rem 0 1rem;
+    border-bottom: 1px solid var(--tz-line);
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-settings__title {
+    margin: 0 0 0.35rem;
+    font-size: 1.05rem;
+    font-weight: 600;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-settings__field {
+    margin: 0.65rem 0;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-settings__label {
+    font-weight: 500;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-settings__help,
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-settings__locked {
+    margin-top: 0.2rem;
+    color: var(--tz-muted);
+    font-size: 0.82rem;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-settings__locked {
+    font-weight: 600;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-settings__check,
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-settings__radio {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+    margin: 0.25rem 0;
+}
+
+/* The boxes keep their size in every theme (some stretch them to the row). */
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-settings__check input,
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-settings__radio input,
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-settings__card input {
+    flex: 0 0 auto;
+    align-self: flex-start;
+    width: 1.1rem;
+    height: 1.1rem;
+    margin: 0.15rem 0 0;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-settings__radio .tarsus-settings__option,
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-settings__card .tarsus-settings__option {
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-settings__option span,
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-settings__option em {
+    color: var(--tz-muted);
+    font-size: 0.82rem;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-settings__cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+    gap: 0.6rem;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-settings__card {
+    display: flex;
+    gap: 0.5rem;
+    padding: 0.6rem 0.7rem;
+    border: 1px solid var(--tz-line-strong);
+    border-radius: 10px;
+    cursor: pointer;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-settings__card:has(input:checked) {
+    border: 2px solid var(--tz-accent);
+    background: var(--tz-accent-soft);
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-settings__multi {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem 1rem;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-settings select.tarsus-input,
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-settings input[type="text"].tarsus-input {
+    width: 100%;
+    max-width: 32rem;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-settings__suffixed {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-settings__suffixed input {
+    width: 6rem;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-settings__error {
+    margin-top: 0.25rem;
+    color: #9b2c2c;
+    font-size: 0.85rem;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-settings__footer {
+    position: sticky;
+    bottom: -2rem;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.75rem;
+    margin-top: 1rem;
+    padding: 0.75rem 0;
+    background: var(--tz-card);
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-settings__full {
+    margin-left: auto;
+    font-size: 0.85rem;
+}
+
+/* Evaluation. */
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-stats__tools {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.6rem;
+    margin-bottom: 0.9rem;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-stats__export {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    margin-left: auto;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-stats__kpis {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+    gap: 0.75rem;
+    margin-bottom: 0.9rem;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-stats__kpi {
+    padding: 0.75rem 0.9rem;
+    border: 1px solid var(--tz-line);
+    border-radius: 12px;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-stats__kpi-value {
+    font-size: 1.6rem;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-stats__kpi-label {
+    color: var(--tz-muted);
+    font-size: 0.85rem;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-stats__charts {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr));
+    gap: 0.75rem;
+    margin-bottom: 0.9rem;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-stats__chart {
+    padding: 0.75rem 0.9rem;
+    border: 1px solid var(--tz-line);
+    border-radius: 12px;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-stats__chart h3 {
+    margin: 0;
+    font-size: 0.95rem;
+    font-weight: 600;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-stats__chart-help {
+    margin: 0 0 0.4rem;
+    color: var(--tz-muted);
+    font-size: 0.8rem;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-chart {
+    display: block;
+    width: 100%;
+    height: auto;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-chart__grid {
+    stroke: var(--tz-line);
+    stroke-width: 1;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-chart__axis {
+    fill: var(--tz-faint);
+    font-size: 11px;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-chart__bar {
+    fill: var(--tz-series-1);
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-chart__bar:hover {
+    fill: var(--tz-accent-deep);
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-chart__line {
+    fill: none;
+    stroke-width: 2;
+    stroke-linejoin: round;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-chart__line--xp {
+    stroke: var(--tz-series-1);
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-chart__line--units {
+    stroke: var(--tz-series-2);
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-chart__dot.tarsus-chart__line--xp {
+    fill: var(--tz-series-1);
+    stroke: var(--tz-card);
+    stroke-width: 2;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-chart__dot.tarsus-chart__line--units {
+    fill: var(--tz-series-2);
+    stroke: var(--tz-card);
+    stroke-width: 2;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-chart__legend,
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-status-bar__legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem 1rem;
+    margin: 0.35rem 0;
+    color: var(--tz-muted);
+    font-size: 0.82rem;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-chart__legend > span,
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-status-bar__legend > span {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-chart__key {
+    display: inline-block;
+    width: 0.9rem;
+    height: 2px;
+    border-top: 2px solid currentColor;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-chart__key.tarsus-chart__line--xp {
+    color: var(--tz-series-1);
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-chart__key.tarsus-chart__line--units {
+    color: var(--tz-series-2);
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-status-bar {
+    display: flex;
+    gap: 2px;
+    height: 1.4rem;
+    margin-top: 0.6rem;
+    overflow: hidden;
+    border-radius: 6px;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-status-bar__part--completed {
+    background: var(--tz-success);
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-status-bar__part--progress {
+    background: var(--tz-series-1);
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-status-bar__part--notstarted {
+    background: var(--tz-track);
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-status-bar__dot {
+    display: inline-block;
+    width: 0.7rem;
+    height: 0.7rem;
+    border-radius: 3px;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-stats__table-wrap {
+    overflow-x: auto;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-stats__table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-stats__table th {
+    padding: 0.5rem 0.6rem;
+    border-bottom: 2px solid var(--tz-line-strong);
+    color: var(--tz-muted);
+    font-weight: 500;
+    text-align: left;
+    white-space: nowrap;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-stats__table td {
+    padding: 0.45rem 0.6rem;
+    border-bottom: 1px solid var(--tz-line);
+    vertical-align: middle;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-stats__table tbody tr:nth-child(even) td {
+    background: var(--tz-row-alt);
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-stats__grade {
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-pill {
+    display: inline-block;
+    padding: 0.15rem 0.55rem;
+    border-radius: 6px;
+    background: var(--tz-badge);
+    font-size: 0.8rem;
+    white-space: nowrap;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-pill--lp_completed {
+    background: var(--tz-success-soft);
+    color: #23704a;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-meter {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    white-space: nowrap;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-meter__track {
+    display: inline-block;
+    width: 5.5rem;
+    height: 6px;
+    overflow: hidden;
+    border-radius: 3px;
+    background: var(--tz-track);
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-meter__fill {
+    display: block;
+    height: 100%;
+    border-radius: 3px;
+    background: var(--tz-series-1);
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-meter--xp .tarsus-meter__fill {
+    background: var(--tz-live);
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-meter__text {
+    font-size: 0.82rem;
+    font-variant-numeric: tabular-nums;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-link-btn {
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--tz-accent-deep);
+    font: inherit;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-link-btn:hover,
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-link-btn:focus-visible {
+    text-decoration: underline;
+}
+
+/* History (read only). */
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-history__head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.6rem;
+    margin-bottom: 0.75rem;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-history__name {
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-history__badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.15rem 0.6rem;
+    border-radius: 999px;
+    background: var(--tz-number-bg);
+    color: var(--tz-number-fg);
+    font-size: 0.8rem;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-history__head .tarsus-link-btn {
+    margin-left: auto;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-history {
+    display: grid;
+    grid-template-columns: minmax(16rem, 22rem) 1fr;
+    gap: 1rem;
+    align-items: start;
+}
+
+@media (max-width: 900px) {
+    :is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-history {
+        grid-template-columns: 1fr;
+    }
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-history__figures,
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-history__growth {
+    padding: 0.75rem 0.9rem;
+    border: 1px solid var(--tz-line);
+    border-radius: 12px;
+    margin-bottom: 0.75rem;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-history__growth h4 {
+    margin: 0 0 0.25rem;
+    font-size: 0.95rem;
+    font-weight: 600;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-history__grade {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin-bottom: 0.4rem;
+    font-size: 1.6rem;
+    font-weight: 600;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-history__row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.35rem 0;
+    border-bottom: 1px solid var(--tz-line-soft);
+    font-size: 0.88rem;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-history__feed {
+    min-width: 0;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-history__feed .tarsus-card {
+    max-width: none;
+    margin: 0 0 0.75rem;
+    border: 1px solid var(--tz-line);
+    border-radius: 12px;
+    background: var(--tz-card);
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-history__more {
+    display: block;
+    margin: 0 auto 0.75rem;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-card--readonly .tarsus-practice-card__actions {
+    display: none;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-history__pick {
+    min-width: 18rem;
+}
+
+/* Accessibility: text only screen readers read, the skip link, a visible
+   focus on what the script focuses, and right and wrong as a symbol too
+   (never as a colour alone). */
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) :is(.tarsus-sr-only, #tarsus-sr-only) {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    clip-path: inset(50%);
+    white-space: nowrap;
+    border: 0;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-app .tarsus-skip:not(:focus) {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    clip-path: inset(50%);
+    white-space: nowrap;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-app .tarsus-skip:focus {
+    display: inline-block;
+    align-self: flex-start;
+    width: auto;
+    margin: 0 0 0.75rem;
+    padding: 0.5rem 0.9rem;
+    border-radius: 0.5rem;
+    background: var(--tz-accent);
+    color: #fff;
+    font-weight: 600;
+    text-decoration: none;
+    outline: 3px solid var(--tz-focus);
+    outline-offset: 2px;
+}
+
+/* The learner's question is a heading for screen readers; it looks as before. */
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-chat-box h3.tarsus-card__question-text {
+    margin: 0;
+    padding: 0;
+    color: inherit;
+    font: inherit;
+    letter-spacing: normal;
+    text-transform: none;
+}
+
+/* Where the script puts the focus: a question, a feedback box, a title. */
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-app [tabindex="-1"]:focus,
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-chat-box .tarsus-chat-form:focus {
+    outline: none;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-app [tabindex="-1"]:focus-visible {
+    outline: 2px solid var(--tz-focus);
+    outline-offset: 3px;
+    border-radius: 4px;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-app .tarsus-verdict-mark {
+    display: inline-flex;
+    align-items: center;
+    flex: 0 0 auto;
+    margin-left: auto;
+    font-size: 1.1rem;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-app .tarsus-verdict-mark .tarsus-icon {
+    stroke-width: 2.6;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-app .tarsus-verdict-mark--correct {
+    color: #1f7a3f;
+}
+
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-app .tarsus-verdict-mark--incorrect {
+    color: #b3261e;
+}
+
+/* Red text on white: a darker red keeps it readable (contrast above 4.5:1). */
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-app .tarsus-btn--danger {
+    border-color: #b3261e;
+    color: #b3261e;
+}
+
+/* The input field shows the keyboard focus too. */
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-chat-box .tarsus-chat-input:focus-visible {
+    outline: 2px solid var(--tz-focus);
+    outline-offset: 2px;
+    border-radius: 0.4rem;
+}
+
+/* A card whose hidden heading has the keyboard focus shows it as a ring. */
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-app .tarsus-card:has(> .tarsus-sr-only:focus-visible),
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-app .tarsus-practice-card:has(> .tarsus-sr-only:focus-visible),
+:is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach)
+.tarsus-app .tarsus-practice-card__feedback:has(> .tarsus-sr-only:focus-visible) {
+    outline: 2px solid var(--tz-focus);
+    outline-offset: 3px;
+}
+
+/* ------------------------------------------------------------------ */
+/* Dark colour mode (Moodle 5.x, data-bs-theme="dark" on the page):     */
+/* the same screens in Bootstrap's dark colours. Pages and pictures     */
+/* from the brain keep their own light surfaces.                        */
+/* ------------------------------------------------------------------ */
+
+[data-bs-theme="dark"] :is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-app,
+[data-bs-theme="dark"] :is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-lightbox {
+    --tz-fg: var(--bs-body-color, #dee2e6);
+    --tz-ink: var(--bs-emphasis-color, #fff);
+    --tz-muted: var(--bs-secondary-color, rgba(222, 226, 230, 0.75));
+    --tz-faint: rgba(222, 226, 230, 0.7);
+    --tz-card: var(--bs-tertiary-bg, #2b3035);
+    --tz-line: rgba(255, 255, 255, 0.12);
+    --tz-line-soft: rgba(255, 255, 255, 0.08);
+    --tz-line-strong: rgba(255, 255, 255, 0.25);
+    --tz-line-table: rgba(255, 255, 255, 0.15);
+    --tz-pad: var(--bs-secondary-bg, #343a40);
+    --tz-pad-active: #495057;
+    --tz-pad-active-line: rgba(255, 255, 255, 0.15);
+    --tz-pad-active-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+    --tz-chip: rgba(0, 0, 0, 0.25);
+    --tz-chip-ink: #f8f9fa;
+    --tz-reply-pad: rgba(255, 255, 255, 0.08);
+    --tz-reply-hover: rgba(255, 255, 255, 0.12);
+    --tz-soft: #2b3035;
+    --tz-badge: #343a40;
+    --tz-row-alt: #2b3035;
+    --tz-number-bg: #2c3e5a;
+    --tz-number-fg: #e3e8f2;
+    --tz-track: #343a40;
+    --tz-track-ink: rgba(255, 255, 255, 0.25);
+    --tz-ring-track: rgba(255, 255, 255, 0.12);
+    --tz-band-ring-track: rgba(255, 255, 255, 0.15);
+    --tz-wave: rgba(255, 255, 255, 0.3);
+    --tz-loading-ring: rgba(255, 255, 255, 0.15);
+    --tz-loading-glyph: rgba(255, 255, 255, 0.5);
+    --tz-accent: #2f6fb1;
+    --tz-accent-deep: #275f99;
+    --tz-accent-stroke: #6ea8fe;
+    --tz-accent-soft: rgba(110, 168, 254, 0.16);
+    --tz-focus: #6ea8fe;
+    --tz-success-soft: rgba(87, 184, 123, 0.18);
+    --tz-danger-soft: rgba(217, 83, 79, 0.2);
+    --tz-warning-soft: rgba(199, 123, 20, 0.22);
+    --tz-danger: #e8817e;
+    --tz-warning: #e0a04a;
+    --tz-processing-track: #2b3a48;
+    --tz-composer: #2b3035;
+    --tz-card-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+    --tz-live-soft: rgba(98, 80, 214, 0.22);
+    color-scheme: dark;
+}
+
+/* Texts that stand on the light status colours above. */
+[data-bs-theme="dark"] :is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-badge--warning,
+[data-bs-theme="dark"] :is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-demo-note {
+    color: #f0c674;
+}
+
+[data-bs-theme="dark"] :is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-badge--success,
+[data-bs-theme="dark"] :is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-chat-box .tarsus-grade-chip,
+[data-bs-theme="dark"] :is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-pill--lp_completed {
+    color: #7dd3a0;
+}
+
+[data-bs-theme="dark"] :is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-badge--danger,
+[data-bs-theme="dark"] :is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-chat-box .tarsus-chat-alert,
+[data-bs-theme="dark"] :is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-practice-table__model,
+[data-bs-theme="dark"] :is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-drawer__error,
+[data-bs-theme="dark"] :is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-settings__error,
+[data-bs-theme="dark"] :is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-btn--danger:not(:hover) {
+    color: #f19a9a;
+}
+
+/* Blue text on the dark surfaces: a lighter blue than the buttons'. */
+[data-bs-theme="dark"] :is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach)
+.tarsus-app .tarsus-md li::marker,
+[data-bs-theme="dark"] :is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach)
+.tarsus-app .tarsus-md a,
+[data-bs-theme="dark"] :is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-help__icon,
+[data-bs-theme="dark"] :is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-details summary,
+[data-bs-theme="dark"] :is(.path-mod-tarsuscoach, .path-admin-mod-tarsuscoach) .tarsus-link-btn {
+    color: #8bb9fe;
+}

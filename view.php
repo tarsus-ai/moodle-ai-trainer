@@ -85,7 +85,6 @@ $version = platform::plugin_version();
 // like the Tarsus app, with KaTeX's stylesheet and the bundled renderer
 // (mod_tarsuscoach/markdown).
 $PAGE->requires->css(new moodle_url('/mod/tarsuscoach/assets/vendor/katex/katex.min.css', ['v' => $version]));
-$PAGE->requires->css(new moodle_url('/mod/tarsuscoach/assets/css/tarsus.css', ['v' => $version]));
 
 echo $OUTPUT->header();
 

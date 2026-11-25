@@ -24,8 +24,9 @@ use mod_tarsuscoach\local\index\status;
  * Single source of truth for the server-rendered material list and its
  * live updates, so the two never drift.
  *
- * @author  Tarsus GmbH
- * @license GPL-3.0-or-later
+ * @package    mod_tarsuscoach
+ * @copyright  2026 Tarsus GmbH
+ * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 final class presenter
 {
@@ -46,6 +47,12 @@ final class presenter
         status::ERROR => 'danger',
     ];
 
+    /**
+     * The CSS classes of a status badge.
+     *
+     * @param string $status The index status.
+     * @return string The classes; the neutral badge for an unknown status.
+     */
     public static function badge_class(string $status): string {
         return 'tarsus-badge tarsus-badge--' . (self::BADGES[$status] ?? 'neutral');
     }
@@ -54,12 +61,16 @@ final class presenter
      * Whether a call is pending for the resource.
      */
     public static function is_inflight(string $status): bool {
-        // pendingreindex is not in flight: it is a stable "content changed"
-        // state that waits for the teacher (or the cron job).
+        // The pendingreindex status is not in flight: it is a stable
+        // "content changed" state that waits for the teacher (or the cron job).
         return in_array($status, [status::PENDING, status::PENDING_CONFIRMATION, status::PENDING_DELETION], true);
     }
 
     /**
+     * The actions the teacher may take on a resource in the given status.
+     *
+     * @param string $status The index status.
+     * @param int $age Seconds since the resource's row last changed.
      * @return string[] Subset of index, reindex, remove, retry.
      */
     public static function actions_for(string $status, int $age = 0): array {

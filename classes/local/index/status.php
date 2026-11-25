@@ -24,8 +24,9 @@ use mod_tarsuscoach\local\support\platform;
  *   notindexed -> pending -> pendingconfirmation -> indexed
  * plus pendingreindex, pendingdeletion and error.
  *
- * @author  Tarsus GmbH
- * @license GPL-3.0-or-later
+ * @package    mod_tarsuscoach
+ * @copyright  2026 Tarsus GmbH
+ * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 final class status
 {
@@ -64,7 +65,7 @@ final class status
     /** @var array<string, string[]> Allowed transitions from each status. */
     private const TRANSITIONS = [
         self::NOT_INDEXED => [self::PENDING, self::PENDING_DELETION],
-        // notindexed is the revert target when a synchronous upload fails:
+        // The notindexed status is the revert target when a synchronous upload fails:
         // with no background queue the row must never stay mid-flight.
         self::PENDING => [
             self::PENDING_CONFIRMATION,
@@ -86,7 +87,7 @@ final class status
             self::PENDING_REINDEX,
         ],
         self::INDEXED => [self::PENDING_REINDEX, self::NOT_INDEXED, self::PENDING_DELETION],
-        // pending is reached mid-re-index: once the old bits are untracked
+        // The pending status is reached mid-re-index: once the old bits are untracked
         // the brain holds nothing, which is exactly what pending means.
         self::PENDING_REINDEX => [
             self::PENDING,
@@ -111,6 +112,12 @@ final class status
         ],
     ];
 
+    /**
+     * Whether a string is one of the statuses.
+     *
+     * @param string $status The value to check.
+     * @return bool
+     */
     public static function is_valid(string $status): bool {
         return in_array($status, self::ALL, true);
     }
@@ -125,6 +132,12 @@ final class status
         return in_array($to, self::TRANSITIONS[$from] ?? [], true);
     }
 
+    /**
+     * The name of a status in the user's language.
+     *
+     * @param string $status The status.
+     * @return string
+     */
     public static function label(string $status): string {
         return platform::txt('status_' . $status);
     }

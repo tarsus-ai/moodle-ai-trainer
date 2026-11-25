@@ -39,19 +39,30 @@ use mod_tarsuscoach\local\support\platform;
  * this object's course and to point at material the teacher can read -
  * isolation by id on the shared brain.
  *
- * @author  Tarsus GmbH
- * @license GPL-3.0-or-later
+ * @package    mod_tarsuscoach
+ * @copyright  2026 Tarsus GmbH
+ * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 final class manager_api
 {
     /** @var string[] */
     public const ACTIONS = ['index', 'reindex', 'remove', 'retry'];
 
+    /** @var int The Tarsus activity. */
     private int $objid;
+    /** @var int The course the activity lives in. */
     private int $containerref;
+    /** @var repository The local index map: what the brain holds of the material. */
     private repository $repo;
+    /** @var resolver Finds the course's material and turns it into bits for the brain. */
     private resolver $resolver;
 
+    /**
+     * Set up the material actions for one activity and its course.
+     *
+     * @param int $objid The Tarsus activity.
+     * @param int $containerref The course the activity lives in.
+     */
     public function __construct(int $objid, int $containerref) {
         $this->objid = $objid;
         $this->containerref = $containerref;
@@ -69,7 +80,7 @@ final class manager_api
         }
         $row = $this->repo->get($resourceid);
         if ($row !== null && !platform::cm_alive($parts['refid'])) {
-            // material that is gone may still be withdrawn.
+            // Material that is gone may still be withdrawn.
             return true;
         }
         return $this->resolver->in_scope($parts['refid'], $this->containerref)
@@ -77,6 +88,10 @@ final class manager_api
     }
 
     /**
+     * One resource as the materials list shows it: its index status, the
+     * actions it allows and whether this activity includes it.
+     *
+     * @param string $resourceid The resource.
      * @return array<string, mixed>
      */
     private function present(string $resourceid): array {
@@ -129,7 +144,7 @@ final class manager_api
             platform::log($e->getMessage());
             $error = platform::txt('transport_error');
         } catch (configuration_exception $e) {
-            $error = platform::txt($e->langKey);
+            $error = platform::txt($e->langkey);
         }
 
         return ['ok' => $error === '', 'error' => $error, 'row' => $this->present($resourceid)];
@@ -184,7 +199,7 @@ final class manager_api
             platform::log($e->getMessage());
             $error = platform::txt('transport_error');
         } catch (configuration_exception $e) {
-            $error = platform::txt($e->langKey);
+            $error = platform::txt($e->langkey);
         }
 
         // Deliveries that failed when content left the course have nowhere

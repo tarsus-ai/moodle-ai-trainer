@@ -60,8 +60,7 @@ $t = static fn(string $key, array $params = []): string => platform::txt($key, $
 $yesno = static fn(bool $value): string => get_string($value ? 'yes' : 'no');
 
 // ----------------------------------------------------------------------
-// Actions (POST, with the session key)
-// ----------------------------------------------------------------------
+// Actions (POST, with the session key).
 
 if ($action !== '') {
     require_sesskey();
@@ -72,7 +71,7 @@ if ($action !== '') {
                 $brains = (new pipeline())->execute(fn() => client_factory::get_client()->list_brains(), 0);
                 redirect($statusurl, $t('status_test_ok', ['count' => count((array) $brains)]), null, notification::NOTIFY_SUCCESS);
             } catch (configuration_exception $e) {
-                redirect($statusurl, $t($e->langKey), null, notification::NOTIFY_ERROR);
+                redirect($statusurl, $t($e->langkey), null, notification::NOTIFY_ERROR);
             } catch (blocked_exception $e) {
                 redirect($statusurl, $t('guardrail_blocked_' . $e->reason), null, notification::NOTIFY_ERROR);
             } catch (\Throwable $e) {
@@ -94,7 +93,12 @@ if ($action !== '') {
             if ($after === null || ($before !== null && $after['fetched'] === $before['fetched'])) {
                 redirect($url, $t('usage_refresh_failed'), null, notification::NOTIFY_ERROR);
             }
-            redirect($url, $t('usage_refreshed', ['credits' => budget::format($after['credits'])]), null, notification::NOTIFY_SUCCESS);
+            redirect(
+                $url,
+                $t('usage_refreshed', ['credits' => budget::format($after['credits'])]),
+                null,
+                notification::NOTIFY_SUCCESS
+            );
             break;
 
         case 'refreshvoices':
@@ -115,7 +119,11 @@ if ($action !== '') {
             if ($brainid !== '') {
                 try {
                     foreach (client_factory::get_client()->list_brains() as $brain) {
-                        if ((string) $brain['brainid'] === $brainid && !empty($brain['active']) && strpos($brainid, 'deleted-') !== 0) {
+                        if (
+                            (string) $brain['brainid'] === $brainid
+                            && !empty($brain['active'])
+                            && strpos($brainid, 'deleted-') !== 0
+                        ) {
                             $ok = true;
                             break;
                         }
@@ -185,8 +193,7 @@ function mod_tarsuscoach_store_plan(array $values): void {
 }
 
 // ----------------------------------------------------------------------
-// The plan form
-// ----------------------------------------------------------------------
+// The plan form.
 
 $planform = null;
 $confirmation = '';
@@ -235,8 +242,7 @@ if ($tab === 'plan') {
 }
 
 // ----------------------------------------------------------------------
-// Panels
-// ----------------------------------------------------------------------
+// Panels.
 
 /**
  * The plan, this month's usage and the cost: all from the brain's own usage
@@ -252,20 +258,34 @@ function mod_tarsuscoach_usage_panel(): string {
     $rows = [
         [$t('plan_billing'), $tarsusbilled ? $t('plan_billing_tarsus') : $t('plan_billing_partner')],
         [$t('plan_included'), plan::is_pay_as_you_grow()
-            ? ($tarsusbilled ? $t('plan_payg_note_tarsus') : $t('plan_payg_note', ['price' => s(plan::money(plan::price_per_request()))]))
+            ? ($tarsusbilled
+                ? $t('plan_payg_note_tarsus')
+                : $t('plan_payg_note', ['price' => s(plan::money(plan::price_per_request()))]))
             : ($tarsusbilled
                 ? $t('plan_included_value_tarsus', ['credits' => number_format(plan::included_credits())])
-                : $t('plan_included_value', ['credits' => number_format(plan::included_credits()), 'price' => s(plan::money(plan::price_per_request()))]))],
+                : $t('plan_included_value', [
+                    'credits' => number_format(plan::included_credits()),
+                    'price' => s(plan::money(plan::price_per_request())),
+                ]))],
         [$t('usage_remote'), $remote === null
             ? $t('usage_remote_none')
-            : $t('usage_remote_value', ['credits' => budget::format($remote['credits']), 'fetched' => s(views::date($remote['fetched']))])],
+            : $t('usage_remote_value', [
+                'credits' => budget::format($remote['credits']),
+                'fetched' => s(views::date($remote['fetched'])),
+            ])],
         [$t('monthly_limit'), budget::has_limit()
-            ? $t('monthly_limit_value', ['limit' => budget::format(budget::limit()), 'remaining' => budget::format(budget::remaining())])
+            ? $t('monthly_limit_value', [
+                'limit' => budget::format(budget::limit()),
+                'remaining' => budget::format(budget::remaining()),
+            ])
             : $t('no_limit')],
         [$t('usage_charged'), $overage['charged'] > 0
             ? ($tarsusbilled
                 ? $t('usage_charged_value_tarsus', ['requests' => budget::format($overage['charged'])])
-                : $t('usage_charged_value', ['requests' => budget::format($overage['charged']), 'cost' => s(plan::money($overage['cost']))]))
+                : $t('usage_charged_value', [
+                    'requests' => budget::format($overage['charged']),
+                    'cost' => s(plan::money($overage['cost'])),
+                ]))
             : $t('usage_charged_none')],
         [$t('usage_reset'), s(views::date(budget::next_month_start()))],
     ];
@@ -319,7 +339,13 @@ function mod_tarsuscoach_feature_panel(): string {
  * @param array $params More values to post.
  * @return string
  */
-function mod_tarsuscoach_action_button(moodle_url $url, string $action, string $label, bool $primary = false, array $params = []): string {
+function mod_tarsuscoach_action_button(
+    moodle_url $url,
+    string $action,
+    string $label,
+    bool $primary = false,
+    array $params = []
+): string {
     global $OUTPUT;
     // Moodle 4.2 and newer name the style; 4.1 takes "primary or not".
     $style = defined('single_button::BUTTON_PRIMARY')
@@ -331,13 +357,18 @@ function mod_tarsuscoach_action_button(moodle_url $url, string $action, string $
 }
 
 // ----------------------------------------------------------------------
-// Page
-// ----------------------------------------------------------------------
+// Page.
 
 echo $OUTPUT->header();
 echo $OUTPUT->heading(get_string('pluginname', 'mod_tarsuscoach'));
 
-$tabs = [new tabobject('settings', new moodle_url('/admin/settings.php', ['section' => 'modsettingtarsuscoach']), $t('cfg_tab_settings'))];
+$tabs = [
+    new tabobject(
+        'settings',
+        new moodle_url('/admin/settings.php', ['section' => 'modsettingtarsuscoach']),
+        $t('cfg_tab_settings')
+    ),
+];
 foreach (['plan', 'brains', 'deletions', 'status'] as $name) {
     $tabs[] = new tabobject($name, new moodle_url('/mod/tarsuscoach/admin.php', ['tab' => $name]), $t('cfg_tab_' . $name));
 }
@@ -368,7 +399,7 @@ switch ($tab) {
         try {
             $brains = client_factory::get_client()->list_brains();
         } catch (configuration_exception $e) {
-            echo $OUTPUT->notification($t($e->langKey), 'info');
+            echo $OUTPUT->notification($t($e->langkey), 'info');
             break;
         } catch (transport_exception | blocked_exception $e) {
             echo $OUTPUT->notification($t('transport_error') . ' ' . s($e->getMessage()), 'error');
@@ -390,7 +421,9 @@ switch ($tab) {
             $deleted = strpos($id, 'deleted-') === 0;
             $active = !empty($brain['active']) && !$deleted;
             $inuse = $id === $current;
-            $state = $deleted ? ['muted', 'brain_deleted'] : ($active ? ['success', 'brain_active'] : ['neutral', 'brain_inactive']);
+            $state = $deleted
+                ? ['muted', 'brain_deleted']
+                : ($active ? ['success', 'brain_active'] : ['neutral', 'brain_inactive']);
             $created = (int) $brain['timecreated'];
             $list[] = [
                 'id' => $id,
@@ -449,7 +482,10 @@ switch ($tab) {
                 . ' (' . $t('status_failures', ['count' => (int) $breaker->failurecount]) . ')'],
             [$t('status_bucket'), $t('status_bucket_value', [
                 // A bucket never used yet is full.
-                'tokens' => number_format((int) $bucket->lastrefill === 0 ? (float) config::rate_limit() : (float) $bucket->tokens, 1),
+                'tokens' => number_format(
+                    (int) $bucket->lastrefill === 0 ? (float) config::rate_limit() : (float) $bucket->tokens,
+                    1
+                ),
                 'limit' => config::rate_limit(),
             ])],
         ];

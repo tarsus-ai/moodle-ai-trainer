@@ -36,8 +36,9 @@ namespace mod_tarsuscoach\local\support;
  * change the figures, so the partner sets them in the plugin configuration.
  * A customer with a Tarsus license key is billed by Tarsus directly.
  *
- * @author  Tarsus GmbH
- * @license GPL-3.0-or-later
+ * @package    mod_tarsuscoach
+ * @copyright  2026 Tarsus GmbH
+ * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 final class plan
 {
@@ -50,6 +51,7 @@ final class plan
     /** Pay as you grow: every feature, every interaction charged. */
     public const PAYG = 'payg';
 
+    /** The four packages. */
     public const ALL = [self::LEARN, self::PRACTICE, self::ASK, self::PAYG];
 
     /** Ask a question: the AI answers from the documents. */
@@ -99,12 +101,14 @@ final class plan
     public const DEFAULT_CREDITS = 100000;
     /** Price of one interaction beyond the included amount unless agreed otherwise. */
     public const DEFAULT_PRICE = 0.32;
+    /** Currency of the prices unless agreed otherwise. */
     public const DEFAULT_CURRENCY = 'EUR';
 
     /** The teacher writes the didactics; the brain answers in text and pictures. */
     public const INTERACTION_TRAINER = 'trainer-driven';
     /** The brain may answer with interactive HTML pages (animations, simulations). */
     public const INTERACTION_AI = 'ai-driven';
+    /** The two interaction types. */
     public const INTERACTIONS = [self::INTERACTION_TRAINER, self::INTERACTION_AI];
 
     /**
@@ -115,6 +119,11 @@ final class plan
         return in_array($plan, self::ALL, true) ? $plan : self::LEARN;
     }
 
+    /**
+     * Whether the partner has set one of the four packages.
+     *
+     * @return bool
+     */
     public static function is_configured(): bool {
         return in_array((string) config::get('plan', ''), self::ALL, true);
     }
@@ -128,6 +137,12 @@ final class plan
         return !self::is_configured() && !config::mock_mode() && config::api_key() !== '';
     }
 
+    /**
+     * The name of a package in the user's language.
+     *
+     * @param string|null $plan The package; the configured one when null.
+     * @return string
+     */
     public static function label(?string $plan = null): string {
         return platform::txt('plan_' . ($plan ?? self::current()));
     }
@@ -161,6 +176,14 @@ final class plan
         ));
     }
 
+    /**
+     * Whether a package includes a mode of the coach (ask, test, build or
+     * discuss). Anything else is never included.
+     *
+     * @param string $mode The mode.
+     * @param string|null $plan The package; the configured one when null.
+     * @return bool
+     */
     public static function allows_mode(string $mode, ?string $plan = null): bool {
         return in_array($mode, self::MODES, true) && self::allows($mode, $plan);
     }
@@ -196,6 +219,11 @@ final class plan
         return ($wanted === self::INTERACTION_AI && self::allows_ai_driven()) ? self::INTERACTION_AI : self::INTERACTION_TRAINER;
     }
 
+    /**
+     * Whether the configured package is Pay as you grow.
+     *
+     * @return bool
+     */
     public static function is_pay_as_you_grow(): bool {
         return self::current() === self::PAYG;
     }
@@ -230,6 +258,11 @@ final class plan
         return ($value === null || $value === '') ? self::DEFAULT_PRICE : max(0.0, (float) str_replace(',', '.', $value));
     }
 
+    /**
+     * The currency of the prices, as configured; EUR until set.
+     *
+     * @return string
+     */
     public static function currency(): string {
         $value = trim((string) config::get('plan_currency', ''));
         return $value !== '' ? $value : self::DEFAULT_CURRENCY;

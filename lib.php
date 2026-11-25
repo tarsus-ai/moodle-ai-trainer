@@ -55,7 +55,7 @@ function tarsuscoach_supports($feature) {
         case FEATURE_GROUPINGS:
             return false;
         case FEATURE_MOD_PURPOSE:
-            // "Interactive content" exists from Moodle 4.4 on; before, "content".
+            // Moodle 4.4 added the purpose "Interactive content"; before, "content".
             return defined('MOD_PURPOSE_INTERACTIVECONTENT') ? constant('MOD_PURPOSE_INTERACTIVECONTENT') : MOD_PURPOSE_CONTENT;
         default:
             return null;
@@ -126,7 +126,12 @@ function tarsuscoach_add_instance(stdClass $data, $mform = null): int {
     $tarsus->cmidnumber = $data->cmidnumber ?? '';
     tarsuscoach_grade_item_update($tarsus);
     if (!empty($data->completionexpected)) {
-        \core_completion\api::update_completion_date_event($data->coursemodule, 'tarsuscoach', $data->id, $data->completionexpected);
+        \core_completion\api::update_completion_date_event(
+            $data->coursemodule,
+            'tarsuscoach',
+            $data->id,
+            $data->completionexpected
+        );
     }
     return (int) $data->id;
 }

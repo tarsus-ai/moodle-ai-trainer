@@ -26,8 +26,9 @@ namespace mod_tarsuscoach\local\support;
  * that flipping one mid-run - during a long cron run, say - takes effect
  * immediately.
  *
- * @author  Tarsus GmbH
- * @license GPL-3.0-or-later
+ * @package    mod_tarsuscoach
+ * @copyright  2026 Tarsus GmbH
+ * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 final class config
 {
@@ -81,17 +82,31 @@ final class config
     }
 
     // ------------------------------------------------------------------
-    // Typed accessors
-    // ------------------------------------------------------------------
+    // Typed accessors.
 
+    /**
+     * The base URL of the Tarsus server; '' until set.
+     *
+     * @return string
+     */
     public static function base_url(): string {
         return trim((string) self::get('base_url', ''));
     }
 
+    /**
+     * The API key for Tarsus; '' until set.
+     *
+     * @return string
+     */
     public static function api_key(): string {
         return trim((string) self::get('api_key', ''));
     }
 
+    /**
+     * The ID of the brain; '' until set (a license key can take its place).
+     *
+     * @return string
+     */
     public static function brain_id(): string {
         return trim((string) self::get('brain_id', ''));
     }
@@ -141,25 +156,52 @@ final class config
         return $value === null || $value === '1';
     }
 
+    /**
+     * Whether the kill switch is on: the guardrails then refuse every call
+     * to Tarsus. Read fresh from the database.
+     *
+     * @return bool
+     */
     public static function killswitch(): bool {
         return self::fresh('killswitch') === '1';
     }
 
+    /**
+     * Outbound calls allowed per minute, at least 1; the default until
+     * set. Read fresh from the database.
+     *
+     * @return int
+     */
     public static function rate_limit(): int {
         $value = self::fresh('ratelimit');
         return $value === null || $value === '' ? self::DEFAULT_RATE_LIMIT : max(1, (int) $value);
     }
 
+    /**
+     * The assistant's name; the default name until set.
+     *
+     * @return string
+     */
     public static function robot_name(): string {
         $name = trim((string) self::get('robot_name', ''));
         return $name !== '' ? $name : self::DEFAULT_ROBOT_NAME;
     }
 
+    /**
+     * The assistant's ID on the Tarsus side; its name until set.
+     *
+     * @return string
+     */
     public static function robot_id(): string {
         $id = trim((string) self::get('robot_id', ''));
         return $id !== '' ? $id : self::robot_name();
     }
 
+    /**
+     * The assistant's description; its name until set.
+     *
+     * @return string
+     */
     public static function robot_description(): string {
         $description = trim((string) self::get('robot_description', ''));
         return $description !== '' ? $description : self::robot_name();

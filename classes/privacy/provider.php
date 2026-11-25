@@ -136,7 +136,13 @@ class provider implements
                 ];
             }
             $requests = [];
-            foreach ($db->get_records('tarsuscoach_usage', ['tarsuscoachid' => $cm->instance, 'userid' => $user->id], 'timecreated') as $use) {
+            foreach (
+                $db->get_records(
+                    'tarsuscoach_usage',
+                    ['tarsuscoachid' => $cm->instance, 'userid' => $user->id],
+                    'timecreated'
+                ) as $use
+            ) {
                 $requests[] = (object) [
                     'request' => (string) $use->operation,
                     'credits' => (int) $use->credits,
@@ -237,7 +243,10 @@ class provider implements
             return;
         }
         try {
-            client_factory::get_client()->reset_conversation(scope::conversation_context_id($objid), pseudonymizer::pseudonymize($userid));
+            client_factory::get_client()->reset_conversation(
+                scope::conversation_context_id($objid),
+                pseudonymizer::pseudonymize($userid)
+            );
         } catch (\Throwable $e) {
             platform::log('could not erase a conversation in the brain: ' . $e->getMessage());
         }

@@ -22,13 +22,20 @@ namespace mod_tarsuscoach\local\guardrail;
  * The reason ('killswitch', 'breaker', 'budget', 'ratelimit') lets callers
  * decide whether to hold, back off, or surface an error.
  *
- * @author  Tarsus GmbH
- * @license GPL-3.0-or-later
+ * @package    mod_tarsuscoach
+ * @copyright  2026 Tarsus GmbH
+ * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class blocked_exception extends \RuntimeException
 {
+    /** @var string The gate that refused: killswitch, breaker, budget or ratelimit. */
     public string $reason;
 
+    /**
+     * A refusal by the given gate.
+     *
+     * @param string $reason The gate: killswitch, breaker, budget or ratelimit.
+     */
     public function __construct(string $reason) {
         $this->reason = $reason;
         parent::__construct('Tarsus call blocked: ' . $reason);

@@ -36,7 +36,14 @@ final class avatar {
      * becomes the avatar; no picture removes it.
      */
     public static function from_setting(): void {
-        $files = get_file_storage()->get_area_files(\context_system::instance()->id, 'mod_tarsuscoach', 'robotavatar', 0, 'sortorder, id', false);
+        $files = get_file_storage()->get_area_files(
+            \context_system::instance()->id,
+            'mod_tarsuscoach',
+            'robotavatar',
+            0,
+            'sortorder, id',
+            false
+        );
         $file = reset($files);
         if (!$file) {
             config::set('robot_avatar', '');

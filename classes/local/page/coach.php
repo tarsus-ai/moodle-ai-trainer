@@ -42,12 +42,15 @@ final class coach {
 
     /** @var string[] Interface texts of the coach. */
     public const CHAT_STRINGS = [
-        'a11y_you_asked', 'a11y_question', 'a11y_learning_unit', 'a11y_working', 'a11y_answered', 'a11y_correct', 'a11y_incorrect', 'a11y_partial',
-        'a11y_your_answer_correct', 'a11y_your_answer_incorrect', 'a11y_not_correct', 'a11y_answer_missing', 'a11y_mode_ask', 'a11y_mode_next', 'a11y_mode_discuss',
+        'a11y_you_asked', 'a11y_question', 'a11y_learning_unit', 'a11y_working', 'a11y_answered',
+        'a11y_correct', 'a11y_incorrect', 'a11y_partial',
+        'a11y_your_answer_correct', 'a11y_your_answer_incorrect', 'a11y_not_correct', 'a11y_answer_missing',
+        'a11y_mode_ask', 'a11y_mode_next', 'a11y_mode_discuss',
         'practice_start', 'practice_next', 'practice_check', 'practice_answer_placeholder',
         'practice_variable_placeholder', 'practice_score', 'practice_correct_value', 'xp', 'learning_units', 'learn_slide_of',
         'learn_previous', 'learn_next', 'learn_image_enlarge', 'learn_image_close', 'learn_audio', 'learn_audio_play',
-        'learn_audio_pause', 'learn_ask_about', 'learn_ask_about_unit', 'chat_reply_about', 'chat_reply_clear', 'learn_complete_title',
+        'learn_audio_pause', 'learn_ask_about', 'learn_ask_about_unit',
+        'chat_reply_about', 'chat_reply_clear', 'learn_complete_title',
         'frame_title', 'frame_enlarge', 'learn_motivation_title', 'mode_build', 'mode_test', 'mode_ask', 'mode_discuss',
         'unexpected_error', 'session_lost', 'grade_chip', 'grade_title',
         'voice_to_voice', 'voice_to_text', 'voice_start', 'voice_stop', 'voice_pause', 'voice_resume', 'voice_discard',
@@ -172,7 +175,7 @@ final class coach {
             'voice' => $settings->voice_input_active(),
             'voiceMaxSeconds' => self::VOICE_MAX_SECONDS,
             'voiceMaxBytes' => platform::voice_limit(),
-            // "View sources" at the answers.
+            // The "View sources" button at the answers.
             'references' => $settings->referencesenabled,
             // The result in percent: the experience points' share while
             // Test knowledge is active, the learning units' otherwise.
@@ -202,7 +205,13 @@ final class coach {
      * @return learner_api
      */
     public static function learner_api(\stdClass $tarsus, settings $settings): learner_api {
-        return new learner_api((int) $tarsus->id, (string) $tarsus->name, (string) ($tarsus->intro ?? ''), $settings, (int) $tarsus->course);
+        return new learner_api(
+            (int) $tarsus->id,
+            (string) $tarsus->name,
+            (string) ($tarsus->intro ?? ''),
+            $settings,
+            (int) $tarsus->course
+        );
     }
 
     /**

@@ -26,8 +26,9 @@ namespace mod_tarsuscoach\local\client;
  * Nothing here estimates what a call costs: Tarsus records that in the
  * brain's usage ({@see get_usage()}), the only figure the plugin uses.
  *
- * @author  Tarsus GmbH
- * @license GPL-3.0-or-later
+ * @package    mod_tarsuscoach
+ * @copyright  2026 Tarsus GmbH
+ * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 interface client_interface
 {
@@ -111,7 +112,8 @@ interface client_interface
      * 'audioname' instead of 'query'.
      *
      * @param array<string, mixed> $params conversation parameters incl. 'query', 'replytostack', 'replytowidget'.
-     * @return array{answer: string, html: string, question: string, widgetid: string, sources: bool, messages: array<int, array{title: string, text: string}>, progress: array<string, float>}
+     * @return array{answer: string, html: string, question: string, widgetid: string, sources: bool,
+     *     messages: array<int, array{title: string, text: string}>, progress: array<string, float>}
      */
     public function generate_widgets(array $params): array;
 

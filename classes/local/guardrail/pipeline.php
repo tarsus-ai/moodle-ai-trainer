@@ -32,8 +32,9 @@ use mod_tarsuscoach\local\support\config;
  * possible when the month's credits are spent. The pipeline never sleeps: retries
  * are the caller's business.
  *
- * @author  Tarsus GmbH
- * @license GPL-3.0-or-later
+ * @package    mod_tarsuscoach
+ * @copyright  2026 Tarsus GmbH
+ * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class pipeline
 {
@@ -43,8 +44,14 @@ class pipeline
     /** Seconds the breaker stays open before a trial call. */
     public const BREAKER_COOLDOWN = 300;
 
+    /** @var state_store Where the breaker and the token bucket are kept. */
     private state_store $store;
 
+    /**
+     * Guardrails that keep their state in the given store.
+     *
+     * @param state_store|null $store The store; null for the plugin's database table.
+     */
     public function __construct(?state_store $store = null) {
         $this->store = $store ?? new state_store();
     }
@@ -52,13 +59,12 @@ class pipeline
     /**
      * Run a guarded outbound call.
      *
-     * @template T
-     * @param callable(): T $call
+     * @param callable $call The call, without arguments; its result is returned.
      * @param bool $charged Whether the call may cost AI credits: it is
      *                      refused once the month's limit is reached, by
      *                      the brain's own usage figure. Reading back
      *                      (feed, statistics, sources) is never refused.
-     * @return T
+     * @return mixed What the call returns.
      * @throws blocked_exception  When a gate refuses the call.
      * @throws transport_exception When the call fails at the transport level.
      */
@@ -89,6 +95,9 @@ class pipeline
         return $result;
     }
 
+    /**
+     * Refuse every call while the kill switch is engaged.
+     */
     private function guard_killswitch(): void {
         if (config::killswitch()) {
             throw new blocked_exception('killswitch');
@@ -152,6 +161,9 @@ class pipeline
         });
     }
 
+    /**
+     * Count an outage; FAILURE_THRESHOLD of them in a row open the breaker.
+     */
     private function record_failure(): void {
         $this->store->mutate('breaker', function (\stdClass $row): void {
             $row->failurecount = (int) $row->failurecount + 1;
@@ -162,6 +174,9 @@ class pipeline
         });
     }
 
+    /**
+     * Reset the failure count and close the breaker.
+     */
     private function record_success(): void {
         $this->store->mutate('breaker', function (\stdClass $row): void {
             $row->failurecount = 0;

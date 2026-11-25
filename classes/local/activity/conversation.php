@@ -28,8 +28,9 @@ use mod_tarsuscoach\local\support\pseudonymizer;
  * a global admin setting, and the user travels as pseudonym + display name
  * + interface language. Email addresses and logins never leave ILIAS.
  *
- * @author  Tarsus GmbH
- * @license GPL-3.0-or-later
+ * @package    mod_tarsuscoach
+ * @copyright  2026 Tarsus GmbH
+ * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 final class conversation
 {
@@ -37,6 +38,12 @@ final class conversation
     private const LANGUAGES = ['en', 'de', 'fr', 'ar', 'zh', 'it', 'es', 'he', 'ja', 'nl', 'tr', 'uk', 'ru'];
 
     /**
+     * The parameters every t0 call shares, for an object and the current user.
+     *
+     * @param int $objid The Tarsus object.
+     * @param string $title Its title.
+     * @param string $description Its description (HTML); the title stands in when it is empty.
+     * @param settings $settings Its settings.
      * @param string[] $allowed Resource ids allowed to ground the call.
      * @return array<string, mixed>
      */

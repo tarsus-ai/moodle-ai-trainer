@@ -25,11 +25,13 @@ use mod_tarsuscoach\local\support\platform;
  * Concurrent requests and cron runs must not corrupt them, so every
  * mutation runs under a named database lock.
  *
- * @author  Tarsus GmbH
- * @license GPL-3.0-or-later
+ * @package    mod_tarsuscoach
+ * @copyright  2026 Tarsus GmbH
+ * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class state_store
 {
+    /** The guardrail state, one row per name. */
     public const TABLE = 'tarsuscoach_guardrail';
 
     /** Seconds to wait for a guardrail lock. */
@@ -121,6 +123,12 @@ class state_store
         }
     }
 
+    /**
+     * The starting values of a row: breaker closed, nothing counted yet.
+     *
+     * @param string $name The row's name.
+     * @return \stdClass
+     */
     private function default_row(string $name): \stdClass {
         return (object) [
             'name' => $name,

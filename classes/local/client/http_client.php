@@ -42,8 +42,9 @@ use mod_tarsuscoach\local\support\platform;
  * so the guardrails pipeline stays in control; HTTP 409 (a widget sent
  * again in Build knowledge) surfaces as replay_exception.
  *
- * @author  Tarsus GmbH
- * @license GPL-3.0-or-later
+ * @package    mod_tarsuscoach
+ * @copyright  2026 Tarsus GmbH
+ * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class http_client implements client_interface
 {
@@ -61,8 +62,10 @@ class http_client implements client_interface
         'learningObjectivesWidget', 'courseCompleteWidget', 'successWidget', 'skipContentWidget', 'motivationWidget',
     ];
 
-    /** Thinking levels Tarsus accepts (1 fastest .. 4 most thorough) and its default. */
+    /** Thinking levels Tarsus accepts (1 fastest .. 4 most thorough). */
     public const THINKING_LEVELS = [1, 2, 3, 4];
+
+    /** Tarsus's default thinking level, sent when no valid one is set. */
     public const THINKING_LEVEL_DEFAULT = 4;
 
     /** Seconds allowed for a plain JSON call. */
@@ -82,11 +85,26 @@ class http_client implements client_interface
      */
     public const LICENSE_FIELD = 'license_key';
 
+    /** @var string Base URL of the Tarsus service. */
     protected string $baseurl;
+
+    /** @var string API key sent with every call. */
     protected string $apikey;
+
+    /** @var string Id of the configured brain; left out of the calls when a license key is set. */
     protected string $brainid;
+
+    /** @var string License key of an existing Tarsus customer, or empty. */
     protected string $licensekey;
 
+    /**
+     * Keep the settings every call needs.
+     *
+     * @param string $baseurl Base URL of the Tarsus service.
+     * @param string $apikey API key sent with every call.
+     * @param string $brainid Id of the configured brain.
+     * @param string $licensekey License key of an existing Tarsus customer, or empty.
+     */
     public function __construct(string $baseurl, string $apikey, string $brainid, string $licensekey = '') {
         $this->baseurl = $baseurl;
         $this->apikey = $apikey;
@@ -94,6 +112,13 @@ class http_client implements client_interface
         $this->licensekey = $licensekey;
     }
 
+    /**
+     * Send one resource to the brain. The brain ingests asynchronously and
+     * only confirms receipt, so the status is always pending confirmation.
+     *
+     * @param array<string, mixed> $resource Resource payload (type, resource_id, context_id, title, text|url|file).
+     * @return array<string, mixed> 'status' pending confirmation and an empty 'bitref'.
+     */
     public function track_resource(array $resource): array {
         [$path, $params, $tempfile] = $this->build_track_request($resource);
 
@@ -118,6 +143,13 @@ class http_client implements client_interface
         ];
     }
 
+    /**
+     * Read one page of the interleaved activity feed back from the brain,
+     * the page counted from the newest end.
+     *
+     * @param array<string, mixed> $params contextid, userid, offset, pagesize, resourceids, taxonomylevels.
+     * @return array{items: array, rawcount: int, progress: array} Feed items, raw widget count and progress figures.
+     */
     public function retrieve_feed(array $params): array {
         $body = $this->send('POST', '/api/t0/activity/retrieve/next/widgets', [
             'brain_id' => $this->brain(),
@@ -170,6 +202,14 @@ class http_client implements client_interface
         ];
     }
 
+    /**
+     * Have the brain read one learning unit (stack) aloud. Audio that is
+     * not base64 is dropped, and a type that is not audio/* becomes
+     * audio/wav.
+     *
+     * @param array<string, mixed> $params Conversation parameters plus 'stackid' and optional 'voice'.
+     * @return array{audio: string, mimetype: string, voice: string, text: string} Base64 audio, its type, voice and text.
+     */
     public function generate_stack_audio(array $params): array {
         $body = $this->send('POST', '/api/t0/activity/generate/audio/explainer/stack', [
             'brain_id' => $this->brain(),
@@ -205,6 +245,12 @@ class http_client implements client_interface
         ];
     }
 
+    /**
+     * Erase one user's conversation in one activity context.
+     *
+     * @param string $contextid The brain-side conversation context id.
+     * @param string $userid The pseudonymised user id.
+     */
     public function reset_conversation(string $contextid, string $userid): void {
         $this->send('DELETE', '/api/t0/activity/reset/user/widgets', [
             'brain_id' => $this->brain(),
@@ -214,6 +260,12 @@ class http_client implements client_interface
         ]);
     }
 
+    /**
+     * Remove resources from the brain, BATCH_LIMIT ids per call.
+     *
+     * @param string[] $resourceids Ids of the resources to remove.
+     * @return array<string, string> Resource id => 'removed', or 'unknown' when the brain did not confirm it.
+     */
     public function untrack_resource(array $resourceids): array {
         $result = [];
 
@@ -234,6 +286,13 @@ class http_client implements client_interface
         return $result;
     }
 
+    /**
+     * Remove every resource filed under the given assets, BATCH_LIMIT ids
+     * per call.
+     *
+     * @param string[] $assetids Ids of the assets.
+     * @return array<string, string> Asset id => 'removed', or 'unknown' when the brain did not confirm it.
+     */
     public function untrack_assets(array $assetids): array {
         $result = [];
 
@@ -254,6 +313,13 @@ class http_client implements client_interface
         return $result;
     }
 
+    /**
+     * Brain-side status of one tracked resource; pending confirmation when
+     * the brain does not report it.
+     *
+     * @param string $resourceid Id of the resource.
+     * @return array<string, mixed> Result with 'status', 'tracked' and the brain's own 'brainstatus'.
+     */
     public function get_resource_status(string $resourceid): array {
         // The plural endpoint reports a brain-side status; the singular one does not.
         $checked = $this->check_tracked_resources([$resourceid]);
@@ -262,6 +328,13 @@ class http_client implements client_interface
             ?? ['status' => status::PENDING_CONFIRMATION, 'tracked' => false, 'brainstatus' => ''];
     }
 
+    /**
+     * Brain-side status of many resources, BATCH_LIMIT ids per call.
+     * Resources the brain does not report are left out.
+     *
+     * @param string[] $resourceids Ids of the resources.
+     * @return array<string, array{status: string, tracked: bool, brainstatus: string}> Resource id => status.
+     */
     public function check_tracked_resources(array $resourceids): array {
         $result = [];
 
@@ -286,6 +359,12 @@ class http_client implements client_interface
         return $result;
     }
 
+    /**
+     * Every brain the configured API key can reach. Sent without a brain
+     * id, so the brains can be listed before one has been chosen.
+     *
+     * @return array<int, array{brainid: string, active: bool, language: string, tag: string, timecreated: int}> The brains.
+     */
     public function list_brains(): array {
         $body = $this->send('GET', 'awareness/list/memories', []);
 
@@ -306,6 +385,15 @@ class http_client implements client_interface
         return $brains;
     }
 
+    /**
+     * What the brain charged between two Unix timestamps, as the brain
+     * reports it, credits rounded to two decimals.
+     *
+     * @param int $start Start of the period (Unix timestamp).
+     * @param int $end End of the period (Unix timestamp).
+     * @return array{total: float, items: array<int, array{key: string, name: string, service: string, credits: float}>}
+     *     The total and one item per entry of the brain's report.
+     */
     public function get_usage(int $start, int $end): array {
         $body = $this->send('GET', 'awareness/get/usage', [
             'brain_id' => $this->brain(),
@@ -334,6 +422,11 @@ class http_client implements client_interface
         return ['total' => round($total, 2), 'items' => $items];
     }
 
+    /**
+     * The voices the brain can read aloud with.
+     *
+     * @return array<int, array{alias: string, country: string, gender: string}> The voices, gender in lower case.
+     */
     public function list_voices(): array {
         $body = $this->send('GET', 'awareness/list/clone-voices', ['brain_id' => $this->brain()]);
 
@@ -359,8 +452,8 @@ class http_client implements client_interface
      * @return array<string, string>
      */
     private function generation_fields(array $params, string $state): array {
-        // context_type is a constant, default_robot stays true, input is
-        // text unless a recording is sent. full_brain_access must be an
+        // The context_type is a constant, default_robot stays true, input
+        // is text unless a recording is sent. full_brain_access must be an
         // explicit 'false': that is what makes resource_ids the retrieval
         // boundary; 'true' searches the whole shared brain regardless of
         // scope.
@@ -386,7 +479,7 @@ class http_client implements client_interface
             'operators' => self::operators($params),
             'anti_cheat' => !empty($params['anticheat']) ? 'true' : 'false',
             'learn_tempo' => self::learn_tempo($params),
-            // trainer-driven: text and pictures; ai-driven: the brain may
+            // Trainer-driven: text and pictures; ai-driven: the brain may
             // answer with interactive HTML pages (plan permitting).
             'interaction_type' => self::interaction_type($params),
             // 1 (fastest) .. 4 (most thorough); Tarsus charges by it.
@@ -408,6 +501,13 @@ class http_client implements client_interface
         return in_array($level, self::THINKING_LEVELS, true) ? $level : self::THINKING_LEVEL_DEFAULT;
     }
 
+    /**
+     * The interaction type to send: 'ai-driven' when asked for,
+     * 'trainer-driven' otherwise.
+     *
+     * @param array<string, mixed> $params Conversation parameters with optional 'interactiontype'.
+     * @return string The interaction type.
+     */
     private static function interaction_type(array $params): string {
         $type = (string) ($params['interactiontype'] ?? '');
         return $type === 'ai-driven' ? 'ai-driven' : 'trainer-driven';
@@ -490,6 +590,17 @@ class http_client implements client_interface
         ];
     }
 
+    /**
+     * Ask the activity chat (state ask). The answer is an answerWidget's
+     * text or, with ai-driven interaction, a page; other widgets with a
+     * text, such as the welcome on a conversation's first call, come back
+     * as messages.
+     *
+     * @param array<string, mixed> $params Conversation parameters incl. 'query' or 'audiofile', 'replytostack', 'replytowidget'.
+     * @return array{answer: string, html: string, question: string, widgetid: string, sources: bool,
+     *     messages: array<int, array{title: string, text: string}>, progress: array<string, float>}
+     *     The answer with its question and widget id, the messages and the progress figures.
+     */
     public function generate_widgets(array $params): array {
         $fields = $this->generation_fields($params, 'ask') + [
             'query' => (string) ($params['query'] ?? ''),
@@ -500,10 +611,10 @@ class http_client implements client_interface
             // An unset domain is omitted rather than sent empty.
             $fields['industry'] = $industry;
         }
-        // "Ask about this": the question refers to one learning unit (its
-        // stack) or to one card or answer (its widget). Tarsus narrows the
-        // conversation it answers from to that; both together would narrow
-        // it to their intersection, so one is sent.
+        // With "Ask about this", the question refers to one learning unit
+        // (its stack) or to one card or answer (its widget). Tarsus narrows
+        // the conversation it answers from to that; both together would
+        // narrow it to their intersection, so one is sent.
         $replystack = trim((string) ($params['replytostack'] ?? ''));
         $replywidget = trim((string) ($params['replytowidget'] ?? ''));
         if ($replystack !== '') {
@@ -591,7 +702,13 @@ class http_client implements client_interface
         if ($voice !== '') {
             $fields['voice'] = $voice;
         }
-        foreach (['primarycolor' => 'primary_color', 'secondarycolor' => 'secondary_color', 'robotlogo' => 'robot_logo'] as $key => $field) {
+        foreach (
+            [
+                'primarycolor' => 'primary_color',
+                'secondarycolor' => 'secondary_color',
+                'robotlogo' => 'robot_logo',
+            ] as $key => $field
+        ) {
             $value = trim((string) ($params[$key] ?? ''));
             if ($value !== '') {
                 $fields[$field] = $value;
@@ -711,7 +828,12 @@ class http_client implements client_interface
         foreach (array_chunk(array_values(array_unique(array_filter(array_map('strval', $userids), 'strlen'))), 200) as $chunk) {
             $parameters = [];
             foreach ($chunk as $userid) {
-                $parameters[] = ['context_id' => $contextid, 'context_type' => 'tarsus_activity', 'state' => 'learn', 'user_id' => $userid];
+                $parameters[] = [
+                    'context_id' => $contextid,
+                    'context_type' => 'tarsus_activity',
+                    'state' => 'learn',
+                    'user_id' => $userid,
+                ];
             }
             $body = $this->send('POST', '/api/t0/activity/retrieve/context/statistics', [
                 'brain_id' => $this->brain(),
@@ -755,6 +877,14 @@ class http_client implements client_interface
         return ['xp' => $points($analytics['experiencePoints'] ?? []), 'units' => $points($analytics['learningUnits'] ?? [])];
     }
 
+    /**
+     * Generate the next practice question widgets (Test knowledge), without
+     * their correctness information. No widgets come back when the brain
+     * cannot build a question of the requested types from the material.
+     *
+     * @param array<string, mixed> $params Conversation parameters plus 'taxonomylevels', 'questiontypes', optional 'industry'.
+     * @return array{widgets: array, progress: array} The question widgets and the progress figures.
+     */
     public function generate_practice_widget(array $params): array {
         // Same call as the chat, but state 'practice' makes the brain
         // generate the next question instead of answering one. The query is
@@ -825,6 +955,16 @@ class http_client implements client_interface
         ];
     }
 
+    /**
+     * Generate the next learning unit (Build knowledge): the learning
+     * objectives first, then one stack per call. 'replay' is true when
+     * Tarsus sent a widget again (HTTP 409); that widget carries no
+     * figures.
+     *
+     * @param array<string, mixed> $params Conversation parameters plus 'learningmethod', 'gif',
+     *     'taxonomylevels', 'questiontypes' and optional 'industry'.
+     * @return array{items: array, progress: array, replay: bool} Learn items, progress figures and the replay flag.
+     */
     public function generate_learn_widget(array $params): array {
         // Same call as the practice, with state 'learn': the brain first
         // sends the learning objectives, then one micro-learning stack per
@@ -1124,6 +1264,14 @@ class http_client implements client_interface
         ];
     }
 
+    /**
+     * Have the brain mark a learner's answer to a question widget; an
+     * unsupported widget type is refused with an \InvalidArgumentException.
+     *
+     * @param array<string, mixed> $params Conversation parameters plus 'widgettype', 'widgetid', 'state' and the
+     *     answer: 'useranswer', 'useranswers' per variable, or 'usertable' with its 'columns'.
+     * @return array<string, mixed> The verdict (correct, score, feedback), the model answers and the progress figures.
+     */
     public function evaluate_practice_answer(array $params): array {
         $paths = [
             'singleChoiceQuestionWidget' => '/api/t0/activity/evaluate/single-choice-question/widget',
@@ -1151,8 +1299,8 @@ class http_client implements client_interface
             'user_id' => (string) ($params['userid'] ?? ''),
             'user_name' => (string) ($params['username'] ?? ''),
             'user_language' => (string) ($params['userlanguage'] ?? 'de'),
-            // 'learn' evaluates a learning unit's check question and earns
-            // learning units; 'practice' earns experience points.
+            // State 'learn' evaluates a learning unit's check question and
+            // earns learning units; 'practice' earns experience points.
             'state' => (($params['state'] ?? '') === 'learn') ? 'learn' : 'practice',
             'input_modality' => 'text',
             'learn_tempo' => self::learn_tempo($params),

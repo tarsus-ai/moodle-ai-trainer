@@ -24,31 +24,58 @@ use mod_tarsuscoach\local\support\platform;
  * Different Tarsus objects in one course can cover different subsets of
  * the course's indexed material.
  *
- * @author  Tarsus GmbH
- * @license GPL-3.0-or-later
+ * @package    mod_tarsuscoach
+ * @copyright  2026 Tarsus GmbH
+ * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 final class inclusions
 {
+    /** The table holding the inclusions. */
     public const TABLE = 'tarsuscoach_inclusion';
 
     /**
+     * The resources included in a Tarsus object, in order of inclusion.
+     *
+     * @param int $objid The Tarsus object.
      * @return string[] The resource ids included in an object.
      */
     public static function for_object(int $objid): array {
-        $ids = platform::db()->get_fieldset_select(self::TABLE, 'resourceid', 'tarsuscoachid = ? ORDER BY timecreated, id', [$objid]);
+        $ids = platform::db()->get_fieldset_select(
+            self::TABLE,
+            'resourceid',
+            'tarsuscoachid = ? ORDER BY timecreated, id',
+            [$objid]
+        );
         return array_map('strval', $ids);
     }
 
+    /**
+     * Include a resource in a Tarsus object, or renew the time of an
+     * inclusion that already exists.
+     *
+     * @param int $objid The Tarsus object.
+     * @param string $resourceid The resource id.
+     */
     public static function include(int $objid, string $resourceid): void {
         $db = platform::db();
         $id = $db->get_field(self::TABLE, 'id', ['tarsuscoachid' => $objid, 'resourceid' => $resourceid]);
         if ($id) {
             $db->set_field(self::TABLE, 'timecreated', time(), ['id' => $id]);
         } else {
-            $db->insert_record(self::TABLE, (object) ['tarsuscoachid' => $objid, 'resourceid' => $resourceid, 'timecreated' => time()]);
+            $db->insert_record(self::TABLE, (object) [
+                'tarsuscoachid' => $objid,
+                'resourceid' => $resourceid,
+                'timecreated' => time(),
+            ]);
         }
     }
 
+    /**
+     * Take a resource out of a Tarsus object.
+     *
+     * @param int $objid The Tarsus object.
+     * @param string $resourceid The resource id.
+     */
     public static function exclude(int $objid, string $resourceid): void {
         platform::db()->delete_records(self::TABLE, ['tarsuscoachid' => $objid, 'resourceid' => $resourceid]);
     }
@@ -61,10 +88,21 @@ final class inclusions
         platform::db()->delete_records(self::TABLE, ['resourceid' => $resourceid]);
     }
 
+    /**
+     * Forget every inclusion of a Tarsus object.
+     *
+     * @param int $objid The Tarsus object.
+     */
     public static function forget_object(int $objid): void {
         platform::db()->delete_records(self::TABLE, ['tarsuscoachid' => $objid]);
     }
 
+    /**
+     * How many resources a Tarsus object includes.
+     *
+     * @param int $objid The Tarsus object.
+     * @return int
+     */
     public static function count(int $objid): int {
         return platform::db()->count_records(self::TABLE, ['tarsuscoachid' => $objid]);
     }

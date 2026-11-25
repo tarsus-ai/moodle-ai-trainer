@@ -112,7 +112,10 @@ class restore_tarsuscoach_activity_task extends restore_activity_task {
             if ($restored && !empty($restored->newitemid)) {
                 $resourceid = resource_id::build($courseid, $parts['type'], (int) $restored->newitemid, $parts['bitkey']);
             }
-            if ($resourceid === '' || $DB->record_exists('tarsuscoach_inclusion', ['tarsuscoachid' => $tarsus->id, 'resourceid' => $resourceid])) {
+            if (
+                $resourceid === ''
+                || $DB->record_exists('tarsuscoach_inclusion', ['tarsuscoachid' => $tarsus->id, 'resourceid' => $resourceid])
+            ) {
                 $DB->delete_records('tarsuscoach_inclusion', ['id' => $row->id]);
                 continue;
             }

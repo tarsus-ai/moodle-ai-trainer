@@ -26,13 +26,21 @@ use mod_tarsuscoach\local\support\platform;
  * transition is validated against status, so a row can only move through
  * legal states.
  *
- * @author  Tarsus GmbH
- * @license GPL-3.0-or-later
+ * @package    mod_tarsuscoach
+ * @copyright  2026 Tarsus GmbH
+ * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class repository
 {
+    /** The table holding the index map. */
     public const TABLE = 'tarsuscoach_material';
 
+    /**
+     * The index row of a resource.
+     *
+     * @param string $resourceid The resource id.
+     * @return \stdClass|null The row, or null when the resource is not tracked.
+     */
     public function get(string $resourceid): ?\stdClass {
         $row = platform::db()->get_record(self::TABLE, ['resourceid' => $resourceid]);
         return $row ? self::map((array) $row) : null;
@@ -136,6 +144,11 @@ class repository
         return $this->require_row($resourceid);
     }
 
+    /**
+     * Clear a row's failed attempts and its scheduled retry.
+     *
+     * @param string $resourceid The resource id.
+     */
     public function reset_attempts(string $resourceid): void {
         $this->require_row($resourceid);
         $this->write($resourceid, ['attempts' => ['integer', 0], 'nextretry' => ['integer', 0]]);
@@ -150,6 +163,9 @@ class repository
     }
 
     /**
+     * Every row in one status, oldest first.
+     *
+     * @param string $status The status.
      * @return \stdClass[]
      */
     public function get_by_status(string $status): array {
@@ -157,6 +173,9 @@ class repository
     }
 
     /**
+     * The rows of one course.
+     *
+     * @param int $containerref The course.
      * @return \stdClass[] Every row of one container, keyed by resource id.
      */
     public function get_by_container(int $containerref): array {
@@ -168,7 +187,9 @@ class repository
     }
 
     /**
-     * @param string[] $resourceids
+     * The rows of several resources; untracked ones are left out.
+     *
+     * @param string[] $resourceids The resource ids.
      * @return array<string, \stdClass> Keyed by resource id.
      */
     public function get_many(array $resourceids): array {
@@ -187,6 +208,8 @@ class repository
     }
 
     /**
+     * The courses the index map holds rows for.
+     *
      * @return int[] The distinct containers with index rows.
      */
     public function containers(): array {
@@ -194,6 +217,8 @@ class repository
     }
 
     /**
+     * How many rows each status has.
+     *
      * @return array<string, int> status => count, over all rows.
      */
     public function count_by_status(): array {
@@ -205,11 +230,20 @@ class repository
         return $counts;
     }
 
+    /**
+     * Delete the row of a resource.
+     *
+     * @param string $resourceid The resource id.
+     */
     public function delete(string $resourceid): void {
         platform::db()->delete_records(self::TABLE, ['resourceid' => $resourceid]);
     }
 
     /**
+     * The rows matching an SQL condition, oldest first.
+     *
+     * @param string $where The condition, with ? placeholders.
+     * @param array $params The values for the placeholders.
      * @return \stdClass[]
      */
     private function select(string $where, array $params): array {
@@ -221,7 +255,11 @@ class repository
     }
 
     /**
-     * @param array<string, array{0: string, 1: mixed}> $values
+     * Update fields of a resource's row and its modification time; a missing
+     * row is left alone.
+     *
+     * @param string $resourceid The resource id.
+     * @param array<string, array{0: string, 1: mixed}> $values New values by field name, as [type, value] pairs.
      */
     private function write(string $resourceid, array $values): void {
         $id = platform::db()->get_field(self::TABLE, 'id', ['resourceid' => $resourceid]);
@@ -236,6 +274,13 @@ class repository
         platform::db()->update_record(self::TABLE, $record);
     }
 
+    /**
+     * The index row of a resource, which must exist.
+     *
+     * @param string $resourceid The resource id.
+     * @return \stdClass
+     * @throws \LogicException When the resource has no row.
+     */
     private function require_row(string $resourceid): \stdClass {
         $row = $this->get($resourceid);
         if ($row === null) {
@@ -245,7 +290,11 @@ class repository
     }
 
     /**
-     * @param array<string, mixed> $row
+     * Turn a database record into a row with typed values and the field
+     * names the index code uses (containerref, srctype, srcref).
+     *
+     * @param array<string, mixed> $row The database record.
+     * @return \stdClass
      */
     private static function map(array $row): \stdClass {
         return (object) [

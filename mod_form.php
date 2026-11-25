@@ -55,7 +55,12 @@ class mod_tarsuscoach_mod_form extends moodleform_mod {
         $mform->setExpanded('tarsusmodes');
         foreach (['ask', 'test', 'build', 'discuss'] as $mode) {
             $name = $mode . 'enabled';
-            $mform->addElement('advcheckbox', $name, get_string($name, 'mod_tarsuscoach'), get_string($name . '_help', 'mod_tarsuscoach'));
+            $mform->addElement(
+                'advcheckbox',
+                $name,
+                get_string($name, 'mod_tarsuscoach'),
+                get_string($name . '_help', 'mod_tarsuscoach')
+            );
             if (!plan::allows_mode($mode)) {
                 // Not part of the customer's package: shown, explained, locked.
                 $mform->hardFreeze($name);
@@ -70,7 +75,13 @@ class mod_tarsuscoach_mod_form extends moodleform_mod {
         $mform->addElement('header', 'tarsusinteraction', get_string('settings_interaction', 'mod_tarsuscoach'));
         $mform->addElement('static', 'tarsusinteractiondesc', '', get_string('settings_interaction_desc', 'mod_tarsuscoach'));
         $radios = [
-            $mform->createElement('radio', 'interactiontype', '', get_string('interaction_trainer', 'mod_tarsuscoach'), plan::INTERACTION_TRAINER),
+            $mform->createElement(
+                'radio',
+                'interactiontype',
+                '',
+                get_string('interaction_trainer', 'mod_tarsuscoach'),
+                plan::INTERACTION_TRAINER
+            ),
             $mform->createElement(
                 'radio',
                 'interactiontype',
@@ -80,7 +91,13 @@ class mod_tarsuscoach_mod_form extends moodleform_mod {
                 plan::allows_ai_driven() ? [] : ['disabled' => 'disabled']
             ),
         ];
-        $mform->addGroup($radios, 'interactiontypegroup', get_string('interactiontype', 'mod_tarsuscoach'), html_writer::empty_tag('br'), false);
+        $mform->addGroup(
+            $radios,
+            'interactiontypegroup',
+            get_string('interactiontype', 'mod_tarsuscoach'),
+            html_writer::empty_tag('br'),
+            false
+        );
         if (!plan::allows_ai_driven()) {
             $mform->addElement('static', 'interactionlocked', '', html_writer::tag(
                 'strong',
@@ -88,7 +105,12 @@ class mod_tarsuscoach_mod_form extends moodleform_mod {
             ));
         }
 
-        $mform->addElement('advcheckbox', 'voiceinput', get_string('voiceinput', 'mod_tarsuscoach'), get_string('voiceinput_help', 'mod_tarsuscoach'));
+        $mform->addElement(
+            'advcheckbox',
+            'voiceinput',
+            get_string('voiceinput', 'mod_tarsuscoach'),
+            get_string('voiceinput_help', 'mod_tarsuscoach')
+        );
         if (!plan::allows_voice_input()) {
             $mform->hardFreeze('voiceinput');
             $mform->addElement('static', 'voicelocked', '', html_writer::tag(
@@ -115,7 +137,13 @@ class mod_tarsuscoach_mod_form extends moodleform_mod {
             $levels[] = $mform->createElement('radio', 'thinkinglevel', '', get_string('thinking_' . $key, 'mod_tarsuscoach')
                 . ' – ' . get_string('thinking_' . $key . '_help', 'mod_tarsuscoach'), $level);
         }
-        $mform->addGroup($levels, 'thinkinglevelgroup', get_string('thinkinglevel', 'mod_tarsuscoach'), html_writer::empty_tag('br'), false);
+        $mform->addGroup(
+            $levels,
+            'thinkinglevelgroup',
+            get_string('thinkinglevel', 'mod_tarsuscoach'),
+            html_writer::empty_tag('br'),
+            false
+        );
         $mform->addHelpButton('thinkinglevelgroup', 'thinkinglevel', 'mod_tarsuscoach');
 
         // General didactics.
@@ -130,7 +158,12 @@ class mod_tarsuscoach_mod_form extends moodleform_mod {
         $mform->setType('industry', PARAM_TEXT);
         $mform->addRule('industry', get_string('maximumchars', '', 255), 'maxlength', 255, 'client');
         $mform->addHelpButton('industry', 'industry', 'mod_tarsuscoach');
-        $mform->addElement('advcheckbox', 'anticheat', get_string('anticheat', 'mod_tarsuscoach'), get_string('anticheat_help', 'mod_tarsuscoach'));
+        $mform->addElement(
+            'advcheckbox',
+            'anticheat',
+            get_string('anticheat', 'mod_tarsuscoach'),
+            get_string('anticheat_help', 'mod_tarsuscoach')
+        );
 
         // Ask a question.
         $mform->addElement('header', 'tarsusask', get_string('settings_ask', 'mod_tarsuscoach'));
@@ -153,9 +186,18 @@ class mod_tarsuscoach_mod_form extends moodleform_mod {
         foreach ([1 => 'difficulty_easy', 2 => 'difficulty_medium', 3 => 'difficulty_hard'] as $grade => $gradekey) {
             $types = [];
             foreach (didactics::TYPES as $type) {
-                $types[] = $mform->createElement('advcheckbox', $type, '', get_string(didactics::type_label_key($type), 'mod_tarsuscoach'));
+                $types[] = $mform->createElement(
+                    'advcheckbox',
+                    $type,
+                    '',
+                    get_string(didactics::type_label_key($type), 'mod_tarsuscoach')
+                );
             }
-            $label = get_string('questiontypes_grade', 'mod_tarsuscoach', (object) ['grade' => get_string($gradekey, 'mod_tarsuscoach')]);
+            $label = get_string(
+                'questiontypes_grade',
+                'mod_tarsuscoach',
+                (object) ['grade' => get_string($gradekey, 'mod_tarsuscoach')]
+            );
             $mform->addGroup($types, 'qtypes' . $grade, $label, html_writer::empty_tag('br'), true);
             if ($grade === 1) {
                 $mform->addHelpButton('qtypes1', 'questiontypes', 'mod_tarsuscoach');
@@ -163,10 +205,28 @@ class mod_tarsuscoach_mod_form extends moodleform_mod {
         }
 
         $operators = [
-            $mform->createElement('radio', 'operators', '', get_string('operators_standard', 'mod_tarsuscoach'), didactics::OPERATORS_STANDARD),
-            $mform->createElement('radio', 'operators', '', get_string('operators_ihk', 'mod_tarsuscoach'), didactics::OPERATORS_IHK),
+            $mform->createElement(
+                'radio',
+                'operators',
+                '',
+                get_string('operators_standard', 'mod_tarsuscoach'),
+                didactics::OPERATORS_STANDARD
+            ),
+            $mform->createElement(
+                'radio',
+                'operators',
+                '',
+                get_string('operators_ihk', 'mod_tarsuscoach'),
+                didactics::OPERATORS_IHK
+            ),
         ];
-        $mform->addGroup($operators, 'operatorsgroup', get_string('operators', 'mod_tarsuscoach'), html_writer::empty_tag('br'), false);
+        $mform->addGroup(
+            $operators,
+            'operatorsgroup',
+            get_string('operators', 'mod_tarsuscoach'),
+            html_writer::empty_tag('br'),
+            false
+        );
         $mform->addHelpButton('operatorsgroup', 'operators', 'mod_tarsuscoach');
 
         $tempos = [];
@@ -186,7 +246,12 @@ class mod_tarsuscoach_mod_form extends moodleform_mod {
         }
         $mform->addElement('select', 'learningmethod', get_string('learningmethod', 'mod_tarsuscoach'), $methods);
         $mform->addHelpButton('learningmethod', 'learningmethod', 'mod_tarsuscoach');
-        $mform->addElement('advcheckbox', 'gifenabled', get_string('gifenabled', 'mod_tarsuscoach'), get_string('gifenabled_help', 'mod_tarsuscoach'));
+        $mform->addElement(
+            'advcheckbox',
+            'gifenabled',
+            get_string('gifenabled', 'mod_tarsuscoach'),
+            get_string('gifenabled_help', 'mod_tarsuscoach')
+        );
 
         $this->standard_grading_coursemodule_elements();
         $this->standard_coursemodule_elements();
@@ -273,12 +338,23 @@ class mod_tarsuscoach_mod_form extends moodleform_mod {
         $mform = $this->_form;
         $suffix = $this->suffix();
         $group = [
-            $mform->createElement('checkbox', 'completionprogressenabled' . $suffix, '', get_string('completionprogress_enable', 'mod_tarsuscoach')),
+            $mform->createElement(
+                'checkbox',
+                'completionprogressenabled' . $suffix,
+                '',
+                get_string('completionprogress_enable', 'mod_tarsuscoach')
+            ),
             $mform->createElement('text', 'completionprogress' . $suffix, '', ['size' => 3]),
             $mform->createElement('static', 'completionprogresspercent' . $suffix, '', '%'),
         ];
         $mform->setType('completionprogress' . $suffix, PARAM_INT);
-        $mform->addGroup($group, 'completionprogressgroup' . $suffix, get_string('completionprogress_rule', 'mod_tarsuscoach'), ' ', false);
+        $mform->addGroup(
+            $group,
+            'completionprogressgroup' . $suffix,
+            get_string('completionprogress_rule', 'mod_tarsuscoach'),
+            ' ',
+            false
+        );
         $mform->addHelpButton('completionprogressgroup' . $suffix, 'completionprogress', 'mod_tarsuscoach');
         $mform->disabledIf('completionprogress' . $suffix, 'completionprogressenabled' . $suffix, 'notchecked');
         return ['completionprogressgroup' . $suffix];
@@ -304,7 +380,8 @@ class mod_tarsuscoach_mod_form extends moodleform_mod {
         parent::data_postprocessing($data);
         $suffix = $this->suffix();
         if (!empty($data->completionunlocked)) {
-            $automatic = !empty($data->{'completion' . $suffix}) && $data->{'completion' . $suffix} == COMPLETION_TRACKING_AUTOMATIC;
+            $automatic = !empty($data->{'completion' . $suffix})
+                && $data->{'completion' . $suffix} == COMPLETION_TRACKING_AUTOMATIC;
             if (empty($data->{'completionprogressenabled' . $suffix}) || !$automatic) {
                 $data->{'completionprogress' . $suffix} = 0;
             }

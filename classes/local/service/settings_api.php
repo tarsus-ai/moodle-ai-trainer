@@ -31,8 +31,9 @@ use mod_tarsuscoach\local\support\plan;
  * a locked value posts nothing and the stored one is kept, so a package
  * upgrade later finds the teacher's choice intact.
  *
- * @author  Tarsus GmbH
- * @license GPL-3.0-or-later
+ * @package    mod_tarsuscoach
+ * @copyright  2026 Tarsus GmbH
+ * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 final class settings_api
 {
@@ -42,12 +43,26 @@ final class settings_api
     /** Thinking levels with their language keys. */
     private const THINKING = [1 => 'fast', 2 => 'slow', 3 => 'deep', 4 => 'intense'];
 
+    /** @var settings The activity's settings. */
     private settings $settings;
 
+    /**
+     * Keep the activity's settings to describe and change.
+     *
+     * @param settings $settings The activity's settings.
+     */
     public function __construct(settings $settings) {
         $this->settings = $settings;
     }
 
+    /**
+     * A text of the plugin with its placeholders filled in (short for
+     * platform::txt()).
+     *
+     * @param string $key The string identifier.
+     * @param array $params Placeholder values by name.
+     * @return string
+     */
     private static function t(string $key, array $params = []): string {
         return platform::txt($key, $params);
     }
@@ -78,7 +93,11 @@ final class settings_api
 
         $levels = [];
         foreach (self::THINKING as $level => $key) {
-            $levels[] = ['value' => (string) $level, 'label' => self::t('thinking_' . $key), 'help' => self::t('thinking_' . $key . '_help')];
+            $levels[] = [
+                'value' => (string) $level,
+                'label' => self::t('thinking_' . $key),
+                'help' => self::t('thinking_' . $key . '_help'),
+            ];
         }
         $styles = [];
         foreach (self::STYLES as $i => $key) {
@@ -101,7 +120,9 @@ final class settings_api
             $label = didactics::tempo_label($value);
             $tempos[] = [
                 'value' => (string) $value,
-                'label' => $value === didactics::LEARN_TEMPO_DEFAULT ? str_replace('{label}', $label, self::t('learntempo_recommended')) : $label,
+                'label' => $value === didactics::LEARN_TEMPO_DEFAULT
+                    ? str_replace('{label}', $label, self::t('learntempo_recommended'))
+                    : $label,
             ];
         }
         $methods = [];
@@ -130,47 +151,147 @@ final class settings_api
                     [
                         'name' => 'interactiontype', 'type' => 'radio', 'label' => self::t('interactiontype'),
                         'options' => [
-                            ['value' => plan::INTERACTION_TRAINER, 'label' => self::t('interaction_trainer'), 'help' => self::t('interaction_trainer_help')],
-                            ['value' => plan::INTERACTION_AI, 'label' => self::t('interaction_ai'), 'help' => self::t('interaction_ai_help'),
-                                'locked' => !$aiallowed, 'lockedtext' => $aiallowed ? '' : $planlock('plan_interaction_unavailable')],
+                            [
+                                'value' => plan::INTERACTION_TRAINER,
+                                'label' => self::t('interaction_trainer'),
+                                'help' => self::t('interaction_trainer_help'),
+                            ],
+                            [
+                                'value' => plan::INTERACTION_AI,
+                                'label' => self::t('interaction_ai'),
+                                'help' => self::t('interaction_ai_help'),
+                                'locked' => !$aiallowed,
+                                'lockedtext' => $aiallowed ? '' : $planlock('plan_interaction_unavailable'),
+                            ],
                         ],
                         'value' => $s->interactiontype,
                     ],
                     [
-                        'name' => 'voiceinput', 'type' => 'checkbox', 'label' => self::t('voiceinput'), 'help' => self::t('voiceinput_help'),
-                        'value' => $s->voiceinput, 'locked' => !$voiceallowed, 'lockedtext' => $voiceallowed ? '' : $planlock('plan_feature_locked'),
+                        'name' => 'voiceinput',
+                        'type' => 'checkbox',
+                        'label' => self::t('voiceinput'),
+                        'help' => self::t('voiceinput_help'),
+                        'value' => $s->voiceinput,
+                        'locked' => !$voiceallowed,
+                        'lockedtext' => $voiceallowed ? '' : $planlock('plan_feature_locked'),
                     ],
-                    ['name' => 'referencesenabled', 'type' => 'checkbox', 'label' => self::t('referencesenabled'), 'help' => self::t('referencesenabled_help'), 'value' => $s->referencesenabled],
-                    ['name' => 'visualaccessibility', 'type' => 'checkbox', 'label' => self::t('visualaccessibility'), 'help' => self::t('visualaccessibility_help'), 'value' => $s->visualaccessibility],
+                    [
+                        'name' => 'referencesenabled',
+                        'type' => 'checkbox',
+                        'label' => self::t('referencesenabled'),
+                        'help' => self::t('referencesenabled_help'),
+                        'value' => $s->referencesenabled,
+                    ],
+                    [
+                        'name' => 'visualaccessibility',
+                        'type' => 'checkbox',
+                        'label' => self::t('visualaccessibility'),
+                        'help' => self::t('visualaccessibility_help'),
+                        'value' => $s->visualaccessibility,
+                    ],
                 ]],
                 ['title' => self::t('thinkinglevel'), 'help' => self::t('thinkinglevel_help'), 'fields' => [
-                    ['name' => 'thinkinglevel', 'type' => 'cards', 'label' => self::t('thinkinglevel'), 'options' => $levels, 'value' => (string) $s->thinkinglevel],
+                    [
+                        'name' => 'thinkinglevel',
+                        'type' => 'cards',
+                        'label' => self::t('thinkinglevel'),
+                        'options' => $levels,
+                        'value' => (string) $s->thinkinglevel,
+                    ],
                 ]],
                 ['title' => self::t('settings_general'), 'fields' => [
-                    ['name' => 'dqr', 'type' => 'select', 'label' => self::t('dqr'), 'help' => self::t('dqr_help'), 'options' => $dqr, 'value' => (string) $s->dqr],
-                    ['name' => 'industry', 'type' => 'text', 'label' => self::t('industry'), 'help' => self::t('industry_help'), 'value' => $s->industry, 'maxlength' => 255],
-                    ['name' => 'anticheat', 'type' => 'checkbox', 'label' => self::t('anticheat'), 'help' => self::t('anticheat_help'), 'value' => $s->anticheat],
+                    [
+                        'name' => 'dqr',
+                        'type' => 'select',
+                        'label' => self::t('dqr'),
+                        'help' => self::t('dqr_help'),
+                        'options' => $dqr,
+                        'value' => (string) $s->dqr,
+                    ],
+                    [
+                        'name' => 'industry',
+                        'type' => 'text',
+                        'label' => self::t('industry'),
+                        'help' => self::t('industry_help'),
+                        'value' => $s->industry,
+                        'maxlength' => 255,
+                    ],
+                    [
+                        'name' => 'anticheat',
+                        'type' => 'checkbox',
+                        'label' => self::t('anticheat'),
+                        'help' => self::t('anticheat_help'),
+                        'value' => $s->anticheat,
+                    ],
                 ]],
                 ['title' => self::t('settings_ask'), 'fields' => [
-                    ['name' => 'conversationstyle', 'type' => 'select', 'label' => self::t('conversationstyle'), 'help' => self::t('conversationstyle_help'), 'options' => $styles, 'value' => (string) $s->conversationstyle],
+                    [
+                        'name' => 'conversationstyle',
+                        'type' => 'select',
+                        'label' => self::t('conversationstyle'),
+                        'help' => self::t('conversationstyle_help'),
+                        'options' => $styles,
+                        'value' => (string) $s->conversationstyle,
+                    ],
                 ]],
                 ['title' => self::t('settings_test'), 'fields' => array_merge([
-                    ['name' => 'taxonomylevels', 'type' => 'multi', 'label' => self::t('taxonomylevels'), 'help' => self::t('taxonomylevels_help'), 'options' => $taxonomy,
-                        'value' => array_map('strval', $s->taxonomylevels)],
+                    [
+                        'name' => 'taxonomylevels',
+                        'type' => 'multi',
+                        'label' => self::t('taxonomylevels'),
+                        'help' => self::t('taxonomylevels_help'),
+                        'options' => $taxonomy,
+                        'value' => array_map('strval', $s->taxonomylevels),
+                    ],
                 ], $grades, [
-                    ['name' => 'operators', 'type' => 'radio', 'label' => self::t('operators'), 'help' => self::t('operators_help'), 'options' => [
-                        ['value' => didactics::OPERATORS_STANDARD, 'label' => self::t('operators_standard')],
-                        ['value' => didactics::OPERATORS_IHK, 'label' => self::t('operators_ihk')],
-                    ], 'value' => $s->operators],
-                    ['name' => 'learntempo', 'type' => 'select', 'label' => self::t('learntempo'), 'help' => self::t('learntempo_help'), 'options' => $tempos, 'value' => (string) $s->learntempo],
+                    [
+                        'name' => 'operators',
+                        'type' => 'radio',
+                        'label' => self::t('operators'),
+                        'help' => self::t('operators_help'),
+                        'options' => [
+                            ['value' => didactics::OPERATORS_STANDARD, 'label' => self::t('operators_standard')],
+                            ['value' => didactics::OPERATORS_IHK, 'label' => self::t('operators_ihk')],
+                        ],
+                        'value' => $s->operators,
+                    ],
+                    [
+                        'name' => 'learntempo',
+                        'type' => 'select',
+                        'label' => self::t('learntempo'),
+                        'help' => self::t('learntempo_help'),
+                        'options' => $tempos,
+                        'value' => (string) $s->learntempo,
+                    ],
                 ])],
                 ['title' => self::t('settings_build'), 'fields' => [
-                    ['name' => 'learningmethod', 'type' => 'select', 'label' => self::t('learningmethod'), 'help' => self::t('learningmethod_help'), 'options' => $methods, 'value' => $s->learningmethod],
-                    ['name' => 'gifenabled', 'type' => 'checkbox', 'label' => self::t('gifenabled'), 'help' => self::t('gifenabled_help'), 'value' => $s->gifenabled],
+                    [
+                        'name' => 'learningmethod',
+                        'type' => 'select',
+                        'label' => self::t('learningmethod'),
+                        'help' => self::t('learningmethod_help'),
+                        'options' => $methods,
+                        'value' => $s->learningmethod,
+                    ],
+                    [
+                        'name' => 'gifenabled',
+                        'type' => 'checkbox',
+                        'label' => self::t('gifenabled'),
+                        'help' => self::t('gifenabled_help'),
+                        'value' => $s->gifenabled,
+                    ],
                 ]],
                 ['title' => self::t('settings_lp'), 'fields' => [
-                    ['name' => 'completionprogress', 'type' => 'number', 'label' => self::t('completionprogress'), 'help' => self::t('completionprogress_help'),
-                        'value' => (string) $s->completionprogress, 'min' => 0, 'max' => 100, 'suffix' => '%'],
+                    [
+                        'name' => 'completionprogress',
+                        'type' => 'number',
+                        'label' => self::t('completionprogress'),
+                        'help' => self::t('completionprogress_help'),
+                        'value' => (string) $s->completionprogress,
+                        'min' => 0,
+                        'max' => 100,
+                        'suffix' => '%',
+                    ],
                 ]],
             ],
         ];
@@ -186,7 +307,9 @@ final class settings_api
     public function apply(array $values): array {
         $s = $this->settings;
         $errors = [];
-        $bool = static fn(string $name, bool $current): bool => array_key_exists($name, $values) ? !empty($values[$name]) : $current;
+        $bool = static fn(string $name, bool $current): bool => array_key_exists($name, $values)
+            ? !empty($values[$name])
+            : $current;
 
         $wanted = [];
         $anymode = false;
@@ -239,7 +362,10 @@ final class settings_api
         }
         $s->referencesenabled = $bool('referencesenabled', $s->referencesenabled);
         $s->visualaccessibility = $bool('visualaccessibility', $s->visualaccessibility);
-        if (array_key_exists('thinkinglevel', $values) && in_array((int) $values['thinkinglevel'], settings::THINKING_LEVELS, true)) {
+        if (
+            array_key_exists('thinkinglevel', $values)
+            && in_array((int) $values['thinkinglevel'], settings::THINKING_LEVELS, true)
+        ) {
             $s->thinkinglevel = (int) $values['thinkinglevel'];
         }
         if (array_key_exists('dqr', $values) && in_array((int) $values['dqr'], didactics::DQR_LEVELS, true)) {
@@ -249,7 +375,10 @@ final class settings_api
             $s->industry = mb_substr(trim((string) $values['industry']), 0, 255);
         }
         $s->anticheat = $bool('anticheat', $s->anticheat);
-        if (array_key_exists('conversationstyle', $values) && in_array((int) $values['conversationstyle'], didactics::STYLES, true)) {
+        if (
+            array_key_exists('conversationstyle', $values)
+            && in_array((int) $values['conversationstyle'], didactics::STYLES, true)
+        ) {
             $s->conversationstyle = (int) $values['conversationstyle'];
         }
         $s->taxonomylevels = didactics::decode_taxonomy_levels($taxonomy);

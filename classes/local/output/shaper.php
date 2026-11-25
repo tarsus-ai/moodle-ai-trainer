@@ -24,11 +24,19 @@ use mod_tarsuscoach\local\support\platform;
  * markdown rendered to safe HTML, labels localised, and nothing passed on
  * that the learner should not see before answering.
  *
- * @author  Tarsus GmbH
- * @license GPL-3.0-or-later
+ * @package    mod_tarsuscoach
+ * @copyright  2026 Tarsus GmbH
+ * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 final class shaper
 {
+    /**
+     * The label of a taxonomy level as the brain names it (WISSEN,
+     * VERSTEHEN, ANWENDEN); '' for anything else.
+     *
+     * @param string $level The brain's name of the level, in any case.
+     * @return string
+     */
     public static function taxonomy(string $level): string {
         switch (strtoupper($level)) {
             case 'WISSEN':
@@ -42,6 +50,13 @@ final class shaper
         }
     }
 
+    /**
+     * The icon of a taxonomy level as the brain names it; '' for anything
+     * else.
+     *
+     * @param string $level The brain's name of the level, in any case.
+     * @return string The name of an icon in icons::PATHS.
+     */
     public static function taxonomy_icon(string $level): string {
         switch (strtoupper($level)) {
             case 'WISSEN':
@@ -55,6 +70,13 @@ final class shaper
         }
     }
 
+    /**
+     * The label of a difficulty grade (1 easy, 2 medium, 3 hard); '' for
+     * anything else.
+     *
+     * @param int $grade The difficulty grade.
+     * @return string
+     */
     public static function difficulty(int $grade): string {
         switch ($grade) {
             case 1:
@@ -83,12 +105,21 @@ final class shaper
         return $value;
     }
 
+    /**
+     * Whether the practice mode supports a question widget type.
+     *
+     * @param string $widgettype The question widget type.
+     * @return bool
+     */
     public static function is_supported_type(string $widgettype): bool {
         return in_array($widgettype, client_interface::QUESTION_WIDGET_TYPES, true);
     }
 
     /**
-     * @param array<int, mixed> $answers
+     * The answers of a rule of three, one per variable, each with its
+     * verdict and clarification. Entries that are not arrays are skipped.
+     *
+     * @param array<int, mixed> $answers The answers as the brain sends them.
      * @return array<int, array{variable: string, answer: string, iscorrect: bool, clarification: string}>
      */
     public static function answers(array $answers): array {
@@ -141,7 +172,10 @@ final class shaper
         $out = [];
         foreach ($rows as $row) {
             if (is_array($row)) {
-                $out[] = array_values(array_map(static fn($cell): string => is_array($cell) ? (string) ($cell['value'] ?? '') : (string) $cell, $row));
+                $out[] = array_values(array_map(
+                    static fn($cell): string => is_array($cell) ? (string) ($cell['value'] ?? '') : (string) $cell,
+                    $row
+                ));
             }
         }
         return $out;
@@ -172,7 +206,11 @@ final class shaper
     }
 
     /**
-     * @param array<int, mixed> $choices
+     * The choices of a question, each with its label (true and false
+     * localised).
+     *
+     * @param array<int, mixed> $choices The choices as the brain sends them.
+     * @param string $type The question widget type.
      * @return array<int, array{value: string, label: string}>
      */
     public static function choices(array $choices, string $type): array {
@@ -284,9 +322,13 @@ final class shaper
                 'text' => $ispage ? '' : markdown::render((string) ($slide['text'] ?? '')),
                 'html' => $ispage ? (string) $slide['html'] : '',
                 'image' => $ispage ? '' : media::image((string) ($slide['image'] ?? '')),
-                'imageposition' => in_array($slide['imageposition'] ?? '', ['top', 'left', 'right'], true) ? (string) $slide['imageposition'] : 'right',
+                'imageposition' => in_array($slide['imageposition'] ?? '', ['top', 'left', 'right'], true)
+                    ? (string) $slide['imageposition']
+                    : 'right',
                 // Narration of the card (a data URI checked by the client).
-                'audio' => $ispage ? '' : (strncmp((string) ($slide['audio'] ?? ''), 'data:audio/', 11) === 0 ? (string) $slide['audio'] : ''),
+                'audio' => $ispage
+                    ? ''
+                    : (strncmp((string) ($slide['audio'] ?? ''), 'data:audio/', 11) === 0 ? (string) $slide['audio'] : ''),
             ];
             if ($isquestion) {
                 $out['question'] = self::practice_item($slide['question']);
@@ -337,7 +379,9 @@ final class shaper
     }
 
     /**
-     * @param array<string, mixed> $progress
+     * The learner's progress figures as numbers; a missing figure is 0.
+     *
+     * @param array<string, mixed> $progress The figures as the brain sends them.
      * @return array<string, float>
      */
     public static function progress(array $progress): array {

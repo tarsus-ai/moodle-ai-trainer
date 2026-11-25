@@ -21,15 +21,22 @@ namespace mod_tarsuscoach\local\client;
  * no API key, or no brain selected). The message key names a language
  * variable of the plugin.
  *
- * @author  Tarsus GmbH
- * @license GPL-3.0-or-later
+ * @package    mod_tarsuscoach
+ * @copyright  2026 Tarsus GmbH
+ * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class configuration_exception extends \RuntimeException
 {
-    public string $langKey;
+    /** @var string The plugin's language string key that names the problem. */
+    public string $langkey;
 
-    public function __construct(string $langKey) {
-        $this->langKey = $langKey;
-        parent::__construct($langKey);
+    /**
+     * Keep the language string key; it is the exception message too.
+     *
+     * @param string $langkey The plugin's language string key that names the problem.
+     */
+    public function __construct(string $langkey) {
+        $this->langkey = $langkey;
+        parent::__construct($langkey);
     }
 }

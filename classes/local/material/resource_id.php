@@ -30,15 +30,27 @@ use mod_tarsuscoach\local\support\config;
  * - bitkey distinguishes several bits of one object (each link of a web
  *   link list); single-bit objects use 'main'.
  *
- * @author  Tarsus GmbH
- * @license GPL-3.0-or-later
+ * @package    mod_tarsuscoach
+ * @copyright  2026 Tarsus GmbH
+ * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 final class resource_id
 {
+    /** The bit key of an object with a single bit. */
     public const MAIN = 'main';
 
+    /** The separator between the parts of an id. */
     private const SEP = ':';
 
+    /**
+     * The resource id of a bit.
+     *
+     * @param int $containerref The course.
+     * @param string $type The module (resource, page...).
+     * @param int $refid The course module.
+     * @param string $bitkey The bit within the module.
+     * @return string
+     */
     public static function build(int $containerref, string $type, int $refid, string $bitkey = self::MAIN): string {
         return implode(self::SEP, [
             config::site_token(),
@@ -50,6 +62,9 @@ final class resource_id
     }
 
     /**
+     * The parts of a resource id, or null when it is malformed.
+     *
+     * @param string $resourceid The resource id.
      * @return array{sitetoken: string, containerref: int, type: string, refid: int, bitkey: string}|null
      */
     public static function parse(string $resourceid): ?array {
@@ -92,6 +107,13 @@ final class resource_id
         return $parts !== null && $parts['sitetoken'] === config::site_token();
     }
 
+    /**
+     * A bit key with every character but letters, digits, "_", "." and "-"
+     * removed; main when nothing is left.
+     *
+     * @param string $bitkey The bit key.
+     * @return string
+     */
     private static function clean_bitkey(string $bitkey): string {
         $clean = preg_replace('/[^a-z0-9_.-]/i', '', $bitkey);
         return ($clean === '' || $clean === null) ? self::MAIN : $clean;

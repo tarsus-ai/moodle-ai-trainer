@@ -25,15 +25,26 @@ use mod_tarsuscoach\local\support\platform;
  * calls the brain. The summary counts the course (or group) members, so
  * tutors and admins trying the object do not skew it.
  *
- * @author  Tarsus GmbH
- * @license GPL-3.0-or-later
+ * @package    mod_tarsuscoach
+ * @copyright  2026 Tarsus GmbH
+ * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 final class learners
 {
+    /** @var int The Tarsus activity. */
     private int $objid;
+    /** @var int The activity's course. */
     private int $containerref;
+    /** @var settings The activity's settings. */
     private settings $settings;
 
+    /**
+     * The learners' overview of one activity.
+     *
+     * @param int $objid The Tarsus activity.
+     * @param int $containerref The activity's course.
+     * @param settings $settings The activity's settings.
+     */
     public function __construct(int $objid, int $containerref, settings $settings) {
         $this->objid = $objid;
         $this->containerref = $containerref;
@@ -41,8 +52,10 @@ final class learners
     }
 
     /**
-     * @return int[] The learners of the activity: enrolled in its course and
-     *     allowed to use it, but not to manage it (teachers are no learners).
+     * The learners of the activity: enrolled in its course and allowed to
+     * use it, but not to manage it (teachers are no learners).
+     *
+     * @return int[] Their user ids; none when the activity cannot be read.
      */
     public function members(): array {
         try {
@@ -81,7 +94,9 @@ final class learners
         foreach (array_chunk($userids, 500) as $chunk) {
             [$insql, $params] = platform::db()->get_in_or_equal($chunk);
             $fields = 'id, username, ' . implode(', ', \core_user\fields::get_name_fields());
-            foreach (platform::db()->get_records_select('user', 'id ' . $insql . ' AND deleted = 0', $params, '', $fields) as $user) {
+            foreach (
+                platform::db()->get_records_select('user', 'id ' . $insql . ' AND deleted = 0', $params, '', $fields) as $user
+            ) {
                 $names[(int) $user->id] = $user;
             }
         }
@@ -89,6 +104,9 @@ final class learners
     }
 
     /**
+     * The figures of every learner, sorted by name, and a summary that
+     * counts only the members of the course.
+     *
      * @return array{learners: array<int, array<string, mixed>>, summary: array<string, mixed>, hasmembers: bool}
      */
     public function overview(): array {
@@ -106,7 +124,11 @@ final class learners
                 continue;
             }
             $user = $names[$userid];
-            $name = ['lastname' => (string) $user->lastname, 'firstname' => (string) $user->firstname, 'login' => (string) $user->username];
+            $name = [
+                'lastname' => (string) $user->lastname,
+                'firstname' => (string) $user->firstname,
+                'login' => (string) $user->username,
+            ];
             $row = $rows[$userid] ?? null;
             $progress = scoring::progress($this->settings, $row);
             $grade = scoring::grade($this->settings, $row);
@@ -128,7 +150,10 @@ final class learners
                 'lastactivity' => $row->timemodified ?? 0,
             ];
         }
-        usort($learners, static fn(array $a, array $b): int => strcasecmp($a['lastname'] . ' ' . $a['firstname'], $b['lastname'] . ' ' . $b['firstname']));
+        usort($learners, static fn(array $a, array $b): int => strcasecmp(
+            $a['lastname'] . ' ' . $a['firstname'],
+            $b['lastname'] . ' ' . $b['firstname']
+        ));
 
         $counted = array_values(array_filter($learners, static fn(array $l): bool => $l['member']));
         $completed = 0;

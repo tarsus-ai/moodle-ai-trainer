@@ -24,13 +24,21 @@ use mod_tarsuscoach\local\support\config;
  * Defaults to the mock when mock mode is unset (fresh install), so no code
  * path can reach a live endpoint by accident.
  *
- * @author  Tarsus GmbH
- * @license GPL-3.0-or-later
+ * @package    mod_tarsuscoach
+ * @copyright  2026 Tarsus GmbH
+ * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 final class client_factory
 {
+    /** @var client_interface|null The client forced by override() (tests), or null for none. */
     private static ?client_interface $override = null;
 
+    /**
+     * The client to use: the forced one if there is one, the mock in mock
+     * mode, otherwise the HTTP client built from the site configuration.
+     *
+     * @return client_interface The active client.
+     */
     public static function get_client(): client_interface {
         if (self::$override !== null) {
             return self::$override;

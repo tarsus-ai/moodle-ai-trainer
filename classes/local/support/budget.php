@@ -33,8 +33,9 @@ use mod_tarsuscoach\local\guardrail\pipeline;
  * Crossing 50, 75, 90 and 100 percent of it raises a banner for teachers
  * and administrators and sends one mail per threshold and month.
  *
- * @author  Tarsus GmbH
- * @license GPL-3.0-or-later
+ * @package    mod_tarsuscoach
+ * @copyright  2026 Tarsus GmbH
+ * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 final class budget
 {
@@ -47,13 +48,15 @@ final class budget
     /** Seconds one fetch may take before another process may start its own. */
     private const FETCH_LOCK = 20;
 
+    /** Setting that keeps the brain's figure for the month (JSON). */
     private const KEY_REMOTE = 'usage_remote';
+    /** Setting that marks a fetch in progress with its start time. */
     private const KEY_FETCHING = 'usage_fetching';
+    /** Setting that records the thresholds announced per month (JSON). */
     private const KEY_NOTIFIED = 'usage_notified';
 
     // ------------------------------------------------------------------
-    // Period
-    // ------------------------------------------------------------------
+    // Period.
 
     /**
      * Midnight of the first day of the month containing $time, in the
@@ -65,16 +68,36 @@ final class budget
         return $date->getTimestamp();
     }
 
+    /**
+     * Midnight of the first day of the month after the one containing
+     * $time, in the installation's time zone.
+     *
+     * @param int|null $time A timestamp; now when null.
+     * @return int
+     */
     public static function next_month_start(?int $time = null): int {
         $date = self::local($time ?? time());
         $date->modify('first day of next month midnight');
         return $date->getTimestamp();
     }
 
+    /**
+     * The month containing $time as Y-m, in the installation's time zone.
+     *
+     * @param int|null $time A timestamp; now when null.
+     * @return string
+     */
     public static function month_key(?int $time = null): string {
         return self::local($time ?? time())->format('Y-m');
     }
 
+    /**
+     * A timestamp as a date in the installation's time zone, or in PHP's
+     * default zone when that one is unknown.
+     *
+     * @param int $time A timestamp.
+     * @return \DateTime
+     */
     private static function local(int $time): \DateTime {
         $zone = null;
         try {
@@ -88,8 +111,7 @@ final class budget
     }
 
     // ------------------------------------------------------------------
-    // Limit and usage
-    // ------------------------------------------------------------------
+    // Limit and usage.
 
     /**
      * The customer's monthly limit in AI credits; 0 means no limit. Until
@@ -105,6 +127,11 @@ final class budget
         return max(0, (int) $value);
     }
 
+    /**
+     * Whether a monthly limit applies.
+     *
+     * @return bool
+     */
     public static function has_limit(): bool {
         return self::limit() > 0;
     }
@@ -112,7 +139,11 @@ final class budget
     /**
      * The brain's figure for this month, if one was fetched this month.
      *
-     * @return array{credits: float, fetched: int, items: array<int, array{key: string, name: string, service: string, credits: float}>}|null
+     * @return array{
+     *     credits: float,
+     *     fetched: int,
+     *     items: array<int, array{key: string, name: string, service: string, credits: float}>
+     * }|null
      */
     public static function remote(): ?array {
         $raw = config::fresh(self::KEY_REMOTE);
@@ -191,6 +222,12 @@ final class budget
         return $remote === null ? 0.0 : $remote['credits'];
     }
 
+    /**
+     * This month's usage in percent of the limit, to one decimal and at
+     * most 999; 0 without a limit.
+     *
+     * @return float
+     */
     public static function percent(): float {
         $limit = self::limit();
         if ($limit <= 0) {
@@ -199,6 +236,11 @@ final class budget
         return min(999.0, round(self::used() / $limit * 100, 1));
     }
 
+    /**
+     * Credits left under this month's limit; never below 0.
+     *
+     * @return float
+     */
     public static function remaining(): float {
         return max(0.0, self::limit() - self::used());
     }
@@ -241,8 +283,7 @@ final class budget
     }
 
     // ------------------------------------------------------------------
-    // Cost estimate
-    // ------------------------------------------------------------------
+    // Cost estimate.
 
     /**
      * AI credits this month beyond the package's included amount, and
@@ -284,8 +325,7 @@ final class budget
     }
 
     // ------------------------------------------------------------------
-    // Warnings
-    // ------------------------------------------------------------------
+    // Warnings.
 
     /**
      * The banner for teachers and administrators, or null while usage is
@@ -370,6 +410,12 @@ final class budget
         return array_values(array_unique($addresses));
     }
 
+    /**
+     * Mail the warning for one threshold to the recipients; from 100
+     * percent on, the mail says the month's credits are used up.
+     *
+     * @param int $threshold The percentage of the limit that was crossed.
+     */
     private static function notify(int $threshold): void {
         $recipients = self::recipients();
         if ($recipients === []) {

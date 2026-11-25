@@ -21,13 +21,25 @@ namespace mod_tarsuscoach\local\support;
  * user. The shared brain's usage cannot be broken down by course, so this
  * ledger provides the attribution.
  *
- * @author  Tarsus GmbH
- * @license GPL-3.0-or-later
+ * @package    mod_tarsuscoach
+ * @copyright  2026 Tarsus GmbH
+ * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 final class usage_meter
 {
+    /** The ledger's database table. */
     public const TABLE = 'tarsuscoach_usage';
 
+    /**
+     * Add one operation to the ledger. A row with credits also checks the
+     * monthly warning thresholds.
+     *
+     * @param int $containerref The course.
+     * @param int $objid The Tarsus activity.
+     * @param int $userid The user.
+     * @param string $operation What was done, such as chat_ask or learn_next; cut to 50 characters.
+     * @param int $credits Credits charged, if any.
+     */
     public function record(int $containerref, int $objid, int $userid, string $operation, int $credits = 0): void {
         platform::db()->insert_record(self::TABLE, (object) [
             'courseid' => $containerref,
@@ -71,7 +83,10 @@ final class usage_meter
      */
     public function active_users(int $since, ?int $objid = null): int {
         [$where, $params] = self::where($since, $objid, 'credits > 0 AND userid > 0');
-        return (int) platform::db()->count_records_sql('SELECT COUNT(DISTINCT userid) FROM {' . self::TABLE . '} WHERE ' . $where, $params);
+        return (int) platform::db()->count_records_sql(
+            'SELECT COUNT(DISTINCT userid) FROM {' . self::TABLE . '} WHERE ' . $where,
+            $params
+        );
     }
 
     /**
@@ -90,7 +105,12 @@ final class usage_meter
         );
         $rows = [];
         foreach ($records as $row) {
-            $rows[] = ['usrid' => (int) $row->userid, 'calls' => (int) $row->calls, 'credits' => (int) $row->creditsum, 'last' => (int) $row->lastused];
+            $rows[] = [
+                'usrid' => (int) $row->userid,
+                'calls' => (int) $row->calls,
+                'credits' => (int) $row->creditsum,
+                'last' => (int) $row->lastused,
+            ];
         }
         return $rows;
     }
@@ -103,7 +123,8 @@ final class usage_meter
     public function summary(int $since, ?int $objid = null): array {
         [$where, $params] = self::where($since, $objid, '');
         $records = platform::db()->get_records_sql(
-            'SELECT operation, COUNT(1) AS calls, SUM(credits) AS creditsum FROM {' . self::TABLE . '} WHERE ' . $where . ' GROUP BY operation ORDER BY operation',
+            'SELECT operation, COUNT(1) AS calls, SUM(credits) AS creditsum FROM {' . self::TABLE . '} WHERE ' . $where
+                . ' GROUP BY operation ORDER BY operation',
             $params
         );
         $summary = [];

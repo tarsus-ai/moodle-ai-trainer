@@ -214,8 +214,7 @@ final class resolver {
     }
 
     // ------------------------------------------------------------------
-    // Files and folders
-    // ------------------------------------------------------------------
+    // Files and folders.
 
     /**
      * The main file of a File resource.
@@ -286,8 +285,7 @@ final class resolver {
     }
 
     // ------------------------------------------------------------------
-    // Web links
-    // ------------------------------------------------------------------
+    // Web links.
 
     /**
      * The address of a URL module (web addresses only).
@@ -317,8 +315,7 @@ final class resolver {
     }
 
     // ------------------------------------------------------------------
-    // Text modules: pages, books, wikis, glossaries
-    // ------------------------------------------------------------------
+    // Text modules: pages, books, wikis, glossaries.
 
     /**
      * One text bit for a page, book, wiki or glossary: its parts are read in
@@ -387,7 +384,8 @@ final class resolver {
                     $parts[] = [
                         'heading' => (string) $chapter->title,
                         'level' => empty($chapter->subchapter) ? 2 : 3,
-                        'stamp' => 'ch' . $chapter->id . ':' . (int) $chapter->timemodified . ':' . $chapter->pagenum . ':' . $chapter->title,
+                        'stamp' => 'ch' . $chapter->id . ':' . (int) $chapter->timemodified
+                            . ':' . $chapter->pagenum . ':' . $chapter->title,
                         'html' => $withcontent ? (string) $chapter->content : '',
                     ];
                 }
@@ -416,7 +414,14 @@ final class resolver {
 
             case 'glossary':
                 $fields = $withcontent ? 'id, concept, definition, timemodified' : 'id, concept, timemodified';
-                foreach ($db->get_records('glossary_entries', ['glossaryid' => $instance->id, 'approved' => 1], 'concept, id', $fields) as $entry) {
+                foreach (
+                    $db->get_records(
+                        'glossary_entries',
+                        ['glossaryid' => $instance->id, 'approved' => 1],
+                        'concept, id',
+                        $fields
+                    ) as $entry
+                ) {
                     $parts[] = [
                         'heading' => (string) $entry->concept,
                         'level' => -1,
@@ -430,8 +435,7 @@ final class resolver {
     }
 
     // ------------------------------------------------------------------
-    // Text extraction (send time)
-    // ------------------------------------------------------------------
+    // Text extraction (send time).
 
     /**
      * The text of a text bit, read now.

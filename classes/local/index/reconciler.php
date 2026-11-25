@@ -42,22 +42,35 @@ use mod_tarsuscoach\local\support\platform;
  * A deletion that cannot be delivered stays recorded as pendingdeletion,
  * the durable record a later run (or the admin's deletions page) retries.
  *
- * @author  Tarsus GmbH
- * @license GPL-3.0-or-later
+ * @package    mod_tarsuscoach
+ * @copyright  2026 Tarsus GmbH
+ * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class reconciler
 {
     /** Pending deletions one sweep attempts. */
     public const SWEEP_LIMIT = 20;
 
+    /** @var repository The local index map. */
     private repository $repo;
+    /** @var resolver Reads the course material. */
     private resolver $resolver;
+    /** @var indexer Re-sends changed material. */
     private indexer $indexer;
+    /** @var tracker Runs indexation work against the brain. */
     private tracker $tracker;
 
-    /** Whether this request has already swept. */
+    /** @var bool Whether this request has already swept. */
     private static bool $swept = false;
 
+    /**
+     * Set up the reconciler. Collaborators not given are created; the
+     * indexer shares this repository, resolver and tracker.
+     *
+     * @param repository|null $repo The local index map.
+     * @param resolver|null $resolver Reads the course material.
+     * @param tracker|null $tracker Runs indexation work against the brain.
+     */
     public function __construct(?repository $repo = null, ?resolver $resolver = null, ?tracker $tracker = null) {
         $this->repo = $repo ?? new repository();
         $this->resolver = $resolver ?? new resolver();
@@ -76,7 +89,12 @@ class reconciler
      *                           current material, when the caller has it.
      * @return array{withdrawn: int, changed: int, uploaded: int, failed: int, gone: bool}
      */
-    public function reconcile_container(int $containerref, int $uploadbudget = 0, bool $deliver = true, ?array $materials = null): array {
+    public function reconcile_container(
+        int $containerref,
+        int $uploadbudget = 0,
+        bool $deliver = true,
+        ?array $materials = null
+    ): array {
         $summary = ['withdrawn' => 0, 'changed' => 0, 'uploaded' => 0, 'failed' => 0, 'gone' => false];
         $rows = $this->repo->get_by_container($containerref);
         if ($rows === []) {
@@ -142,9 +160,9 @@ class reconciler
                 $this->indexer->execute_now($resourceid);
                 $summary['uploaded']++;
             } catch (blocked_exception | transport_exception | configuration_exception $e) {
-                // execute_now() reverted the row to "indexed", which is true
-                // of the brain but hides that ILIAS has moved on: restore the
-                // content-changed status so the teacher sees Re-index.
+                // The failed execute_now() reverted the row to "indexed", which
+                // is true of the brain but hides that ILIAS has moved on: restore
+                // the content-changed status so the teacher sees Re-index.
                 $this->indexer->reindex_resource($resourceid);
                 $summary['failed']++;
                 platform::log('re-sending ' . $resourceid . ' failed: ' . $e->getMessage());

@@ -25,18 +25,25 @@ use mod_tarsuscoach\local\support\platform;
  * What the cron job does, independent of the ILIAS release's cron API:
  * reconcile every course with indexed material against the brain.
  *
- * @author  Tarsus GmbH
- * @license GPL-3.0-or-later
+ * @package    mod_tarsuscoach
+ * @copyright  2026 Tarsus GmbH
+ * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 final class sweep
 {
+    /** The cron job's id. */
     public const JOB_ID = 'xtar_sync';
 
     /** Changed bits one run re-sends at most. */
     public const UPLOAD_BUDGET = 10;
 
     /**
-     * @return array{ok: bool, acted: bool, message: string}
+     * Reconcile every course with indexed material against the brain, then
+     * fetch the month's credit figure. Nothing is sent while the kill switch
+     * is engaged.
+     *
+     * @return array{ok: bool, acted: bool, message: string} Whether nothing failed, whether
+     *     anything was withdrawn, re-sent or confirmed, and the summary of the run.
      */
     public static function run(): array {
         if (config::killswitch()) {
@@ -61,7 +68,9 @@ final class sweep
             $summary['confirmed'],
             $summary['failed'],
             number_format(budget::used()),
-            budget::has_limit() ? ' of ' . number_format(budget::limit()) . ($usage === null ? ' (brain figure unavailable)' : '') : ''
+            budget::has_limit()
+                ? ' of ' . number_format(budget::limit()) . ($usage === null ? ' (brain figure unavailable)' : '')
+                : ''
         );
         return ['ok' => $summary['failed'] === 0, 'acted' => $acted, 'message' => $message];
     }

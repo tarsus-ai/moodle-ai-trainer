@@ -82,7 +82,8 @@ class backup_tarsuscoach_activity_task extends backup_activity_task {
                 $offset = $start;
                 continue;
             }
-            $out .= substr($content, $offset, $at - $offset) . '$@' . $marker . '*' . substr($content, $start, $end - $start) . '@$';
+            $out .= substr($content, $offset, $at - $offset) . '$@' . $marker . '*'
+                . substr($content, $start, $end - $start) . '@$';
             $offset = $end;
         }
         return $out . substr($content, $offset);

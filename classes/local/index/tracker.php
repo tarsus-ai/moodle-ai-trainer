@@ -33,17 +33,33 @@ use mod_tarsuscoach\local\support\usage_meter;
  * propagates to the caller, which decides how to present it and how to
  * revert the row (indexer::execute_now()).
  *
- * @author  Tarsus GmbH
- * @license GPL-3.0-or-later
+ * @package    mod_tarsuscoach
+ * @copyright  2026 Tarsus GmbH
+ * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class tracker
 {
+    /** @var repository The local index map. */
     private repository $repo;
+    /** @var pipeline The guardrails every call goes through. */
     private pipeline $pipeline;
+    /** @var usage_meter The local usage ledger. */
     private usage_meter $usage;
+    /** @var resolver Reads the course material. */
     private resolver $resolver;
+    /** @var client_interface The Tarsus client. */
     private client_interface $client;
 
+    /**
+     * Set up the tracker. Collaborators not given are created; the client is
+     * the configured one.
+     *
+     * @param repository|null $repo The local index map.
+     * @param pipeline|null $pipeline The guardrails every call goes through.
+     * @param usage_meter|null $usage The local usage ledger.
+     * @param resolver|null $resolver Reads the course material.
+     * @param client_interface|null $client The Tarsus client.
+     */
     public function __construct(
         ?repository $repo = null,
         ?pipeline $pipeline = null,

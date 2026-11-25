@@ -70,7 +70,12 @@ class plan_form extends \moodleform {
             get_string('plan_price_desc', 'mod_tarsuscoach', (object) ['default' => number_format(plan::DEFAULT_PRICE, 2)])
         );
 
-        $mform->addElement('text', 'plan_currency', get_string('plan_currency', 'mod_tarsuscoach'), ['size' => 6, 'maxlength' => 8]);
+        $mform->addElement(
+            'text',
+            'plan_currency',
+            get_string('plan_currency', 'mod_tarsuscoach'),
+            ['size' => 6, 'maxlength' => 8]
+        );
         $mform->setType('plan_currency', PARAM_TEXT);
 
         $mform->addElement('header', 'limitsection', get_string('limit_section', 'mod_tarsuscoach'));
@@ -84,7 +89,12 @@ class plan_form extends \moodleform {
             'reset' => views::date(budget::next_month_start()),
         ]));
 
-        $mform->addElement('textarea', 'notify_emails', get_string('notify_emails', 'mod_tarsuscoach'), ['rows' => 2, 'cols' => 60]);
+        $mform->addElement(
+            'textarea',
+            'notify_emails',
+            get_string('notify_emails', 'mod_tarsuscoach'),
+            ['rows' => 2, 'cols' => 60]
+        );
         $mform->setType('notify_emails', PARAM_RAW_TRIMMED);
         $mform->addElement('static', 'notify_emails_desc', '', get_string('notify_emails_desc', 'mod_tarsuscoach', (object) [
             'admin' => s(platform::admin_email()),

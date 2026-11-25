@@ -20,14 +20,19 @@ namespace mod_tarsuscoach\local\material;
  * The four bit types the brain ingests: it tracks text, links, documents
  * and audio/video differently.
  *
- * @author  Tarsus GmbH
- * @license GPL-3.0-or-later
+ * @package    mod_tarsuscoach
+ * @copyright  2026 Tarsus GmbH
+ * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 final class bit_type
 {
+    /** Text (pages, books, wikis, glossaries). */
     public const TEXT = 'text';
+    /** A web address. */
     public const URL = 'url';
+    /** A file that is not audio or video. */
     public const DOCUMENT = 'document';
+    /** An audio or video file. */
     public const MEDIA = 'media';
 
     /** @var string[] */
@@ -44,6 +49,12 @@ final class bit_type
         return self::DOCUMENT;
     }
 
+    /**
+     * Whether a string is one of the bit types.
+     *
+     * @param string $type The value to check.
+     * @return bool
+     */
     public static function is_valid(string $type): bool {
         return in_array($type, self::ALL, true);
     }

@@ -24,27 +24,46 @@ namespace mod_tarsuscoach\local\material;
  * modification times, link targets - so detecting a change never needs the
  * content itself; the payload is only built when a bit is actually sent.
  *
- * @author  Tarsus GmbH
- * @license GPL-3.0-or-later
+ * @package    mod_tarsuscoach
+ * @copyright  2026 Tarsus GmbH
+ * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 final class material
 {
+    /** @var string The resource id that addresses the bit. */
     public string $resourceid;
+    /** @var string One of the bit_type constants. */
     public string $bittype;
+    /** @var int The course. */
     public int $containerref;
+    /** @var string The module of the source (resource, page, url...). */
     public string $srctype;
+    /** @var int The source's course module. */
     public int $srcref;
+    /** @var int The source's module instance. */
     public int $srcobjid;
-    /** The bit's own title (the object's, or a link's). */
+    /** @var string The bit's own title (the object's, or a link's). */
     public string $title;
-    /** The source object's title. */
+    /** @var string The source object's title. */
     public string $objecttitle;
+    /** @var string A cheap fingerprint of the source that changes with its content. */
     public string $fingerprint;
     /** @var array<string, mixed> Source details (rid, mimetype, url, page ids, ...). */
     public array $source;
 
     /**
-     * @param array<string, mixed> $source
+     * Create a bit from the details of its source.
+     *
+     * @param string $resourceid The resource id that addresses the bit.
+     * @param string $bittype One of the bit_type constants.
+     * @param int $containerref The course.
+     * @param string $srctype The module of the source (resource, page, url...).
+     * @param int $srcref The source's course module.
+     * @param int $srcobjid The source's module instance.
+     * @param string $title The bit's own title (the object's, or a link's).
+     * @param string $objecttitle The source object's title.
+     * @param string $fingerprint A cheap fingerprint of the source that changes with its content.
+     * @param array<string, mixed> $source Source details (rid, mimetype, url, page ids, ...).
      */
     public function __construct(
         string $resourceid,

@@ -67,7 +67,8 @@ if ($ADMIN->fulltree) {
     $setting = new admin_setting_configtext(
         'mod_tarsuscoach/brain_id',
         new lang_string('brainid', 'mod_tarsuscoach'),
-        get_string('brainid_desc', 'mod_tarsuscoach') . ' ' . html_writer::link($pageurl('brains'), get_string('cfg_tab_brains', 'mod_tarsuscoach'))
+        get_string('brainid_desc', 'mod_tarsuscoach') . ' '
+            . html_writer::link($pageurl('brains'), get_string('cfg_tab_brains', 'mod_tarsuscoach'))
             . ' ' . get_string('brainid_sandbox', 'mod_tarsuscoach'),
         '',
         PARAM_RAW_TRIMMED,
@@ -148,7 +149,8 @@ if ($ADMIN->fulltree) {
     $settings->add(new admin_setting_configselect(
         'mod_tarsuscoach/voice',
         new lang_string('voice', 'mod_tarsuscoach'),
-        get_string('voice_desc', 'mod_tarsuscoach') . ' ' . html_writer::link($pageurl('status'), get_string('voice_refresh', 'mod_tarsuscoach')),
+        get_string('voice_desc', 'mod_tarsuscoach') . ' '
+            . html_writer::link($pageurl('status'), get_string('voice_refresh', 'mod_tarsuscoach')),
         voices::DEFAULT_VOICE,
         $voices
     ));
@@ -192,7 +194,7 @@ if ($ADMIN->fulltree) {
         )
     ));
 
-    // help links shown behind the coach's help button.
+    // Help links shown behind the coach's help button.
     $settings->add(new admin_setting_heading(
         'mod_tarsuscoach/help',
         new lang_string('settings_help', 'mod_tarsuscoach'),

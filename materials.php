@@ -134,7 +134,11 @@ $pager = views::pager($page, $pages, static function (int $target) use ($cm): st
 $config = [
     'kind' => 'materials',
     'cmid' => (int) $cm->id,
-    'endpoints' => coach::endpoints(['action' => 'material_action', 'include' => 'set_material_included', 'sync' => 'sync_materials']),
+    'endpoints' => coach::endpoints([
+        'action' => 'material_action',
+        'include' => 'set_material_included',
+        'sync' => 'sync_materials',
+    ]),
     'batchLimit' => client_interface::BATCH_LIMIT,
     'strings' => coach::strings(coach::MATERIAL_STRINGS),
 ];

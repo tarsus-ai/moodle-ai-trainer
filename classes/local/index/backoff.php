@@ -21,15 +21,25 @@ namespace mod_tarsuscoach\local\index;
  * four attempts at most, with optional jitter so a batch does not retry in
  * lockstep.
  *
- * @author  Tarsus GmbH
- * @license GPL-3.0-or-later
+ * @package    mod_tarsuscoach
+ * @copyright  2026 Tarsus GmbH
+ * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 final class backoff
 {
+    /** Failed attempts after which retrying stops. */
     public const RETRY_LIMIT = 4;
 
+    /** Seconds before the first retry; the delay doubles with each attempt. */
     public const BASE_SECONDS = 120;
 
+    /**
+     * Seconds to wait before the next try after a failed attempt.
+     *
+     * @param int $attempt How many attempts have failed so far (from 1).
+     * @param bool $jitter Whether to vary the delay by up to a tenth either way.
+     * @return int
+     */
     public static function delay(int $attempt, bool $jitter = false): int {
         $attempt = max(1, $attempt);
         $delay = self::BASE_SECONDS * (2 ** ($attempt - 1));
@@ -42,6 +52,12 @@ final class backoff
         return max(0, (int) $delay);
     }
 
+    /**
+     * Whether the retries are used up.
+     *
+     * @param int $attempts How many attempts have failed so far.
+     * @return bool
+     */
     public static function exhausted(int $attempts): bool {
         return $attempts >= self::RETRY_LIMIT;
     }

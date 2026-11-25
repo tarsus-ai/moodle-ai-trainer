@@ -51,8 +51,9 @@ use mod_tarsuscoach\local\support\voices;
  * counts requests. Results are plain arrays with a 'status' (success,
  * noscope, disabled, blocked, error) and a user-facing 'error'.
  *
- * @author  Tarsus GmbH
- * @license GPL-3.0-or-later
+ * @package    mod_tarsuscoach
+ * @copyright  2026 Tarsus GmbH
+ * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 final class learner_api
 {
@@ -65,15 +66,33 @@ final class learner_api
     /** Characters an id from Tarsus (widget, stack) consists of. */
     private const ID_CHARACTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_-';
 
+    /** @var int The Tarsus activity. */
     private int $objid;
+    /** @var string The activity's name. */
     private string $title;
+    /** @var string The activity's description. */
     private string $description;
+    /** @var settings The activity's settings. */
     private settings $settings;
+    /** @var int The course the activity lives in. */
     private int $containerref;
+    /** @var client_interface The Tarsus client (mock or real, per the site configuration). */
     private client_interface $client;
+    /** @var pipeline The guardrails every call to the brain goes through. */
     private pipeline $pipeline;
+    /** @var usage_meter The local usage ledger. */
     private usage_meter $usage;
 
+    /**
+     * Keep the activity's details and set up the Tarsus client, the
+     * guardrails and the usage ledger.
+     *
+     * @param int $objid The Tarsus activity.
+     * @param string $title The activity's name.
+     * @param string $description The activity's description.
+     * @param settings $settings The activity's settings.
+     * @param int $containerref The course the activity lives in.
+     */
     public function __construct(int $objid, string $title, string $description, settings $settings, int $containerref) {
         $this->objid = $objid;
         $this->title = $title;
@@ -85,11 +104,19 @@ final class learner_api
         $this->usage = new usage_meter();
     }
 
+    /**
+     * The id of the current user.
+     *
+     * @return int
+     */
     private function user_id(): int {
         return platform::user_id();
     }
 
     /**
+     * The resource ids the brain may draw on: the material the teacher
+     * included that the brain holds right now.
+     *
      * @return string[]
      */
     private function scope(): array {
@@ -97,7 +124,10 @@ final class learner_api
     }
 
     /**
-     * @param string[] $allowed
+     * The parameters every call to the brain carries: context, assistant,
+     * user, the activity's settings and the resources in scope.
+     *
+     * @param string[] $allowed The resource ids in scope.
      * @return array<string, mixed>
      */
     private function params(array $allowed): array {
@@ -105,7 +135,12 @@ final class learner_api
     }
 
     /**
-     * @param array<string, mixed> $extra
+     * A result for the coach page: the extra values with the status and
+     * the user-facing error.
+     *
+     * @param string $status success, noscope, disabled, blocked or error.
+     * @param string $error The message for the user; '' when there is none.
+     * @param array<string, mixed> $extra Further values of the result.
      * @return array<string, mixed>
      */
     private static function result(string $status, string $error = '', array $extra = []): array {
@@ -137,14 +172,13 @@ final class learner_api
         } catch (transport_exception $e) {
             return self::result('error', messages::for_transport($e, $context));
         } catch (configuration_exception $e) {
-            return self::result('error', platform::txt($e->langKey));
+            return self::result('error', platform::txt($e->langkey));
         }
         return $then(is_array($response) ? $response : []);
     }
 
     // ------------------------------------------------------------------
-    // Feed
-    // ------------------------------------------------------------------
+    // Feed.
 
     /**
      * One page of the activity feed and the experience figures. The newest
@@ -191,8 +225,7 @@ final class learner_api
     }
 
     // ------------------------------------------------------------------
-    // Ask a question
-    // ------------------------------------------------------------------
+    // Ask a question.
 
     /**
      * Answer a typed question. $replywidget / $replystack anchor it on a
@@ -217,7 +250,13 @@ final class learner_api
      *
      * @return array<string, mixed>
      */
-    public function ask_voice(string $file, string $mimetype, string $filename, string $replywidget = '', string $replystack = ''): array {
+    public function ask_voice(
+        string $file,
+        string $mimetype,
+        string $filename,
+        string $replywidget = '',
+        string $replystack = ''
+    ): array {
         if (!$this->settings->voice_input_active()) {
             return self::result('disabled', platform::txt('voice_unavailable'));
         }
@@ -232,7 +271,13 @@ final class learner_api
     }
 
     /**
-     * @param array<string, mixed> $question query, or the recording
+     * Answer a typed or spoken question from the material in scope. It is
+     * anchored on the learning unit it is about, else on the card or answer.
+     *
+     * @param array<string, mixed> $question The query, or the recording.
+     * @param string $replywidget The card or answer the question is about, or ''.
+     * @param string $replystack The learning unit the question is about, or ''.
+     * @param string $context ask or voice: for the ledger, the message and the log.
      * @return array<string, mixed>
      */
     private function answer(array $question, string $replywidget, string $replystack, string $context): array {
@@ -259,7 +304,12 @@ final class learner_api
             fn() => $this->client->generate_widgets($params),
             true,
             function (array $response) use ($context): array {
-                $this->usage->record($this->containerref, $this->objid, $this->user_id(), $context === 'voice' ? 'chat_voice' : 'chat_ask');
+                $this->usage->record(
+                    $this->containerref,
+                    $this->objid,
+                    $this->user_id(),
+                    $context === 'voice' ? 'chat_voice' : 'chat_ask'
+                );
                 scoring::touch($this->objid, $this->user_id());
                 $messages = [];
                 foreach ((array) ($response['messages'] ?? []) as $message) {
@@ -289,8 +339,7 @@ final class learner_api
     }
 
     // ------------------------------------------------------------------
-    // Sources of an answer
-    // ------------------------------------------------------------------
+    // Sources of an answer.
 
     /**
      * The sources of one answer: every bit Tarsus took it from, whatever
@@ -332,7 +381,10 @@ final class learner_api
     }
 
     /**
-     * @param array<string, mixed> $bit
+     * One source as the coach shows it: its text as HTML, its table rows,
+     * its picture, and a link to the material when the learner may open it.
+     *
+     * @param array<string, mixed> $bit A source bit as Tarsus sends it.
      * @return array<string, mixed>
      */
     private function shape_reference(array $bit): array {
@@ -361,10 +413,12 @@ final class learner_api
     }
 
     // ------------------------------------------------------------------
-    // Test knowledge
-    // ------------------------------------------------------------------
+    // Test knowledge.
 
     /**
+     * The next practice questions (Test knowledge) and the learner's
+     * progress.
+     *
      * @return array<string, mixed>
      */
     public function practice_next(): array {
@@ -479,7 +533,12 @@ final class learner_api
             true,
             function (array $response) use ($widgettype, $state): array {
                 scoring::record($this->objid, $this->user_id(), (array) ($response['progress'] ?? []));
-                $this->usage->record($this->containerref, $this->objid, $this->user_id(), $state === 'learn' ? 'learn_check' : 'practice_eval');
+                $this->usage->record(
+                    $this->containerref,
+                    $this->objid,
+                    $this->user_id(),
+                    $state === 'learn' ? 'learn_check' : 'practice_eval'
+                );
 
                 $choices = [];
                 foreach ((array) ($response['choices'] ?? []) as $choice) {
@@ -512,8 +571,7 @@ final class learner_api
     }
 
     // ------------------------------------------------------------------
-    // Build knowledge
-    // ------------------------------------------------------------------
+    // Build knowledge.
 
     /**
      * The next learning step. When Tarsus sends a widget again instead
@@ -599,8 +657,7 @@ final class learner_api
     }
 
     // ------------------------------------------------------------------
-    // Live interaction
-    // ------------------------------------------------------------------
+    // Live interaction.
 
     /**
      * Start a live interaction: Tarsus returns the page of the call, which
@@ -642,8 +699,7 @@ final class learner_api
     }
 
     // ------------------------------------------------------------------
-    // Reset
-    // ------------------------------------------------------------------
+    // Reset.
 
     /**
      * Erase the current user's conversation: the brain forgets transcript
@@ -668,7 +724,7 @@ final class learner_api
                 return self::result('error', messages::for_transport($e, 'reset'));
             }
         } catch (configuration_exception $e) {
-            return self::result('error', platform::txt($e->langKey));
+            return self::result('error', platform::txt($e->langkey));
         }
         scoring::clear($this->objid, $this->user_id());
         return self::result('success');

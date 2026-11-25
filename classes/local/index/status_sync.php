@@ -30,8 +30,9 @@ use mod_tarsuscoach\local\guardrail\pipeline;
  * number: one page costs exactly one call. Only the local index map is
  * written; the brain is never mutated here.
  *
- * @author  Tarsus GmbH
- * @license GPL-3.0-or-later
+ * @package    mod_tarsuscoach
+ * @copyright  2026 Tarsus GmbH
+ * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class status_sync
 {
@@ -48,10 +49,21 @@ class status_sync
         status::ERROR,
     ];
 
+    /** @var repository The local index map. */
     private repository $repo;
+    /** @var pipeline The guardrails every call goes through. */
     private pipeline $pipeline;
+    /** @var client_interface The Tarsus client. */
     private client_interface $client;
 
+    /**
+     * Set up the sync. Collaborators not given are created; the client is
+     * the configured one.
+     *
+     * @param repository|null $repo The local index map.
+     * @param pipeline|null $pipeline The guardrails every call goes through.
+     * @param client_interface|null $client The Tarsus client.
+     */
     public function __construct(?repository $repo = null, ?pipeline $pipeline = null, ?client_interface $client = null) {
         $this->repo = $repo ?? new repository();
         $this->pipeline = $pipeline ?? new pipeline();
@@ -94,6 +106,15 @@ class status_sync
         return $changed;
     }
 
+    /**
+     * Adopt the status the brain reported for a row, if it is a valid status
+     * and the transition is allowed. A row confirmed as indexed keeps the
+     * hash of the content that was sent.
+     *
+     * @param \stdClass $row The index row.
+     * @param string $reported The status the brain reported.
+     * @return bool Whether the row changed.
+     */
     private function apply(\stdClass $row, string $reported): bool {
         if (!status::is_valid($reported) || !status::can_transition($row->status, $reported)) {
             return false;

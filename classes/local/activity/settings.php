@@ -24,11 +24,13 @@ use mod_tarsuscoach\local\support\plan;
  * The settings of one Tarsus object: availability, the didactic AI
  * settings grouped by mode, and the completion threshold.
  *
- * @author  Tarsus GmbH
- * @license GPL-3.0-or-later
+ * @package    mod_tarsuscoach
+ * @copyright  2026 Tarsus GmbH
+ * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 final class settings
 {
+    /** The activity's table, which holds the settings. */
     public const TABLE = 'tarsuscoach';
 
     /** Default completion threshold in percent. */
@@ -40,43 +42,68 @@ final class settings
     /** What Tarsus does when no level is sent: no change for existing objects. */
     public const DEFAULT_THINKING_LEVEL = 4;
 
+    /** @var int The Tarsus object; 0 when there is none yet. */
     public int $objid = 0;
+    /** @var bool Whether the object is online: its course module is visible. */
     public bool $online = false;
+    /** @var int Conversation style, 1 closed .. 5 open. */
     public int $conversationstyle = 3;
+    /** @var int DQR level the answers are pitched at, 3 .. 7. */
     public int $dqr = 6;
+    /** @var string Target group: the domain or field of expertise; may be empty. */
     public string $industry = '';
     /** @var int[] */
     public array $taxonomylevels = [1, 2, 3];
     /** @var array<int, string[]> */
     public array $questiontypes = [];
+    /** @var string The task operators the practice questions follow: standard or ihk. */
     public string $operators = didactics::OPERATORS_STANDARD;
+    /** @var bool Cheat prevention: learners cannot ask the chat about a question just set. */
     public bool $anticheat = false;
+    /** @var float Learning pace, 0.1 .. 2 (1 is recommended). */
     public float $learntempo = didactics::LEARN_TEMPO_DEFAULT;
+    /** @var bool Whether Ask a question is switched on. */
     public bool $askenabled = true;
+    /** @var bool Whether Test knowledge is switched on. */
     public bool $testenabled = true;
+    /** @var bool Whether Build knowledge is switched on. */
     public bool $buildenabled = true;
-    /** Live interaction (state discuss): a spoken conversation with the coach. */
+    /** @var bool Live interaction (state discuss): a spoken conversation with the coach. */
     public bool $discussenabled = true;
+    /** @var bool Whether the learning cards may include GIF animations. */
     public bool $gifenabled = false;
-    /** How thoroughly the coach thinks: 1 fast .. 4 intensive (Tarsus's default). */
+    /** @var int How thoroughly the coach thinks: 1 fast .. 4 intensive (Tarsus's default). */
     public int $thinkinglevel = self::DEFAULT_THINKING_LEVEL;
-    /** Pictures and other visual content come with a description. */
+    /** @var bool Pictures and other visual content come with a description. */
     public bool $visualaccessibility = false;
-    /** learners may look at the sources of an answer. */
+    /** @var bool Learners may look at the sources of an answer. */
     public bool $referencesenabled = true;
-    /** learners may speak their question in Ask a question. */
+    /** @var bool Learners may speak their question in Ask a question. */
     public bool $voiceinput = true;
+    /** @var string The didactic concept Build knowledge follows. */
     public string $learningmethod = didactics::METHOD_MICROLEARNING;
-    /** trainer-driven (text and pictures) or ai-driven (interactive pages). */
+    /** @var string trainer-driven (text and pictures) or ai-driven (interactive pages). */
     public string $interactiontype = plan::INTERACTION_TRAINER;
-    /** Completion threshold in percent; 0 switches the rule off. */
+    /** @var int Completion threshold in percent; 0 switches the rule off. */
     public int $completionprogress = self::DEFAULT_COMPLETION;
 
+    /**
+     * The default settings for an object.
+     *
+     * @param int $objid The Tarsus object; 0 when there is none yet.
+     */
     public function __construct(int $objid = 0) {
         $this->objid = $objid;
         $this->questiontypes = didactics::default_question_types();
     }
 
+    /**
+     * The stored settings of an object, each value checked; the defaults
+     * when it has no record.
+     *
+     * @param int $objid The Tarsus object.
+     * @return self
+     */
     public static function load(int $objid): self {
         $settings = new self($objid);
         $record = platform::db()->get_record(self::TABLE, ['id' => $objid]);
@@ -98,7 +125,11 @@ final class settings
         $settings->buildenabled = !empty($row['buildenabled']);
         $settings->discussenabled = !empty($row['discussenabled']);
         $settings->gifenabled = !empty($row['gifenabled']);
-        $settings->thinkinglevel = self::within((int) ($row['thinkinglevel'] ?? self::DEFAULT_THINKING_LEVEL), self::THINKING_LEVELS, self::DEFAULT_THINKING_LEVEL);
+        $settings->thinkinglevel = self::within(
+            (int) ($row['thinkinglevel'] ?? self::DEFAULT_THINKING_LEVEL),
+            self::THINKING_LEVELS,
+            self::DEFAULT_THINKING_LEVEL
+        );
         $settings->visualaccessibility = !empty($row['visualaccessibility']);
         $settings->referencesenabled = !isset($row['referencesenabled']) || !empty($row['referencesenabled']);
         $settings->voiceinput = !isset($row['voiceinput']) || !empty($row['voiceinput']);
@@ -108,6 +139,10 @@ final class settings
         return $settings;
     }
 
+    /**
+     * Store the settings in the object's record, each value checked first.
+     * Nothing is stored without an object.
+     */
     public function save(): void {
         if ($this->objid <= 0) {
             return;
@@ -182,6 +217,12 @@ final class settings
         return $copy;
     }
 
+    /**
+     * Whether a mode is switched on here, whatever the plan includes.
+     *
+     * @param string $mode The mode: ask, test, build or discuss.
+     * @return bool
+     */
     public function mode_enabled(string $mode): bool {
         switch ($mode) {
             case 'ask':
@@ -222,7 +263,12 @@ final class settings
     }
 
     /**
-     * @param int[] $allowed
+     * The value if it is one of the allowed ones, the default otherwise.
+     *
+     * @param int $value The value to check.
+     * @param int[] $allowed The allowed values.
+     * @param int $default The value to use instead.
+     * @return int
      */
     private static function within(int $value, array $allowed, int $default): int {
         return in_array($value, $allowed, true) ? $value : $default;

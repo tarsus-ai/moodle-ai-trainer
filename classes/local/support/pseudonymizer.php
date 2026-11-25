@@ -21,11 +21,19 @@ namespace mod_tarsuscoach\local\support;
  * of the user id with a secret generated once per installation. Tarsus
  * never receives logins or email addresses.
  *
- * @author  Tarsus GmbH
- * @license GPL-3.0-or-later
+ * @package    mod_tarsuscoach
+ * @copyright  2026 Tarsus GmbH
+ * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 final class pseudonymizer
 {
+    /**
+     * The pseudonym of a user id: its HMAC-SHA256 with the installation's
+     * secret, in hexadecimal.
+     *
+     * @param int $userid The user.
+     * @return string
+     */
     public static function pseudonymize(int $userid): string {
         return hash_hmac('sha256', (string) $userid, config::hmac_secret());
     }

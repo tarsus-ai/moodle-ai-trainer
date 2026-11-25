@@ -271,8 +271,7 @@ final class platform {
     }
 
     // ------------------------------------------------------------------
-    // Courses and their modules
-    // ------------------------------------------------------------------
+    // Courses and their modules.
 
     /**
      * Whether a course exists (the site front page is no course here).

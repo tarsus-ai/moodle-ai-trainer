@@ -21,14 +21,18 @@ namespace mod_tarsuscoach\local\support;
  * "Title | URL" line each. YouTube and Vimeo links play inside the panel;
  * anything else opens in a new tab.
  *
- * @author  Tarsus GmbH
- * @license GPL-3.0-or-later
+ * @package    mod_tarsuscoach
+ * @copyright  2026 Tarsus GmbH
+ * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 final class help
 {
+    /** The setting that holds the links. */
     public const KEY = 'help_links';
 
     /**
+     * The configured links, ready for the help panel.
+     *
      * @return array<int, array{title: string, url: string, embed: string}>
      */
     public static function links(): array {
@@ -36,6 +40,11 @@ final class help
     }
 
     /**
+     * The links of a "Title | URL" list: https only, at most 20. Empty
+     * lines and lines starting with # are skipped; without a title the
+     * host name stands in.
+     *
+     * @param string $raw The list, one link per line.
      * @return array<int, array{title: string, url: string, embed: string}>
      */
     public static function parse(string $raw): array {

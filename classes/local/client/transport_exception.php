@@ -26,8 +26,9 @@ namespace mod_tarsuscoach\local\client;
  * nothing about the service. The mock raises this to exercise those paths
  * deterministically.
  *
- * @author  Tarsus GmbH
- * @license GPL-3.0-or-later
+ * @package    mod_tarsuscoach
+ * @copyright  2026 Tarsus GmbH
+ * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class transport_exception extends \RuntimeException
 {
@@ -37,6 +38,14 @@ class transport_exception extends \RuntimeException
     /** @var string The start of the response body on an HTTP error, for callers that recognise the brain's messages. */
     public string $body;
 
+    /**
+     * Keep the status and body; the message names the status and, if
+     * given, the detail. The exception code is the HTTP status.
+     *
+     * @param int $httpstatus The HTTP status code (0 for a timeout / connection failure).
+     * @param string $detail What failed, added to the message when not empty.
+     * @param string $body The start of the response body on an HTTP error.
+     */
     public function __construct(int $httpstatus, string $detail = '', string $body = '') {
         $this->httpstatus = $httpstatus;
         $this->body = $body;

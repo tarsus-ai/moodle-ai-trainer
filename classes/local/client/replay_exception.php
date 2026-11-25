@@ -23,8 +23,9 @@ namespace mod_tarsuscoach\local\client;
  * question that is still unanswered. That is no error and costs nothing;
  * the widget is shown like any other.
  *
- * @author  Tarsus GmbH
- * @license GPL-3.0-or-later
+ * @package    mod_tarsuscoach
+ * @copyright  2026 Tarsus GmbH
+ * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 final class replay_exception extends \RuntimeException
 {
@@ -32,7 +33,9 @@ final class replay_exception extends \RuntimeException
     public array $widget;
 
     /**
-     * @param array<string, mixed> $widget
+     * Keep the widget Tarsus sent again; the exception code is 409.
+     *
+     * @param array<string, mixed> $widget The widget Tarsus sent again.
      */
     public function __construct(array $widget) {
         $this->widget = $widget;

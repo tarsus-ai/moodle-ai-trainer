@@ -25,19 +25,27 @@ use mod_tarsuscoach\local\client\client_factory;
  * The admin decides: one voice for everyone, or the first voice of the
  * learner's language with the configured voice as the fallback.
  *
- * @author  Tarsus GmbH
- * @license GPL-3.0-or-later
+ * @package    mod_tarsuscoach
+ * @copyright  2026 Tarsus GmbH
+ * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 final class voices
 {
+    /** Voice mode: one voice for everyone. */
     public const MODE_FIXED = 'fixed';
+    /** Voice mode: the first voice of the learner's language, else the configured one. */
     public const MODE_AUTO = 'auto';
+    /** The voice used when none is configured. */
     public const DEFAULT_VOICE = 'Daniel';
 
     /** Seconds the catalogue is kept before asking the brain again. */
     private const CACHE_TTL = 86400;
 
     /**
+     * The brain's voices, asked for at most once a day unless refreshed.
+     * While the brain cannot be reached, the last known list stands.
+     *
+     * @param bool $refresh Whether to ask the brain even when the stored list is recent.
      * @return array<int, array{alias: string, country: string, gender: string}>
      */
     public static function catalogue(bool $refresh = false): array {
@@ -61,6 +69,9 @@ final class voices
     }
 
     /**
+     * The voices as options for a menu; asks the brain unless a catalogue
+     * from the last day is stored.
+     *
      * @return array<string, string> alias => "Alias (language, gender)".
      */
     public static function options(): array {
@@ -79,8 +90,11 @@ final class voices
     }
 
     /**
-     * @param array<int, array{alias: string, country: string, gender: string}> $catalogue
-     * @return array<string, string>
+     * Menu options for a catalogue: each voice's alias with its language
+     * and gender, named in the user's language.
+     *
+     * @param array<int, array{alias: string, country: string, gender: string}> $catalogue The voices.
+     * @return array<string, string> alias => "Alias (language, gender)".
      */
     private static function options_of(array $catalogue): array {
         $languages = get_string_manager()->get_list_of_languages();

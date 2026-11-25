@@ -35,7 +35,8 @@ class backup_tarsuscoach_activity_structure_step extends backup_activity_structu
         $tarsus = new backup_nested_element('tarsuscoach', ['id'], [
             'name', 'intro', 'introformat', 'grade', 'conversationstyle', 'dqr', 'industry', 'taxonomylevels', 'questiontypes',
             'operators', 'anticheat', 'learntempo', 'askenabled', 'testenabled', 'buildenabled', 'discussenabled', 'gifenabled',
-            'learningmethod', 'interactiontype', 'thinkinglevel', 'visualaccessibility', 'referencesenabled', 'voiceinput', 'completionprogress',
+            'learningmethod', 'interactiontype', 'thinkinglevel', 'visualaccessibility', 'referencesenabled', 'voiceinput',
+            'completionprogress',
             'timecreated', 'timemodified',
         ]);
         $inclusions = new backup_nested_element('inclusions');

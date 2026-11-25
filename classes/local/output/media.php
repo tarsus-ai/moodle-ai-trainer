@@ -22,8 +22,9 @@ namespace mod_tarsuscoach\local\output;
  * the material, narration) and https links (animated GIFs). A value that
  * is neither is dropped; nothing is guessed or converted.
  *
- * @author  Tarsus GmbH
- * @license GPL-3.0-or-later
+ * @package    mod_tarsuscoach
+ * @copyright  2026 Tarsus GmbH
+ * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 final class media
 {
@@ -41,10 +42,11 @@ final class media
         'avif' => 'avif',
     ];
 
+    /** The characters of base64, padding included. */
     private const BASE64_ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=';
 
-    /** Characters that never belong in a link put into an attribute. */
-    private const LINK_FORBIDDEN = " \t\r\n\"'<>`\\";
+    /** Characters that never belong in a link put into an attribute (\x60 is the backtick). */
+    private const LINK_FORBIDDEN = " \t\r\n\"'<>\x60\\";
 
     /**
      * A picture for an <img>: a base64 data URI of a known image type, or
@@ -108,6 +110,15 @@ final class media
         return 'data:' . self::audio_type($payload, $declared) . ';base64,' . $payload;
     }
 
+    /**
+     * The type of a sound, read from its first bytes (WAV, MP3, Ogg, FLAC,
+     * WebM or MP4). Failing that, the declared type if it is a well-formed
+     * audio type, and WAV as the last resort.
+     *
+     * @param string $payload The sound in base64.
+     * @param string $declared The type Tarsus declared; may be empty.
+     * @return string The MIME type, such as audio/wav.
+     */
     private static function audio_type(string $payload, string $declared): string {
         $head = base64_decode(substr($payload, 0, 16), true);
         if (is_string($head) && $head !== '') {

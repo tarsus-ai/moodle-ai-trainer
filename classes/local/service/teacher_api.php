@@ -38,20 +38,34 @@ use mod_tarsuscoach\local\support\pseudonymizer;
  * they also refresh the learning progress in ILIAS. Reading costs no
  * credits and is never refused by the monthly limit.
  *
- * @author  Tarsus GmbH
- * @license GPL-3.0-or-later
+ * @package    mod_tarsuscoach
+ * @copyright  2026 Tarsus GmbH
+ * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 final class teacher_api
 {
     /** Days the growth chart covers. */
     public const ANALYTICS_DAYS = 30;
 
+    /** @var int The Tarsus activity. */
     private int $objid;
+    /** @var int The course the activity lives in. */
     private int $containerref;
+    /** @var settings The activity's settings. */
     private settings $settings;
+    /** @var client_interface The Tarsus client (mock or real, per the site configuration). */
     private client_interface $client;
+    /** @var pipeline The guardrails every call to the brain goes through. */
     private pipeline $pipeline;
 
+    /**
+     * Keep the activity's details and set up the Tarsus client and the
+     * guardrails.
+     *
+     * @param int $objid The Tarsus activity.
+     * @param int $containerref The course the activity lives in.
+     * @param settings $settings The activity's settings.
+     */
     public function __construct(int $objid, int $containerref, settings $settings) {
         $this->objid = $objid;
         $this->containerref = $containerref;
@@ -61,7 +75,12 @@ final class teacher_api
     }
 
     /**
-     * @param array<string, mixed> $extra
+     * A result for the teacher's panels: the extra values with the status
+     * and the user-facing error.
+     *
+     * @param string $status success, noscope or error.
+     * @param string $error The message for the user; '' when there is none.
+     * @param array<string, mixed> $extra Further values of the result.
      * @return array<string, mixed>
      */
     private static function result(string $status, string $error = '', array $extra = []): array {
@@ -69,7 +88,11 @@ final class teacher_api
     }
 
     /**
-     * @param callable(): array<string, mixed> $call
+     * Read from the brain through the guardrails; a failure comes back as
+     * the message for the user.
+     *
+     * @param callable(): array<string, mixed> $call The read, without arguments.
+     * @param string $context What is read, for the message and the log.
      * @return array<string, mixed>|string The response, or the message of the failure.
      */
     private function read(callable $call, string $context) {
@@ -81,7 +104,7 @@ final class teacher_api
         } catch (transport_exception $e) {
             return messages::for_transport($e, $context);
         } catch (configuration_exception $e) {
-            return platform::txt($e->langKey);
+            return platform::txt($e->langkey);
         }
     }
 

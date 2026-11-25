@@ -26,8 +26,9 @@ use mod_tarsuscoach\local\support\platform;
  * everything else a message by status. The details always go to the ILIAS
  * log, never the request (it carries the API key).
  *
- * @author  Tarsus GmbH
- * @license GPL-3.0-or-later
+ * @package    mod_tarsuscoach
+ * @copyright  2026 Tarsus GmbH
+ * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 final class messages
 {
@@ -41,7 +42,12 @@ final class messages
     ];
 
     /**
+     * The user's message for a failed call to Tarsus. The details go to the
+     * log.
+     *
+     * @param transport_exception $e The failure.
      * @param string $context What was asked for: ask, voice, practice, check, learn, audio, discuss, references, statistics.
+     * @return string
      */
     public static function for_transport(transport_exception $e, string $context = ''): string {
         platform::log($context . ': ' . $e->getMessage() . ($e->body !== '' ? ' - ' . $e->body : ''));

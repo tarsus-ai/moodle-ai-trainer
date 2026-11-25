@@ -103,7 +103,10 @@ if (!$cm->visible && $teacher) {
 if ($teacher) {
     $banner = budget::banner();
     if ($banner !== null) {
-        echo $OUTPUT->notification($banner['text'], $banner['type'] === 'failure' ? 'error' : ($banner['type'] === 'question' ? 'warning' : $banner['type']));
+        echo $OUTPUT->notification(
+            $banner['text'],
+            $banner['type'] === 'failure' ? 'error' : ($banner['type'] === 'question' ? 'warning' : $banner['type'])
+        );
     }
 } else if (budget::exhausted()) {
     echo $OUTPUT->notification(get_string('budget_exhausted_learner', 'mod_tarsuscoach'), 'info');
@@ -111,7 +114,10 @@ if ($teacher) {
 
 $modes = $settings->available_modes();
 if ($modes === []) {
-    echo $OUTPUT->notification(get_string($settings->modes() === [] ? 'no_modes_notice' : 'no_modes_plan_notice', 'mod_tarsuscoach'), 'info');
+    echo $OUTPUT->notification(
+        get_string($settings->modes() === [] ? 'no_modes_notice' : 'no_modes_plan_notice', 'mod_tarsuscoach'),
+        'info'
+    );
     echo $OUTPUT->footer();
     exit;
 }

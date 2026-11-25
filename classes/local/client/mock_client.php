@@ -30,8 +30,9 @@ use mod_tarsuscoach\local\support\config;
  * answers earn experience points, units add up to completion and the
  * learning progress moves, exactly as with the real brain.
  *
- * @author  Tarsus GmbH
- * @license GPL-3.0-or-later
+ * @package    mod_tarsuscoach
+ * @copyright  2026 Tarsus GmbH
+ * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class mock_client implements client_interface
 {
@@ -45,12 +46,21 @@ class mock_client implements client_interface
     private const STACKS = 3;
 
     /** A small JPEG picture (as source pictures come: data:image/jpg). */
-    private const JPEG = '/9j/4AAQSkZJRgABAQAAAAAAAAD/2wBDAAoHBwgHBgoICAgLCgoLDhgQDg0NDh0VFhEYIx8lJCIfIiEmKzcvJik0KSEiMEExNDk7Pj4+JS5ESUM8SDc9Pjv/2wBDAQoLCw4NDhwQEBw7KCIoOzs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozv/wAARCAAgADADASIAAhEBAxEB/8QAFgABAQEAAAAAAAAAAAAAAAAAAAQF/8QAFhABAQEAAAAAAAAAAAAAAAAAABNh/8QAFwEBAQEBAAAAAAAAAAAAAAAAAAUDBP/EABYRAQEBAAAAAAAAAAAAAAAAAAARFP/aAAwDAQACEQMRAD8A1qlUVSrkzpNW1KoqlTOVbUqiqVM5UVSqKuldX87GralUVdK6ZyralUVdK6Zyv//Z';
+    private const JPEG = '/9j/4AAQSkZJRgABAQAAAAAAAAD/2wBDAAoHBwgHBgoICAgLCgoLDhgQDg0NDh0VFhEYIx8lJCIfIiEmKzcvJik0KSEiMEExNDk7'
+        . 'Pj4+JS5ESUM8SDc9Pjv/2wBDAQoLCw4NDhwQEBw7KCIoOzs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7'
+        . 'Ozs7Ozs7Ozv/wAARCAAgADADASIAAhEBAxEB/8QAFgABAQEAAAAAAAAAAAAAAAAAAAQF/8QAFhABAQEAAAAAAAAAAAAAAAAAABNh'
+        . '/8QAFwEBAQEBAAAAAAAAAAAAAAAAAAUDBP/EABYRAQEBAAAAAAAAAAAAAAAAAAARFP/aAAwDAQACEQMRAD8A1qlUVSrkzpNW1Koq'
+        . 'lTOVbUqiqVM5UVSqKuldX87GralUVdK6ZyralUVdK6Zyv//Z';
 
+    /** @var bool When true, track returns 'pending-confirmation'; otherwise 'indexed'. */
     protected bool $async;
+
+    /** @var int When non-zero, every call throws a transport_exception with this HTTP status. */
     protected int $simulatestatus;
 
     /**
+     * Set how tracking answers and whether every call fails.
+     *
      * @param bool $async          When true, track returns 'pending-confirmation'
      *                             (asynchronous indexing); otherwise 'indexed'.
      * @param int  $simulatestatus When non-zero, every call throws a
@@ -61,6 +71,9 @@ class mock_client implements client_interface
         $this->simulatestatus = $simulatestatus;
     }
 
+    /**
+     * Throw a transport_exception with the simulated HTTP status, if one is set.
+     */
     protected function maybe_fail(): void {
         if ($this->simulatestatus !== 0) {
             throw new transport_exception($this->simulatestatus, 'mock simulated failure');
@@ -68,9 +81,15 @@ class mock_client implements client_interface
     }
 
     // ------------------------------------------------------------------
-    // material
-    // ------------------------------------------------------------------
+    // Material.
 
+    /**
+     * Pretend to track a resource. Nothing is sent; the bit reference is
+     * made from the resource id.
+     *
+     * @param array<string, mixed> $resource Resource payload; only 'resource_id' is read.
+     * @return array<string, mixed> 'status' per $async and a mock 'bitref'.
+     */
     public function track_resource(array $resource): array {
         $this->maybe_fail();
 
@@ -82,6 +101,12 @@ class mock_client implements client_interface
         ];
     }
 
+    /**
+     * Report every given resource as removed.
+     *
+     * @param string[] $resourceids Ids of the resources to remove.
+     * @return array<string, string> Resource id => 'removed'.
+     */
     public function untrack_resource(array $resourceids): array {
         $this->maybe_fail();
 
@@ -92,6 +117,12 @@ class mock_client implements client_interface
         return $result;
     }
 
+    /**
+     * Report every given asset as removed.
+     *
+     * @param string[] $assetids Ids of the assets.
+     * @return array<string, string> Asset id => 'removed'.
+     */
     public function untrack_assets(array $assetids): array {
         $this->maybe_fail();
 
@@ -102,6 +133,12 @@ class mock_client implements client_interface
         return $result;
     }
 
+    /**
+     * Report the resource as indexed.
+     *
+     * @param string $resourceid Id of the resource.
+     * @return array<string, mixed> 'status' indexed and a mock 'bitref'.
+     */
     public function get_resource_status(string $resourceid): array {
         $this->maybe_fail();
 
@@ -111,6 +148,12 @@ class mock_client implements client_interface
         ];
     }
 
+    /**
+     * Report every given resource as tracked and indexed.
+     *
+     * @param string[] $resourceids Ids of the resources.
+     * @return array<string, array{status: string, tracked: bool, brainstatus: string}> Resource id => status.
+     */
     public function check_tracked_resources(array $resourceids): array {
         $this->maybe_fail();
 
@@ -125,6 +168,11 @@ class mock_client implements client_interface
         return $result;
     }
 
+    /**
+     * Five sample voices: two German, two English and one French.
+     *
+     * @return array<int, array{alias: string, country: string, gender: string}> The voices.
+     */
     public function list_voices(): array {
         $this->maybe_fail();
 
@@ -137,6 +185,12 @@ class mock_client implements client_interface
         ];
     }
 
+    /**
+     * Three sample brains: an active one, an inactive one and one whose id
+     * marks it as deleted.
+     *
+     * @return array<int, array{brainid: string, active: bool, language: string, tag: string, timecreated: int}> The brains.
+     */
     public function list_brains(): array {
         $this->maybe_fail();
 
@@ -166,9 +220,19 @@ class mock_client implements client_interface
     }
 
     // ------------------------------------------------------------------
-    // conversation
-    // ------------------------------------------------------------------
+    // Conversation.
 
+    /**
+     * Answer with a simulated reply in the user's language; with ai-driven
+     * interaction the answer is one of the bundled demo pages. The first
+     * call of a conversation brings the welcome too, and everything goes
+     * into the stored feed.
+     *
+     * @param array<string, mixed> $params Conversation parameters incl. 'query' or 'audiofile', 'replytostack', 'replytowidget'.
+     * @return array{answer: string, html: string, question: string, widgetid: string, sources: bool,
+     *     messages: array<int, array{title: string, text: string}>, progress: array<string, float>}
+     *     The answer with its question and widget id, the messages and the progress figures.
+     */
     public function generate_widgets(array $params): array {
         $this->maybe_fail();
         $state = $this->load($params);
@@ -179,8 +243,12 @@ class mock_client implements client_interface
             $welcome = [
                 'title' => (string) ($params['contextname'] ?? ''),
                 'text' => self::de($params)
-                    ? "**Willkommen!** Ich bin " . (string) ($params['robotname'] ?? 'Tarsus') . ". Stelle mir Fragen zu den Kursmaterialien, teste dein Wissen oder baue es Schritt für Schritt auf.\n\n_(Demo-Modus: die Antworten sind simuliert.)_"
-                    : "**Welcome!** I am " . (string) ($params['robotname'] ?? 'Tarsus') . ". Ask me about the course material, test your knowledge or build it up step by step.\n\n_(Demo mode: answers are simulated.)_",
+                    ? "**Willkommen!** Ich bin " . (string) ($params['robotname'] ?? 'Tarsus')
+                        . ". Stelle mir Fragen zu den Kursmaterialien, teste dein Wissen oder baue es Schritt für Schritt auf."
+                        . "\n\n_(Demo-Modus: die Antworten sind simuliert.)_"
+                    : "**Welcome!** I am " . (string) ($params['robotname'] ?? 'Tarsus')
+                        . ". Ask me about the course material, test your knowledge or build it up step by step."
+                        . "\n\n_(Demo mode: answers are simulated.)_",
             ];
             $messages[] = $welcome;
             $state['feed'][] = ['kind' => 'message', 'title' => $welcome['title'], 'text' => $welcome['text']];
@@ -245,6 +313,15 @@ class mock_client implements client_interface
         return str_replace('{{lang}}', $de ? 'de' : 'en', $html);
     }
 
+    /**
+     * Up to two questions from the sample bank, taken in turn and limited
+     * to the requested question types, if any; an accounting exercise
+     * comes as a spreadsheet task, as the brain does it. The questions go
+     * into the stored feed.
+     *
+     * @param array<string, mixed> $params Conversation parameters plus 'questiontypes'.
+     * @return array{widgets: array, progress: array} The question widgets and the progress figures.
+     */
     public function generate_practice_widget(array $params): array {
         $this->maybe_fail();
         $state = $this->load($params);
@@ -286,6 +363,14 @@ class mock_client implements client_interface
         ];
     }
 
+    /**
+     * The next step of the sample learning path: the objectives, then three
+     * stacks with a motivation between them, then the farewell. Once the
+     * path is finished, the farewell comes again as a replay.
+     *
+     * @param array<string, mixed> $params Conversation parameters with optional 'interactiontype'.
+     * @return array{items: array, progress: array, replay: bool} Learn items, progress figures and the replay flag.
+     */
     public function generate_learn_widget(array $params): array {
         $this->maybe_fail();
         $state = $this->load($params);
@@ -298,11 +383,27 @@ class mock_client implements client_interface
                 'kind' => 'objectives',
                 'id' => 'mock-objectives',
                 'title' => $de ? 'Deine Lernziele' : 'Your learning goals',
-                'message' => $de ? 'Wir bauen dein Wissen in **drei** kurzen Einheiten auf.' : 'We build your knowledge in **three** short units.',
+                'message' => $de ? 'Wir bauen dein Wissen in **drei** kurzen Einheiten auf.'
+                    : 'We build your knowledge in **three** short units.',
                 'objectives' => [
-                    ['id' => 'g1', 'objective' => $de ? 'Grundbegriffe benennen' : 'Name the basic terms', 'taxonomylevel' => 'WISSEN', 'done' => false],
-                    ['id' => 'g2', 'objective' => $de ? 'Zusammenhänge erklären' : 'Explain how things relate', 'taxonomylevel' => 'VERSTEHEN', 'done' => false],
-                    ['id' => 'g3', 'objective' => $de ? 'Das Gelernte anwenden' : 'Apply what you learned', 'taxonomylevel' => 'ANWENDEN', 'done' => false],
+                    [
+                        'id' => 'g1',
+                        'objective' => $de ? 'Grundbegriffe benennen' : 'Name the basic terms',
+                        'taxonomylevel' => 'WISSEN',
+                        'done' => false,
+                    ],
+                    [
+                        'id' => 'g2',
+                        'objective' => $de ? 'Zusammenhänge erklären' : 'Explain how things relate',
+                        'taxonomylevel' => 'VERSTEHEN',
+                        'done' => false,
+                    ],
+                    [
+                        'id' => 'g3',
+                        'objective' => $de ? 'Das Gelernte anwenden' : 'Apply what you learned',
+                        'taxonomylevel' => 'ANWENDEN',
+                        'done' => false,
+                    ],
                 ],
             ];
         } else if ($step > self::STACKS) {
@@ -310,7 +411,8 @@ class mock_client implements client_interface
                 'kind' => 'complete',
                 'id' => 'mock-complete',
                 'title' => '',
-                'text' => $de ? 'Du hast alle Lernziele dieser Demo **erreicht**.' : 'You have **reached** every goal of this demo.',
+                'text' => $de ? 'Du hast alle Lernziele dieser Demo **erreicht**.'
+                    : 'You have **reached** every goal of this demo.',
             ];
             if (!empty($state['lcomplete'])) {
                 // As Tarsus does once the path is finished: the same
@@ -345,9 +447,14 @@ class mock_client implements client_interface
     }
 
     /**
-     * One learning stack: two text slides (one illustrated) and a check question.
+     * One learning stack: four text slides (one with a drawing, one with a
+     * photo, one with sound), an interactive page when the interaction is
+     * AI-driven, and a check question.
      *
-     * @param array<string, mixed> $state
+     * @param array<string, mixed> $state The demo's state for this learner.
+     * @param int $step Which stack of the demo course this is.
+     * @param bool $de Whether the learner reads German.
+     * @param bool $interactive Whether one slide is an interactive page.
      * @return array<string, mixed>
      */
     private function mock_stack(array &$state, int $step, bool $de, bool $interactive = false): array {
@@ -355,13 +462,16 @@ class mock_client implements client_interface
         $svg = 'data:image/svg+xml;base64,' . base64_encode(
             '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 150"><rect width="240" height="150" rx="14" fill="#efeafb"/>'
             . '<circle cx="70" cy="75" r="34" fill="#8f88ec"/><rect x="122" y="48" width="86" height="14" rx="7" fill="#b2aef2"/>'
-            . '<rect x="122" y="74" width="62" height="14" rx="7" fill="#cfcbf6"/><rect x="122" y="100" width="74" height="14" rx="7" fill="#dcd8f8"/></svg>'
+            . '<rect x="122" y="74" width="62" height="14" rx="7" fill="#cfcbf6"/>'
+            . '<rect x="122" y="100" width="74" height="14" rx="7" fill="#dcd8f8"/></svg>'
         );
         $qid = 'mock-lq-' . substr(sha1(uniqid('', true)), 0, 10);
         $question = [
             'type' => 'singleChoiceQuestionWidget',
-            'question' => $de ? 'Welche Aussage fasst Einheit ' . $step . ' richtig zusammen?' : 'Which statement sums up unit ' . $step . ' correctly?',
-            'choices' => $de ? ['Kleine Schritte festigen Wissen', 'Wiederholung ist überflüssig'] : ['Small steps consolidate knowledge', 'Repetition is pointless'],
+            'question' => $de ? 'Welche Aussage fasst Einheit ' . $step . ' richtig zusammen?'
+                : 'Which statement sums up unit ' . $step . ' correctly?',
+            'choices' => $de ? ['Kleine Schritte festigen Wissen', 'Wiederholung ist überflüssig']
+                : ['Small steps consolidate knowledge', 'Repetition is pointless'],
             'correct' => $de ? 'Kleine Schritte festigen Wissen' : 'Small steps consolidate knowledge',
             'taxonomylevel' => 'VERSTEHEN',
             'difficultylevel' => 1,
@@ -382,7 +492,8 @@ class mock_client implements client_interface
             'slides' => array_merge([
                 ['id' => $stackid . '-1', 'kind' => 'text', 'taxonomylevel' => 'WISSEN',
                     'title' => $de ? 'Einheit ' . $step . ': Das Wichtigste' : 'Unit ' . $step . ': the essentials',
-                    'text' => $de ? "Micro-Learning teilt Wissen in **kurze Einheiten**.\n\n- eine Idee pro Folie\n- direkt anwendbar"
+                    'text' => $de
+                        ? "Micro-Learning teilt Wissen in **kurze Einheiten**.\n\n- eine Idee pro Folie\n- direkt anwendbar"
                         : "Micro-learning splits knowledge into **short units**.\n\n- one idea per slide\n- immediately applicable",
                     'image' => '', 'imageposition' => 'right'],
                 ['id' => $stackid . '-2', 'kind' => 'text', 'taxonomylevel' => 'VERSTEHEN',
@@ -395,7 +506,8 @@ class mock_client implements client_interface
                     'title' => $de ? 'Ein Bild aus dem Material' : 'A picture from the material',
                     'text' => $de ? "Bilder aus dem Kursmaterial kommen als JPEG und stehen neben dem Text."
                         : "Pictures from the course material come as JPEG and stand beside the text.",
-                    'image' => 'data:image/jpeg;base64,' . self::JPEG, 'imageposition' => $step % 2 === 0 ? 'right' : 'left', 'audio' => ''],
+                    'image' => 'data:image/jpeg;base64,' . self::JPEG,
+                    'imageposition' => $step % 2 === 0 ? 'right' : 'left', 'audio' => ''],
                 ['id' => $stackid . '-4', 'kind' => 'text', 'taxonomylevel' => 'WISSEN',
                     'title' => $de ? 'Zum Anhören' : 'To listen to',
                     'text' => $de ? "Diese Karte wird gesprochen." : "This card is spoken.",
@@ -409,6 +521,16 @@ class mock_client implements client_interface
         ];
     }
 
+    /**
+     * Mark an answer against the sample bank: a rule-of-three answer per
+     * variable, a spreadsheet answer per asked cell, an open answer by its
+     * keywords and length, any other by exact match (ignoring case). Points
+     * are earned once per question, and the verdict goes into the stored
+     * feed.
+     *
+     * @param array<string, mixed> $params Conversation parameters plus 'widgetid', 'widgettype', 'state' and the answer.
+     * @return array<string, mixed> The verdict and the progress figures.
+     */
     public function evaluate_practice_answer(array $params): array {
         $this->maybe_fail();
         $state = $this->load($params);
@@ -419,8 +541,12 @@ class mock_client implements client_interface
         if (!is_array($question) || !isset($question['type'])) {
             // Unknown (e.g. after a reset, or answered before as unknown):
             // judge against the generic answer.
-            $question = (array) $question + ['type' => (string) ($params['widgettype'] ?? ''), 'correct' => 'Alpha', 'choices' => [],
-                'state' => (string) ($params['state'] ?? 'practice')];
+            $question = (array) $question + [
+                'type' => (string) ($params['widgettype'] ?? ''),
+                'correct' => 'Alpha',
+                'choices' => [],
+                'state' => (string) ($params['state'] ?? 'practice'),
+            ];
         }
         $type = (string) $question['type'];
         $learn = ($params['state'] ?? '') === 'learn';
@@ -454,11 +580,16 @@ class mock_client implements client_interface
             $result['score'] = $score;
             $result['correct'] = $score >= 100;
             $result['feedback'] = $de ? $question['explain_de'] : $question['explain_en'];
-            $stored = ['useranswers' => array_map(static fn($v, $k) => ['variable' => $k, 'answer' => $v], $given, array_keys($given)),
-                'answers' => $answers];
+            $stored = [
+                'useranswers' => array_map(static fn($v, $k) => ['variable' => $k, 'answer' => $v], $given, array_keys($given)),
+                'answers' => $answers,
+            ];
         } else if ($type === 'tradeCostingQuestionWidget') {
             // The learner's table comes as rows of cell values in column order.
-            $rows = array_values(array_map(static fn($row): array => array_values(array_map('strval', (array) $row)), (array) ($params['usertable'] ?? [])));
+            $rows = array_values(array_map(
+                static fn($row): array => array_values(array_map('strval', (array) $row)),
+                (array) ($params['usertable'] ?? [])
+            ));
             $right = 0;
             $asked = 0;
             $answertable = [];
@@ -501,7 +632,9 @@ class mock_client implements client_interface
             $result['score'] = round($score, 2);
             $result['correct'] = $score >= 100;
             $result['answer'] = $de ? $question['model_de'] : $question['model_en'];
-            $result['feedback'] = ($score >= 50 ? ($de ? '**Gut erklärt.** ' : '**Well explained.** ') : ($de ? '**Fast.** ' : '**Nearly.** '))
+            $result['feedback'] = ($score >= 50
+                    ? ($de ? '**Gut erklärt.** ' : '**Well explained.** ')
+                    : ($de ? '**Fast.** ' : '**Nearly.** '))
                 . ($de ? $question['model_de'] : $question['model_en']);
             $stored = ['useranswer' => $given];
         } else {
@@ -511,12 +644,16 @@ class mock_client implements client_interface
             $result['score'] = $correct ? 100.0 : 0.0;
             $result['answer'] = (string) $question['correct'];
             foreach ((array) ($question['choices'] ?? []) as $choice) {
-                $result['choices'][] = ['text' => (string) $choice, 'iscorrect' => strcasecmp((string) $choice, (string) $question['correct']) === 0,
-                    'clarification' => ''];
+                $result['choices'][] = [
+                    'text' => (string) $choice,
+                    'iscorrect' => strcasecmp((string) $choice, (string) $question['correct']) === 0,
+                    'clarification' => '',
+                ];
             }
             $result['feedback'] = $correct
                 ? ($de ? '**Richtig!** Gut erkannt.' : '**Correct!** Well spotted.')
-                : ($de ? '**Nicht ganz.** Richtig wäre: ' : '**Not quite.** The right answer is: ') . self::label((string) $question['correct'], $de);
+                : ($de ? '**Nicht ganz.** Richtig wäre: ' : '**Not quite.** The right answer is: ')
+                    . self::label((string) $question['correct'], $de);
             $stored = ['useranswer' => $given];
         }
 
@@ -553,6 +690,12 @@ class mock_client implements client_interface
         return $result + ['progress' => self::progress_of($state)];
     }
 
+    /**
+     * Read one page of the stored feed, newest page first.
+     *
+     * @param array<string, mixed> $params Conversation parameters plus 'offset' and 'pagesize'.
+     * @return array{items: array, rawcount: int, progress: array} Feed items, raw widget count and progress figures.
+     */
     public function retrieve_feed(array $params): array {
         $this->maybe_fail();
         $state = $this->load($params);
@@ -561,7 +704,10 @@ class mock_client implements client_interface
         $feed = $state['feed'];
         $offset = max(0, (int) ($params['offset'] ?? 0));
         $pagesize = max(1, (int) ($params['pagesize'] ?? 10));
-        $weights = array_map(static fn($item) => ($item['kind'] ?? '') === 'stack' ? max(1, count($item['slides'] ?? [])) : 1, $feed);
+        $weights = array_map(
+            static fn($item) => ($item['kind'] ?? '') === 'stack' ? max(1, count($item['slides'] ?? [])) : 1,
+            $feed
+        );
         $total = array_sum($weights);
         // Newest page first: skip $offset widgets from the newest end.
         $end = $total - $offset;
@@ -587,6 +733,15 @@ class mock_client implements client_interface
         ];
     }
 
+    /**
+     * What the demo brain charged between two Unix timestamps, made up
+     * from the local ledger.
+     *
+     * @param int $start Start of the period (Unix timestamp).
+     * @param int $end End of the period (Unix timestamp).
+     * @return array{total: float, items: array<int, array{key: string, name: string, service: string, credits: float}>}
+     *     The total and one item per service.
+     */
     public function get_usage(int $start, int $end): array {
         $this->maybe_fail();
         // The demo brain charges one credit per request the local ledger
@@ -633,11 +788,23 @@ class mock_client implements client_interface
         return ['total' => $total, 'items' => $items];
     }
 
+    /**
+     * Remove one user's stored demo conversation in one activity context.
+     *
+     * @param string $contextid The brain-side conversation context id.
+     * @param string $userid The pseudonymised user id.
+     */
     public function reset_conversation(string $contextid, string $userid): void {
         $this->maybe_fail();
         config::set(self::key($contextid, $userid), null);
     }
 
+    /**
+     * A short chime in place of the spoken learning unit.
+     *
+     * @param array<string, mixed> $params Conversation parameters with optional 'voice'.
+     * @return array{audio: string, mimetype: string, voice: string, text: string} Base64 WAV, its type, voice and text.
+     */
     public function generate_stack_audio(array $params): array {
         $this->maybe_fail();
 
@@ -645,41 +812,113 @@ class mock_client implements client_interface
             'audio' => self::tone(),
             'mimetype' => 'audio/wav',
             'voice' => (string) ($params['voice'] ?? 'Daniel'),
-            'text' => self::de($params) ? 'Eine kurze Melodie als Platzhalter für die Audio-Erklärung.' : 'A short tune standing in for the audio explanation.',
+            'text' => self::de($params) ? 'Eine kurze Melodie als Platzhalter für die Audio-Erklärung.'
+                : 'A short tune standing in for the audio explanation.',
         ];
     }
 
+    /**
+     * The bundled demo page of a live interaction, in the user's language
+     * and with the coach's name.
+     *
+     * @param array<string, mixed> $params Conversation parameters with optional 'robotname'.
+     * @return array{page: string, progress: array<string, float>} The page and the progress figures.
+     */
     public function start_discuss(array $params): array {
         $this->maybe_fail();
         $file = dirname(__DIR__, 3) . '/assets/mock/live.html';
         $page = is_file($file) ? (string) file_get_contents($file) : '';
-        $page = str_replace(['{{lang}}', '{{name}}'], [self::de($params) ? 'de' : 'en', htmlspecialchars((string) ($params['robotname'] ?? 'Tarsus'), ENT_QUOTES)], $page);
+        $page = str_replace(
+            ['{{lang}}', '{{name}}'],
+            [self::de($params) ? 'de' : 'en', htmlspecialchars((string) ($params['robotname'] ?? 'Tarsus'), ENT_QUOTES)],
+            $page
+        );
         return ['page' => $page, 'progress' => self::progress_of($this->load($params))];
     }
 
+    /**
+     * Seven sample sources covering every kind the browser shows: text, a
+     * table, two pictures, audio, video and a question. The same for every
+     * answer.
+     *
+     * @param array<string, mixed> $params Not used; every answer gets the same samples.
+     * @return array<int, array<string, mixed>> The sample bits.
+     */
     public function get_references(array $params): array {
         $this->maybe_fail();
-        $svg = base64_encode('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 120"><rect width="200" height="120" rx="12" fill="#e6f2e1"/>'
-            . '<path d="M20 60 Q100 8 180 60 Q100 112 20 60z" fill="#7fbf6a"/><path d="M24 60H176" stroke="#4d8f3c" stroke-width="3"/></svg>');
+        $svg = base64_encode(
+            '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 120"><rect width="200" height="120" rx="12" fill="#e6f2e1"/>'
+            . '<path d="M20 60 Q100 8 180 60 Q100 112 20 60z" fill="#7fbf6a"/>'
+            . '<path d="M24 60H176" stroke="#4d8f3c" stroke-width="3"/></svg>'
+        );
         $bits = [
-            ['type' => 'text', 'title' => 'Lehrbuch Biologie, Kapitel 4', 'text' => 'Chlorophyll a und b nehmen vor allem **blaues** und **rotes** Licht auf; grünes Licht wird kaum genutzt.'],
-            ['type' => 'table', 'title' => 'Absorptionsmaxima', 'text' => '', 'rows' => [['Pigment', 'Blau', 'Rot'], ['Chlorophyll a', '430 nm', '662 nm'], ['Chlorophyll b', '453 nm', '642 nm']]],
-            ['type' => 'image', 'title' => 'Blattquerschnitt', 'text' => 'Aufbau eines Laubblatts.', 'image' => 'data:image/svg+xml;base64,' . $svg],
-            ['type' => 'image', 'title' => 'Foto aus dem Material', 'text' => '', 'image' => 'data:image/jpeg;base64,' . self::JPEG],
-            ['type' => 'audio', 'title' => 'Vorlesung 3', 'text' => '„… das grüne Licht wird kaum genutzt, es wird zurückgeworfen …“'],
-            ['type' => 'video', 'title' => 'Fotosynthese einfach erklärt', 'text' => '„… Chlorophyll a hat zwei Spitzen, eine im Blauen und eine im Roten …“'],
+            [
+                'type' => 'text',
+                'title' => 'Lehrbuch Biologie, Kapitel 4',
+                'text' =>
+                    'Chlorophyll a und b nehmen vor allem **blaues** und **rotes** Licht auf; grünes Licht wird kaum genutzt.',
+            ],
+            [
+                'type' => 'table',
+                'title' => 'Absorptionsmaxima',
+                'text' => '',
+                'rows' => [
+                    ['Pigment', 'Blau', 'Rot'],
+                    ['Chlorophyll a', '430 nm', '662 nm'],
+                    ['Chlorophyll b', '453 nm', '642 nm'],
+                ],
+            ],
+            [
+                'type' => 'image',
+                'title' => 'Blattquerschnitt',
+                'text' => 'Aufbau eines Laubblatts.',
+                'image' => 'data:image/svg+xml;base64,' . $svg,
+            ],
+            [
+                'type' => 'image',
+                'title' => 'Foto aus dem Material',
+                'text' => '',
+                'image' => 'data:image/jpeg;base64,' . self::JPEG,
+            ],
+            [
+                'type' => 'audio',
+                'title' => 'Vorlesung 3',
+                'text' => '„… das grüne Licht wird kaum genutzt, es wird zurückgeworfen …“',
+            ],
+            [
+                'type' => 'video',
+                'title' => 'Fotosynthese einfach erklärt',
+                'text' => '„… Chlorophyll a hat zwei Spitzen, eine im Blauen und eine im Roten …“',
+            ],
             ['type' => 'question', 'title' => 'Fragenpool Kapitel 4', 'text' => "Warum erscheinen Blätter grün?
 
 Grünes Licht wird reflektiert."],
         ];
         $out = [];
         foreach ($bits as $i => $bit) {
-            $out[] = $bit + ['id' => 'mock-bit-' . $i, 'subtitle' => '', 'rows' => [], 'image' => '', 'sourceid' => '', 'assetid' => '',
-                'sourcetype' => '', 'link' => '', 'position' => (float) $i];
+            $out[] = $bit + [
+                'id' => 'mock-bit-' . $i,
+                'subtitle' => '',
+                'rows' => [],
+                'image' => '',
+                'sourceid' => '',
+                'assetid' => '',
+                'sourcetype' => '',
+                'link' => '',
+                'position' => (float) $i,
+            ];
         }
         return $out;
     }
 
+    /**
+     * The figures of every given learner who has a stored demo
+     * conversation in the context.
+     *
+     * @param string $contextid The brain-side conversation context id.
+     * @param string[] $userids Pseudonymised user ids.
+     * @return array<string, array<string, float>> User id => figures.
+     */
     public function get_context_statistics(string $contextid, array $userids): array {
         $this->maybe_fail();
         $result = [];
@@ -693,6 +932,16 @@ Grünes Licht wird reflektiert."],
         return $result;
     }
 
+    /**
+     * A made-up growth of one learner's experience points and learning
+     * units, in percent, from nothing to today's figures over the period.
+     *
+     * @param string $contextid The brain-side conversation context id.
+     * @param string $userid The pseudonymised user id.
+     * @param int $start Start of the period (Unix timestamp).
+     * @param int $end End of the period (Unix timestamp).
+     * @return array{xp: array<int, array{x: int, y: float}>, units: array<int, array{x: int, y: float}>} Points per series.
+     */
     public function get_user_analytics(string $contextid, string $userid, int $start, int $end): array {
         $this->maybe_fail();
         $raw = config::fresh(self::key($contextid, $userid));
@@ -712,16 +961,26 @@ Grünes Licht wird reflektiert."],
     }
 
     // ------------------------------------------------------------------
-    // State
-    // ------------------------------------------------------------------
+    // State.
 
+    /**
+     * The settings key that one learner's demo conversation in one context
+     * is stored under.
+     *
+     * @param string $contextid The brain-side conversation context id.
+     * @param string $userid The pseudonymised user id.
+     * @return string The settings key.
+     */
     private static function key(string $contextid, string $userid): string {
         return 'mock_' . sha1($contextid . '|' . $userid);
     }
 
     /**
-     * @param array<string, mixed> $params
-     * @return array<string, mixed>
+     * Read the learner's stored demo conversation, with defaults for what
+     * is missing.
+     *
+     * @param array<string, mixed> $params Conversation parameters; 'contextid' and 'userid' are read.
+     * @return array<string, mixed> The stored state.
      */
     private function load(array $params): array {
         $raw = config::fresh(self::key((string) ($params['contextid'] ?? ''), (string) ($params['userid'] ?? '')));
@@ -734,8 +993,11 @@ Grünes Licht wird reflektiert."],
     }
 
     /**
-     * @param array<string, mixed> $params
-     * @param array<string, mixed> $state
+     * Store the learner's demo conversation, keeping only the last 300
+     * feed items.
+     *
+     * @param array<string, mixed> $params Conversation parameters; 'contextid' and 'userid' are read.
+     * @param array<string, mixed> $state The state to store.
      */
     private function save(array $params, array $state): void {
         // Keep the stored history bounded.
@@ -749,8 +1011,12 @@ Grünes Licht wird reflektiert."],
     }
 
     /**
-     * @param array<string, mixed> $state
-     * @return array<string, float>
+     * The progress figures of a stored state: practice progress from the
+     * experience points, learn progress from the learning units (full once
+     * the path is finished), and their average.
+     *
+     * @param array<string, mixed> $state The stored state.
+     * @return array<string, float> The progress figures.
      */
     private static function progress_of(array $state): array {
         $xp = round((float) ($state['xp'] ?? 0), 2);
@@ -769,12 +1035,24 @@ Grünes Licht wird reflektiert."],
     }
 
     /**
-     * @param array<string, mixed> $params
+     * Whether to answer in German: the user's language is German or not
+     * given.
+     *
+     * @param array<string, mixed> $params Conversation parameters with optional 'userlanguage'.
+     * @return bool True for German.
      */
     private static function de(array $params): bool {
         return ($params['userlanguage'] ?? 'de') === 'de';
     }
 
+    /**
+     * A true/false answer as a word in the user's language; any other
+     * answer as it is.
+     *
+     * @param string $value The answer.
+     * @param bool $de Whether the user's language is German.
+     * @return string The answer as shown.
+     */
     private static function label(string $value, bool $de): string {
         if ($value === 'true') {
             return $de ? 'Wahr' : 'True';
@@ -785,6 +1063,15 @@ Grünes Licht wird reflektiert."],
         return $value;
     }
 
+    /**
+     * Whether a learner's number matches the model one within 0.01.
+     * Spaces, € and % are ignored; a decimal comma and thousands dots
+     * (1.234,5) are read as well.
+     *
+     * @param string $given The learner's answer.
+     * @param string $expected The model answer.
+     * @return bool True when both are numbers and match.
+     */
     private static function same_number(string $given, string $expected): bool {
         $normalise = static function (string $value): ?float {
             $value = str_replace([' ', '€', '%', "\u{00a0}"], '', $value);
@@ -824,7 +1111,8 @@ Grünes Licht wird reflektiert."],
             'type' => (string) $question['type'],
             'question' => (string) $question['question'],
             'choices' => array_values((array) ($question['choices'] ?? [])),
-            'variables' => $question['type'] === 'crossMultiplicationQuestionWidget' ? array_keys((array) $question['solution']) : [],
+            'variables' => $question['type'] === 'crossMultiplicationQuestionWidget'
+                ? array_keys((array) $question['solution']) : [],
             'table' => $table,
             'columns' => $table !== [] ? (array) ($question['columns'] ?? ['Position', 'Satz', 'Betrag']) : [],
             'taxonomylevel' => (string) ($question['taxonomylevel'] ?? 'WISSEN'),
@@ -841,7 +1129,8 @@ Grünes Licht wird reflektiert."],
         return [
             [
                 'type' => 'singleChoiceQuestionWidget',
-                'question' => $de ? 'Welcher Planet wird als der **Rote Planet** bezeichnet?' : 'Which planet is known as the **Red Planet**?',
+                'question' => $de ? 'Welcher Planet wird als der **Rote Planet** bezeichnet?'
+                    : 'Which planet is known as the **Red Planet**?',
                 'choices' => $de ? ['Venus', 'Mars', 'Jupiter', 'Merkur'] : ['Venus', 'Mars', 'Jupiter', 'Mercury'],
                 'correct' => 'Mars',
                 'taxonomylevel' => 'WISSEN',
@@ -857,7 +1146,9 @@ Grünes Licht wird reflektiert."],
             ],
             [
                 'type' => 'crossMultiplicationQuestionWidget',
-                'question' => $de ? '3 Personen streichen einen Zaun in 6 Stunden. Wie lange brauchen 2 Personen (t2) und wie lange 9 Personen (t9)?'
+                'question' => $de
+                    ? '3 Personen streichen einen Zaun in 6 Stunden. Wie lange brauchen 2 Personen (t2)'
+                        . ' und wie lange 9 Personen (t9)?'
                     : '3 people paint a fence in 6 hours. How long do 2 people need (t2), and how long 9 people (t9)?',
                 'solution' => ['t2' => '9', 't9' => '2'],
                 'explain_de' => 'Antiproportional: 3 · 6 = 18 Personenstunden, also t2 = 18 / 2 = 9 h und t9 = 18 / 9 = 2 h.',
@@ -867,21 +1158,43 @@ Grünes Licht wird reflektiert."],
             ],
             [
                 'type' => 'openQuestionWidget',
-                'question' => $de ? 'Erkläre in ein bis zwei Sätzen, warum der Himmel blau erscheint.' : 'Explain in one or two sentences why the sky looks blue.',
+                'question' => $de ? 'Erkläre in ein bis zwei Sätzen, warum der Himmel blau erscheint.'
+                    : 'Explain in one or two sentences why the sky looks blue.',
                 'keywords' => ['streu', 'scatter', 'rayleigh'],
-                'model_de' => 'Kurzwelliges blaues Licht wird an den Luftmolekülen stärker **gestreut** als langwelliges rotes (Rayleigh-Streuung).',
-                'model_en' => 'Short-wave blue light is **scattered** by air molecules much more than long-wave red light (Rayleigh scattering).',
+                'model_de' => 'Kurzwelliges blaues Licht wird an den Luftmolekülen stärker **gestreut**'
+                    . ' als langwelliges rotes (Rayleigh-Streuung).',
+                'model_en' => 'Short-wave blue light is **scattered** by air molecules much more'
+                    . ' than long-wave red light (Rayleigh scattering).',
                 'taxonomylevel' => 'VERSTEHEN',
                 'difficultylevel' => 3,
             ],
             [
                 'type' => 'tradeCostingQuestionWidget',
-                'question' => $de ? 'Berechne Rabatt und Zieleinkaufspreis.' : 'Work out the discount and the target purchase price.',
+                'question' => $de ? 'Berechne Rabatt und Zieleinkaufspreis.'
+                    : 'Work out the discount and the target purchase price.',
                 'columns' => $de ? ['Position', 'Satz', 'Betrag'] : ['Position', 'Rate', 'Amount'],
                 'solution' => [
-                    ['position' => $de ? 'Listeneinkaufspreis' : 'List price', 'rate' => '', 'amount' => '1000', 'askrate' => false, 'askamount' => false],
-                    ['position' => $de ? '- Rabatt' : '- Discount', 'rate' => '10', 'amount' => '100', 'askrate' => false, 'askamount' => true],
-                    ['position' => $de ? '= Zieleinkaufspreis' : '= Target price', 'rate' => '', 'amount' => '900', 'askrate' => false, 'askamount' => true],
+                    [
+                        'position' => $de ? 'Listeneinkaufspreis' : 'List price',
+                        'rate' => '',
+                        'amount' => '1000',
+                        'askrate' => false,
+                        'askamount' => false,
+                    ],
+                    [
+                        'position' => $de ? '- Rabatt' : '- Discount',
+                        'rate' => '10',
+                        'amount' => '100',
+                        'askrate' => false,
+                        'askamount' => true,
+                    ],
+                    [
+                        'position' => $de ? '= Zieleinkaufspreis' : '= Target price',
+                        'rate' => '',
+                        'amount' => '900',
+                        'askrate' => false,
+                        'askamount' => true,
+                    ],
                 ],
                 'explain_de' => '10 % von 1000 € sind 100 €; 1000 € - 100 € = 900 €.',
                 'explain_en' => '10 % of 1000 is 100; 1000 - 100 = 900.',

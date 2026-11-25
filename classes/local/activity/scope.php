@@ -31,8 +31,9 @@ use mod_tarsuscoach\local\support\config;
  * An empty scope must never reach the brain: it reads an empty list as
  * "search everything", which would cross course boundaries.
  *
- * @author  Tarsus GmbH
- * @license GPL-3.0-or-later
+ * @package    mod_tarsuscoach
+ * @copyright  2026 Tarsus GmbH
+ * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 final class scope
 {
@@ -46,6 +47,11 @@ final class scope
     }
 
     /**
+     * The teacher's inclusions that the brain holds right now, in the
+     * object's course.
+     *
+     * @param int $objid The Tarsus object.
+     * @param int $containerref The object's course.
      * @return string[] Resource ids allowed to ground the object's answers.
      */
     public static function allowed_resource_ids(int $objid, int $containerref): array {

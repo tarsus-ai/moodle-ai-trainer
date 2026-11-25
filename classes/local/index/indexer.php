@@ -32,15 +32,27 @@ use mod_tarsuscoach\local\material\resource_id;
  * failure reverts the row to its previous stable state and surfaces to
  * the caller.
  *
- * @author  Tarsus GmbH
- * @license GPL-3.0-or-later
+ * @package    mod_tarsuscoach
+ * @copyright  2026 Tarsus GmbH
+ * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class indexer
 {
+    /** @var resolver Reads the course material. */
     private resolver $resolver;
+    /** @var repository The local index map. */
     private repository $repo;
+    /** @var tracker Runs the marked work against the brain. */
     private tracker $tracker;
 
+    /**
+     * Set up the indexer. Collaborators not given are created; a new tracker
+     * shares this repository and resolver.
+     *
+     * @param resolver|null $resolver Reads the course material.
+     * @param repository|null $repo The local index map.
+     * @param tracker|null $tracker Runs the marked work against the brain.
+     */
     public function __construct(?resolver $resolver = null, ?repository $repo = null, ?tracker $tracker = null) {
         $this->resolver = $resolver ?? new resolver();
         $this->repo = $repo ?? new repository();
@@ -133,6 +145,11 @@ class indexer
         }
     }
 
+    /**
+     * Move a row whose work failed back to its previous stable state.
+     *
+     * @param \stdClass $row The row as the failed work left it.
+     */
     private function revert(\stdClass $row): void {
         switch ($row->status) {
             case status::PENDING:
@@ -175,6 +192,14 @@ class indexer
         return true;
     }
 
+    /**
+     * The status that marks a row for work: pending when it is not indexed
+     * or failed, pendingreindex when indexed content changed.
+     *
+     * @param \stdClass $row The index row.
+     * @param string $hash The material's current content hash.
+     * @return string|null The status, or null when nothing needs sending.
+     */
     private function target_status(\stdClass $row, string $hash): ?string {
         if ($row->status === status::NOT_INDEXED || $row->status === status::ERROR) {
             return status::PENDING;

@@ -70,7 +70,10 @@ class restore_tarsuscoach_activity_structure_step extends restore_activity_struc
         $data = (object) $data;
         $objid = $this->get_new_parentid('tarsuscoach');
         $resourceid = (string) ($data->resourceid ?? '');
-        if ($resourceid === '' || $DB->record_exists('tarsuscoach_inclusion', ['tarsuscoachid' => $objid, 'resourceid' => $resourceid])) {
+        if (
+            $resourceid === ''
+            || $DB->record_exists('tarsuscoach_inclusion', ['tarsuscoachid' => $objid, 'resourceid' => $resourceid])
+        ) {
             return;
         }
         $DB->insert_record('tarsuscoach_inclusion', (object) [

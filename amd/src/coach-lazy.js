@@ -37,6 +37,7 @@
 
 import Ajax from 'core/ajax';
 import Log from 'core/log';
+import {deleteCancelPromise} from 'core/notification';
 import Markdown from 'mod_tarsuscoach/markdown-lazy';
 
 var FEED_SCROLL_THRESHOLD = 80;
@@ -48,7 +49,20 @@ var FEED_SCROLL_THRESHOLD = 80;
 /**
  * Do nothing: a callback that ignores its result.
  */
-function noop() {}
+function noop() {
+    // Nothing to do.
+}
+
+/**
+ * Start playing an audio element; a browser that refuses (no click on the
+ * page yet) is no error.
+ *
+ * @param {HTMLAudioElement} audio The element.
+ * @return {Promise}
+ */
+function playQuietly(audio) {
+    return audio.play().catch(noop);
+}
 
 /**
  * Create an element.
@@ -352,6 +366,7 @@ function trapTab(container, event) {
  * @return {Promise<Object>}
  */
 function callService(methodname, args, strings) {
+    var failure = strings.unexpected_error || 'Unexpected error';
     return Ajax.call([{methodname: methodname, args: args}])[0].then(function(response) {
         var data = null;
         try {
@@ -360,7 +375,7 @@ function callService(methodname, args, strings) {
             data = null;
         }
         if (!data || typeof data !== 'object') {
-            throw new Error(strings.unexpected_error || 'Unexpected error');
+            throw new Error(failure);
         }
         return data;
     });
@@ -979,14 +994,22 @@ Chat.prototype.measureChrome = function() {
 // --- cards ---------------------------------------------------------
 
 Chat.prototype.noticeCard = function(variant, title, html, fallbackTitleKey, id) {
-    var image = this.config.images[variant === 'complete' ? 'success' : variant === 'motivation' ? 'motivation' : 'welcome'];
+    var picture = 'welcome';
+    var region = 'tarsus-chat-card';
+    if (variant === 'complete') {
+        picture = 'success';
+        region = 'learn-complete';
+    } else if (variant === 'motivation') {
+        picture = 'motivation';
+        region = 'learn-motivation';
+    }
+    var image = this.config.images[picture];
     var heading = title || (fallbackTitleKey ? this.t(fallbackTitleKey) : '');
     var card = el(
         'div',
         {
             'class': 'tarsus-card tarsus-card--welcome' + (variant ? ' tarsus-card--' + variant : ''),
-            'data-region':
-                variant === 'complete' ? 'learn-complete' : variant === 'motivation' ? 'learn-motivation' : 'tarsus-chat-card',
+            'data-region': region,
             'data-widget-id': id || null
         },
         el('div', {'class': 'tarsus-card__inner tarsus-center'}, [
@@ -1491,6 +1514,8 @@ function hostMic(frame, onstart) {
                         }
                     });
                 });
+                // The start message belongs to this recording's capture; the microphone bridge keeps its tested shape.
+                // eslint-disable-next-line promise/no-nesting
                 return capture(recording).then(function(rate) {
                     if (!recording.closed) {
                         port.postMessage({type: 'started', id: id, sampleRate: rate});
@@ -2202,6 +2227,8 @@ function storedVerdict(item) {
  * @param {HTMLElement} card The card.
  * @param {Object} verdict The verdict of the brain.
  */
+// One function for every kind of practice answer: each branch fills one part of the card.
+// eslint-disable-next-line complexity
 Chat.prototype.finalizePracticeCard = function(card, verdict) {
     var self = this;
     card.classList.add('tarsus-practice-card--answered');
@@ -2323,13 +2350,13 @@ Chat.prototype.finalizePracticeCard = function(card, verdict) {
     var feedback = card.querySelector('[data-region="feedback"]');
     if (feedback && verdict.feedback) {
         show(feedback, true);
-        feedback.classList.add(
-            partial
-                ? 'tarsus-practice-card__feedback--partial'
-                : verdict.correct
-                  ? 'tarsus-practice-card__feedback--correct'
-                  : 'tarsus-practice-card__feedback--incorrect'
-        );
+        var tone = 'incorrect';
+        if (partial) {
+            tone = 'partial';
+        } else if (verdict.correct) {
+            tone = 'correct';
+        }
+        feedback.classList.add('tarsus-practice-card__feedback--' + tone);
         feedback.innerHTML = verdict.feedback;
         typeset(feedback);
         feedback.insertBefore(
@@ -2446,7 +2473,7 @@ Chat.prototype.loadFeed = function() {
                 if (result.status === 'noscope' || result.status === 'error' || result.status === 'blocked') {
                     self.alert(result.error || self.t('unexpected_error'));
                 }
-                return;
+                return null;
             }
             self.updateXp(result.progress);
             self.state.feedOffset = self.config.pageSize;
@@ -2467,6 +2494,7 @@ Chat.prototype.loadFeed = function() {
             if (self.nearFeedTop()) {
                 self.loadOlderFeed();
             }
+            return null;
         })
         .catch(function(error) {
             flow.innerHTML = '';
@@ -2508,7 +2536,7 @@ Chat.prototype.loadOlderFeed = function() {
         .then(function(result) {
             if (result.status !== 'success') {
                 self.state.feedHasMore = false;
-                return;
+                return null;
             }
             var items = result.items || [];
             self.state.feedOffset = offset + self.config.pageSize;
@@ -2528,11 +2556,12 @@ Chat.prototype.loadOlderFeed = function() {
                 });
             });
             self.notePracticeHistory(items);
+            return null;
         })
         .catch(function() {
             self.state.feedHasMore = false;
         })
-        .then(function() {
+        .always(function() {
             self.state.feedLoading = false;
             show(older, false);
         });
@@ -2557,8 +2586,12 @@ Chat.prototype.renderBadge = function() {
     }
     var progress = this.state.progress;
     var build = this.state.mode === 'build';
-    var earned = progress ? (build ? progress.earnedunits : progress.earnedxp) : 0;
-    var total = progress ? (build ? progress.totalunits : progress.totalxp) : 0;
+    var earned = 0;
+    var total = 0;
+    if (progress) {
+        earned = build ? progress.earnedunits : progress.earnedxp;
+        total = build ? progress.totalunits : progress.totalxp;
+    }
     if (this.state.mode === 'ask' || this.state.mode === 'discuss' || !(total > 0)) {
         show(badge, false);
         return;
@@ -2580,8 +2613,12 @@ Chat.prototype.renderGrade = function() {
     }
     var progress = this.state.progress;
     var units = this.config.gradeBasis === 'units';
-    var earned = progress ? (units ? progress.earnedunits : progress.earnedxp) : 0;
-    var total = progress ? (units ? progress.totalunits : progress.totalxp) : 0;
+    var earned = 0;
+    var total = 0;
+    if (progress) {
+        earned = units ? progress.earnedunits : progress.earnedxp;
+        total = units ? progress.totalunits : progress.totalxp;
+    }
     if ((this.state.mode !== 'test' && this.state.mode !== 'build') || !(total > 0)) {
         show(chip, false);
         return;
@@ -2698,7 +2735,12 @@ Chat.prototype.setAudioState = function(card, stateName) {
     show(player.querySelector('[data-region="audio-speaker"]'), stateName === 'idle');
     show(player.querySelector('[data-region="audio-play"]'), !(stateName === 'idle' || stateName === 'playing'));
     show(player.querySelector('[data-region="audio-pause"]'), stateName === 'playing');
-    var key = stateName === 'playing' ? 'learn_audio_pause' : stateName === 'idle' ? 'learn_audio' : 'learn_audio_play';
+    var key = 'learn_audio_play';
+    if (stateName === 'playing') {
+        key = 'learn_audio_pause';
+    } else if (stateName === 'idle') {
+        key = 'learn_audio';
+    }
     var toggle = player.querySelector('[data-action="audio-toggle"]');
     toggle.setAttribute('title', this.t(key));
     toggle.setAttribute('aria-label', this.t(key));
@@ -2766,13 +2808,13 @@ Chat.prototype.fetchStackAudio = function(card) {
             if (result.status !== 'success' || !result.audio) {
                 self.setAudioState(card, 'idle');
                 self.alert(result.error || self.t('unexpected_error'));
-                return;
+                return null;
             }
             audio.src = result.audio;
             self.wireStackAudio(card);
             self.drawWave(card);
             self.setAudioState(card, 'ready');
-            return audio.play().catch(noop);
+            return playQuietly(audio);
         })
         .catch(function(error) {
             self.setAudioState(card, 'idle');
@@ -2790,7 +2832,7 @@ Chat.prototype.toggleStackAudio = function(card) {
         return;
     }
     if (audio.paused) {
-        audio.play().catch(noop);
+        playQuietly(audio);
     } else {
         audio.pause();
     }
@@ -2850,7 +2892,7 @@ Chat.prototype.handleLearnNext = function() {
             if (result.status !== 'success' || !result.items || !result.items.length) {
                 self.alert(result.error || self.t('unexpected_error'));
                 button.focus();
-                return;
+                return null;
             }
             if (result.progress) {
                 self.updateXp(result.progress);
@@ -2874,6 +2916,7 @@ Chat.prototype.handleLearnNext = function() {
             self.state.learnStarted = true;
             self.updateNextLabel();
             self.focusCard(first);
+            return null;
         })
         .catch(function(error) {
             unlock();
@@ -2905,7 +2948,7 @@ Chat.prototype.handlePracticeNext = function() {
             if (result.status !== 'success' || !result.widgets || !result.widgets.length) {
                 self.alert(result.error || self.t('unexpected_error'));
                 button.focus();
-                return;
+                return null;
             }
             self.updateXp(result.progress);
             var first = null;
@@ -2917,6 +2960,7 @@ Chat.prototype.handlePracticeNext = function() {
             self.state.practiceStarted = true;
             self.updateNextLabel();
             self.focusCard(first);
+            return null;
         })
         .catch(function(error) {
             unlock();
@@ -2952,7 +2996,12 @@ Chat.prototype.handlePracticeCheck = function(card) {
             row.querySelectorAll('.tarsus-practice-table__cell').forEach(function(cell) {
                 var input = cell.querySelector('input');
                 var given = cell.querySelector('.tarsus-practice-table__value');
-                var value = input ? input.value.trim() : given ? given.textContent.trim() : '';
+                var value = '';
+                if (input) {
+                    value = input.value.trim();
+                } else if (given) {
+                    value = given.textContent.trim();
+                }
                 if (input && value === '') {
                     complete = false;
                 }
@@ -3002,7 +3051,7 @@ Chat.prototype.handlePracticeCheck = function(card) {
                 check.disabled = false;
                 self.alert(result.error || self.t('unexpected_error'));
                 check.focus();
-                return;
+                return null;
             }
             self.finalizePracticeCard(card, {
                 correct: result.correct,
@@ -3029,6 +3078,7 @@ Chat.prototype.handlePracticeCheck = function(card) {
                 );
                 self.announce(self.verdictText(result.correct, result.score) + ' ' + self.scoreText());
             }
+            return null;
         })
         .catch(function(error) {
             check.disabled = false;
@@ -3040,11 +3090,35 @@ Chat.prototype.handlePracticeCheck = function(card) {
 
 // --- modes, reply chip, asking -------------------------------------
 
+/**
+ * Ask before a running call ends: the mode changes once the learner
+ * agrees, and nothing happens if they keep the conversation.
+ *
+ * @param {string} mode The mode to change to.
+ * @param {boolean} quiet Whether the change goes unannounced.
+ */
+Chat.prototype.confirmEndLive = function(mode, quiet) {
+    var self = this;
+    var trigger = this.q('.tarsus-mode-switch__btn[data-mode="' + mode + '"]');
+    deleteCancelPromise(this.t('live_end_title'), this.t('live_end_confirm'), this.t('live_end'), {triggerElement: trigger})
+        .then(function() {
+            if (self.state.live) {
+                self.endLive();
+            }
+            self.setMode(mode, quiet);
+            return null;
+        }, noop)
+        .catch(function(error) {
+            Log.error(error);
+        });
+};
+
 Chat.prototype.setMode = function(mode, quiet) {
     if (this.state.mode === 'discuss' && mode !== 'discuss' && this.state.live) {
         // Leaving the live interaction ends the call; a call the
         // learner already hung up needs no question.
-        if (this.state.live.getAttribute('data-call') !== 'ended' && !window.confirm(this.t('live_end_confirm'))) {
+        if (this.state.live.getAttribute('data-call') !== 'ended') {
+            this.confirmEndLive(mode, quiet);
             return;
         }
         this.endLive();
@@ -3195,7 +3269,7 @@ Chat.prototype.handleSubmit = function(event) {
                 input.value = query;
                 self.autosize(input);
                 self.alert(result.error || self.t('unexpected_error'));
-                return;
+                return null;
             }
             (result.messages || []).forEach(function(message) {
                 self.attach(self.noticeCard('', message.title, message.text), null, true);
@@ -3212,6 +3286,7 @@ Chat.prototype.handleSubmit = function(event) {
             self.setReply(null);
             self.scrollToEnd();
             self.announceAnswer(answered);
+            return null;
         })
         .catch(function(error) {
             unlock();
@@ -3413,6 +3488,7 @@ Chat.prototype.voiceStart = function() {
             }, 1000);
             self.renderVoiceTime();
             self.setVoiceState('recording');
+            return null;
         })
         .catch(function(error) {
             var name = error && error.name;
@@ -3493,7 +3569,7 @@ Chat.prototype.voicePlay = function() {
     if (audio.getAttribute('src')) {
         if (audio.paused) {
             audio.currentTime = 0;
-            audio.play().catch(noop);
+            playQuietly(audio);
         } else {
             audio.pause();
         }
@@ -3512,7 +3588,12 @@ Chat.prototype.voiceSend = function() {
     this.voice.url = null;
     this.voice.blob = null;
     var reply = this.state.replyTo;
-    var extension = blob.type.indexOf('mp4') !== -1 ? 'm4a' : blob.type.indexOf('ogg') !== -1 ? 'ogg' : 'webm';
+    var extension = 'webm';
+    if (blob.type.indexOf('mp4') !== -1) {
+        extension = 'm4a';
+    } else if (blob.type.indexOf('ogg') !== -1) {
+        extension = 'ogg';
+    }
     var question = {
         cmid: this.config.cmid,
         mimetype: blob.type || '',
@@ -3551,7 +3632,7 @@ Chat.prototype.voiceSend = function() {
             self.syncProgress(result);
             if (result.status !== 'success') {
                 self.alert(result.error || self.t('unexpected_error'));
-                return;
+                return null;
             }
             (result.messages || []).forEach(function(message) {
                 self.attach(self.noticeCard('', message.title, message.text), null, true);
@@ -3570,6 +3651,7 @@ Chat.prototype.voiceSend = function() {
             self.setReply(null);
             self.scrollToEnd();
             self.announceAnswer(answered);
+            return null;
         })
         .catch(function(error) {
             unlock();
@@ -3610,7 +3692,7 @@ Chat.prototype.startLive = function() {
             show(self.q('[data-region="live-spinner"]'), false);
             if (result.status !== 'success' || !result.page) {
                 self.alert(result.error || self.t('unexpected_error'));
-                return;
+                return null;
             }
             var frame = el('iframe', {
                 'class': 'tarsus-live__frame',
@@ -3631,6 +3713,7 @@ Chat.prototype.startLive = function() {
             self.scrollToCard(card);
             focusOn(frame);
             self.setLiveLabel('live_new');
+            return null;
         })
         .catch(function(error) {
             button.disabled = false;
@@ -3781,19 +3864,20 @@ Chat.prototype.openSources = function(widgetid, state) {
         .then(function(result) {
             if (result.status !== 'success') {
                 self.drawerError(body, result.error);
-                return;
+                return null;
             }
             body.innerHTML = '';
             var bits = result.bits || [];
             if (!bits.length) {
                 body.appendChild(el('p', {'class': 'tarsus-muted', text: self.t('sources_none')}));
-                return;
+                return null;
             }
             body.appendChild(el('p', {'class': 'tarsus-drawer__lead', text: self.t('sources_count', {count: bits.length})}));
             bits.forEach(function(bit) {
                 body.appendChild(self.sourceItem(bit));
             });
             typeset(body);
+            return null;
         })
         .catch(function(error) {
             self.drawerError(body, error.message);
@@ -3897,7 +3981,7 @@ Chat.prototype.openSettingsPanel = function() {
         .then(function(result) {
             if (result.status !== 'success') {
                 self.drawerError(body, result.error);
-                return;
+                return null;
             }
             body.innerHTML = '';
             var form = el('form', {'class': 'tarsus-settings', novalidate: true});
@@ -3926,41 +4010,56 @@ Chat.prototype.openSettingsPanel = function() {
             );
             form.addEventListener('submit', function(event) {
                 event.preventDefault();
-                save.disabled = true;
-                status.textContent = self.t('settings_saving');
-                form.querySelectorAll('.tarsus-settings__error').forEach(function(node) {
-                    node.remove();
-                });
-                self.teacherCall('saveSettings', {values: self.settingsValues(form)})
-                    .then(function(saved) {
-                        save.disabled = false;
-                        if (saved.status !== 'success') {
-                            status.textContent = saved.error || self.t('form_invalid');
-                            Object.keys(saved.errors || {}).forEach(function(name) {
-                                var field = form.querySelector('[data-field="' + name + '"]');
-                                if (field) {
-                                    field.appendChild(
-                                        el('div', {'class': 'tarsus-settings__error', role: 'alert', text: saved.errors[name]})
-                                    );
-                                }
-                            });
-                            return;
-                        }
-                        status.textContent = saved.message || self.t('settings_saved');
-                        // Modes and switches change the coach itself.
-                        window.setTimeout(function() {
-                            window.location.reload();
-                        }, 700);
-                    })
-                    .catch(function(error) {
-                        save.disabled = false;
-                        status.textContent = error.message || self.t('unexpected_error');
-                    });
+                self.saveSettingsForm(form, save, status);
             });
             body.appendChild(form);
+            return null;
         })
         .catch(function(error) {
             self.drawerError(body, error.message);
+        });
+};
+
+/**
+ * Save the settings form; once saved, the page reloads (modes and switches
+ * change the coach itself).
+ *
+ * @param {HTMLFormElement} form The form.
+ * @param {HTMLButtonElement} save Its save button.
+ * @param {HTMLElement} status Where the outcome is told.
+ */
+Chat.prototype.saveSettingsForm = function(form, save, status) {
+    var self = this;
+    save.disabled = true;
+    status.textContent = self.t('settings_saving');
+    form.querySelectorAll('.tarsus-settings__error').forEach(function(node) {
+        node.remove();
+    });
+    self.teacherCall('saveSettings', {values: self.settingsValues(form)})
+        .then(function(saved) {
+            save.disabled = false;
+            if (saved.status !== 'success') {
+                status.textContent = saved.error || self.t('form_invalid');
+                Object.keys(saved.errors || {}).forEach(function(name) {
+                    var field = form.querySelector('[data-field="' + name + '"]');
+                    if (field) {
+                        field.appendChild(
+                            el('div', {'class': 'tarsus-settings__error', role: 'alert', text: saved.errors[name]})
+                        );
+                    }
+                });
+                return null;
+            }
+            status.textContent = saved.message || self.t('settings_saved');
+            // Modes and switches change the coach itself.
+            window.setTimeout(function() {
+                window.location.reload();
+            }, 700);
+            return null;
+        })
+        .catch(function(error) {
+            save.disabled = false;
+            status.textContent = error.message || self.t('unexpected_error');
         });
 };
 
@@ -4094,6 +4193,22 @@ Chat.prototype.settingsValues = function(form) {
 var LP_COMPLETED = 2;
 var LP_IN_PROGRESS = 1;
 
+/**
+ * The language key of a learner's progress.
+ *
+ * @param {number} status LP_COMPLETED, LP_IN_PROGRESS or another (not attempted).
+ * @return {string}
+ */
+function progressKey(status) {
+    if (status === LP_COMPLETED) {
+        return 'lp_completed';
+    }
+    if (status === LP_IN_PROGRESS) {
+        return 'lp_in_progress';
+    }
+    return 'lp_not_attempted';
+}
+
 Chat.prototype.loadStats = function() {
     var self = this;
     return this.teacherCall('stats', {}).then(function(result) {
@@ -4112,9 +4227,10 @@ Chat.prototype.openStatsPanel = function() {
         .then(function(result) {
             if (result.status !== 'success') {
                 self.drawerError(body, result.error);
-                return;
+                return null;
             }
             self.renderStats(body, result, '');
+            return null;
         })
         .catch(function(error) {
             self.drawerError(body, error.message);
@@ -4236,12 +4352,7 @@ Chat.prototype.renderStats = function(body, result, group) {
         el('th', {}, srText(this.t('panel_history')))
     ]);
     var rows = learners.map(function(learner) {
-        var status =
-            learner.status === LP_COMPLETED
-                ? 'lp_completed'
-                : learner.status === LP_IN_PROGRESS
-                  ? 'lp_in_progress'
-                  : 'lp_not_attempted';
+        var status = progressKey(learner.status);
         return el('tr', {}, [
             el('td', {'class': 'tarsus-stats__name', text: learner.name}),
             el('td', {
@@ -4484,7 +4595,7 @@ Chat.prototype.openHistoryPanel = function(userid, name) {
     list.then(function(result) {
         if (result.status !== 'success') {
             self.drawerError(body, result.error);
-            return;
+            return null;
         }
         body.innerHTML = '';
         var learners = (result.learners || []).slice().sort(function(a, b) {
@@ -4492,7 +4603,7 @@ Chat.prototype.openHistoryPanel = function(userid, name) {
         });
         if (!learners.length) {
             body.appendChild(el('p', {'class': 'tarsus-muted', text: self.t('stats_none')}));
-            return;
+            return null;
         }
         var select = el('select', {'class': 'tarsus-input tarsus-history__pick', 'aria-label': self.t('history_pick')});
         select.appendChild(el('option', {value: '', text: self.t('history_pick')}));
@@ -4507,6 +4618,7 @@ Chat.prototype.openHistoryPanel = function(userid, name) {
         });
         body.appendChild(el('div', {'class': 'tarsus-stats__tools'}, select));
         body.appendChild(target);
+        return null;
     }).catch(function(error) {
         self.drawerError(body, error.message);
     });
@@ -4545,12 +4657,7 @@ Chat.prototype.renderHistory = function(body, userid, name) {
         }
     });
     if (learner) {
-        var status =
-            learner.status === LP_COMPLETED
-                ? 'lp_completed'
-                : learner.status === LP_IN_PROGRESS
-                  ? 'lp_in_progress'
-                  : 'lp_not_attempted';
+        var status = progressKey(learner.status);
         side.appendChild(
             el('div', {'class': 'tarsus-history__figures'}, [
                 el('div', {'class': 'tarsus-history__grade'}, [
@@ -4586,9 +4693,10 @@ Chat.prototype.renderHistory = function(body, userid, name) {
                 growth.appendChild(
                     el('p', {'class': 'tarsus-muted tarsus-small', text: result.error || self.t('unexpected_error')})
                 );
-                return;
+                return null;
             }
             growth.appendChild(self.growthChart(result));
+            return null;
         })
         .catch(noop);
 
@@ -4614,7 +4722,7 @@ Chat.prototype.renderHistory = function(body, userid, name) {
                         el('p', {'class': 'tarsus-drawer__error', text: result.error || self.t('unexpected_error')}),
                         feed.firstChild
                     );
-                    return;
+                    return null;
                 }
                 var items = result.items || [];
                 if (!items.length && offset === 0) {
@@ -4629,6 +4737,7 @@ Chat.prototype.renderHistory = function(body, userid, name) {
                 });
                 offset += self.config.pageSize;
                 show(more, Boolean(result.hasmore) && items.length > 0);
+                return null;
             })
             .catch(function(error) {
                 loading.remove();
@@ -4793,6 +4902,8 @@ Chat.prototype.init = function() {
     var initial = this.modes.indexOf('ask') !== -1 ? 'ask' : this.modes[0] || 'ask';
     this.setMode(initial, true);
 
+    // One listener for all the coach's buttons: each branch handles one button and stops.
+    // eslint-disable-next-line complexity
     this.root.addEventListener('click', function(event) {
         var target = event.target;
         if (!(target instanceof Element)) {
@@ -5143,7 +5254,7 @@ Dashboard.prototype.runQueue = function(rows, task, then) {
     var self = this;
     this.setBulkBusy(true);
     var queue = rows.slice();
-    var next = function() {
+    var step = function() {
         if (!queue.length) {
             self.setBulkBusy(false);
             self.message(self.t('bulk_done'));
@@ -5152,9 +5263,9 @@ Dashboard.prototype.runQueue = function(rows, task, then) {
             }
             return Promise.resolve();
         }
-        return task(queue.shift()).then(next, next);
+        return task(queue.shift()).then(step, step);
     };
-    return next();
+    return step();
 };
 
 /**
@@ -5239,6 +5350,7 @@ Dashboard.prototype.bulkSync = function(silent) {
             } else if (!silent) {
                 self.message(self.t('sync_done'));
             }
+            return null;
         })
         .catch(function(error) {
             self.setBulkBusy(false);
@@ -5277,7 +5389,17 @@ Dashboard.prototype.init = function() {
         }
         var resourceid = row.getAttribute('data-resourceid');
         var action = button.getAttribute('data-action');
-        if (action === 'remove' && !window.confirm(self.t('confirmremove_body'))) {
+        if (action === 'remove') {
+            deleteCancelPromise(self.t('confirmremove_title'), self.t('confirmremove_body'), self.t('action_remove'), {
+                triggerElement: button
+            })
+                .then(function() {
+                    self.sendAction(row, resourceid, action);
+                    return null;
+                }, noop)
+                .catch(function(error) {
+                    Log.error(error);
+                });
             return;
         }
         self.sendAction(row, resourceid, action);

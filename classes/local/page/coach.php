@@ -56,7 +56,8 @@ final class coach {
         'voice_to_voice', 'voice_to_text', 'voice_start', 'voice_stop', 'voice_pause', 'voice_resume', 'voice_discard',
         'voice_play', 'voice_recording', 'voice_paused', 'voice_ready', 'voice_question', 'voice_transcribing',
         'voice_transcript_note', 'voice_limit', 'voice_unsupported', 'mic_denied', 'mic_notfound', 'mic_failed',
-        'live_start', 'live_new', 'live_intro', 'live_expired', 'live_end_confirm', 'live_title', 'live_starting',
+        'live_start', 'live_new', 'live_intro', 'live_expired', 'live_end', 'live_end_confirm', 'live_end_title', 'live_title',
+        'live_starting',
         'sources_show', 'sources_title', 'sources_count', 'sources_none', 'sources_open', 'sources_transcript',
         'source_type_text', 'source_type_table', 'source_type_image', 'source_type_audio', 'source_type_video',
         'source_type_question', 'source_type_form', 'source_type_other', 'panel_close', 'loading',
@@ -87,7 +88,7 @@ final class coach {
 
     /** @var string[] Interface texts of the materials list. */
     public const MATERIAL_STRINGS = [
-        'confirmremove_body', 'unexpected_error', 'session_lost', 'sync_done', 'bulk_done',
+        'confirmremove_title', 'confirmremove_body', 'unexpected_error', 'session_lost', 'sync_done', 'bulk_done',
         'include_not_indexed', 'action_index', 'action_reindex', 'action_remove', 'action_retry',
     ];
 

@@ -188,6 +188,7 @@ $string['err_request'] = 'Tarsus could not process this request.';
 $string['err_server'] = 'An error occurred at Tarsus. Please try again in a moment.';
 $string['err_stack'] = 'This learning unit is no longer available.';
 $string['err_toolarge'] = 'The recording is too large. Please keep it shorter.';
+$string['err_urlblocked'] = 'Moodle blocks the address of Tarsus. An administrator has to allow it under Site administration > General > Security > HTTP security (cURL blocked hosts list and cURL allowed ports).';
 $string['err_voice'] = 'Tarsus does not know the configured voice. Please tell support.';
 $string['error_avatar'] = 'The avatar could not be read as an image (PNG, JPEG, GIF or WebP up to 2 MB).';
 $string['error_baseurl'] = 'Enter a URL starting with http:// or https://.';

@@ -1634,6 +1634,8 @@ class http_client implements client_interface
      * @return array<string, mixed>
      */
     private function send(string $method, string $path, array $params, bool $uploading = false, ?int $timeout = null): array {
+        global $CFG;
+        require_once($CFG->libdir . '/filelib.php');
         $baseurl = rtrim(trim($this->baseurl), '/');
 
         if ($baseurl === '' || trim($this->apikey) === '') {
@@ -1646,32 +1648,31 @@ class http_client implements client_interface
             ? $baseurl . $path
             : $baseurl . self::API_PREFIX . $path;
 
-        $curl = curl_init($url);
-        if ($curl === false) {
-            throw new transport_exception(0, 'could not initialise curl');
-        }
-        curl_setopt_array($curl, [
-            CURLOPT_CUSTOMREQUEST => $method,
-            CURLOPT_POST => true,
-            CURLOPT_POSTFIELDS => $params,
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_FOLLOWLOCATION => false,
-            CURLOPT_CONNECTTIMEOUT => self::CONNECT_TIMEOUT,
-            CURLOPT_TIMEOUT => $timeout ?? ($uploading ? self::UPLOAD_TIMEOUT : self::TIMEOUT),
-            CURLOPT_HTTPHEADER => ['Accept: application/json', 'Expect:'],
-            CURLOPT_USERAGENT => 'Tarsus-Moodle/' . platform::plugin_version(),
+        $curl = new \curl();
+        $curl->setHeader(['Accept: application/json', 'Expect:']);
+        $response = $curl->post($url, $params, [
+            'CURLOPT_CUSTOMREQUEST' => $method,
+            // Never follow a redirect: the body carries the API key.
+            'CURLOPT_FOLLOWLOCATION' => 0,
+            // Moodle's default skips the certificate check; the API key needs it.
+            'CURLOPT_SSL_VERIFYPEER' => 1,
+            'CURLOPT_SSL_VERIFYHOST' => 2,
+            'CURLOPT_CONNECTTIMEOUT' => self::CONNECT_TIMEOUT,
+            'CURLOPT_TIMEOUT' => $timeout ?? ($uploading ? self::UPLOAD_TIMEOUT : self::TIMEOUT),
+            'CURLOPT_USERAGENT' => 'Tarsus-Moodle/' . platform::plugin_version(),
         ]);
-        self::apply_proxy($curl, $url);
+        $httpcode = (int) ($curl->get_info()['http_code'] ?? 0);
 
-        $response = curl_exec($curl);
-        $errno = curl_errno($curl);
-        $httpcode = (int) curl_getinfo($curl, CURLINFO_HTTP_CODE);
-        // No curl_close(): it does nothing since PHP 8.0 and is deprecated
-        // in PHP 8.5. The handle is freed when $curl goes out of scope.
-
-        if ($errno !== 0 || $response === false) {
-            // Never echo the request: it carries the API key.
-            throw new transport_exception(0, 'connection failed calling ' . $path);
+        if ($httpcode === 0 && $curl->error === get_string('curlsecurityurlblocked', 'admin')) {
+            // Moodle's HTTP security settings block the address of Tarsus:
+            // a setting of the site, not an outage.
+            throw new configuration_exception('err_urlblocked');
+        }
+        if ($curl->get_errno() !== 0 || $httpcode === 0) {
+            // Never echo the request: it carries the API key. Moodle's HTTP
+            // security settings may block the address before any connection.
+            throw new transport_exception(0, 'connection failed calling ' . $path
+                . ($curl->error !== '' ? ' (' . $curl->error . ')' : ''));
         }
 
         if ($httpcode === 409) {
@@ -1719,28 +1720,5 @@ class http_client implements client_interface
             unset($params['brain_id']);
         }
         return $params;
-    }
-
-    /**
-     * Route the call through the proxy configured in Moodle (Site
-     * administration > Server > HTTP), unless the address is to bypass it.
-     *
-     * @param \CurlHandle|resource $curl
-     */
-    private static function apply_proxy($curl, string $url): void {
-        global $CFG;
-        if (empty($CFG->proxyhost) || is_proxybypass($url)) {
-            return;
-        }
-        curl_setopt($curl, CURLOPT_PROXY, (string) $CFG->proxyhost);
-        if (!empty($CFG->proxyport)) {
-            curl_setopt($curl, CURLOPT_PROXYPORT, (int) $CFG->proxyport);
-        }
-        if (!empty($CFG->proxyuser)) {
-            curl_setopt($curl, CURLOPT_PROXYUSERPWD, $CFG->proxyuser . ':' . ($CFG->proxypassword ?? ''));
-        }
-        if (($CFG->proxytype ?? 'HTTP') === 'SOCKS5') {
-            curl_setopt($curl, CURLOPT_PROXYTYPE, CURLPROXY_SOCKS5);
-        }
     }
 }

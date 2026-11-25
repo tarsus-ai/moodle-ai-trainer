@@ -188,6 +188,7 @@ $string['err_request'] = 'Tarsus konnte diese Anfrage nicht bearbeiten.';
 $string['err_server'] = 'Bei Tarsus ist ein Fehler aufgetreten. Bitte versuchen Sie es gleich noch einmal.';
 $string['err_stack'] = 'Diese Lerneinheit ist nicht mehr verfügbar.';
 $string['err_toolarge'] = 'Die Aufnahme ist zu groß. Bitte fassen Sie sich kürzer.';
+$string['err_urlblocked'] = 'Moodle sperrt die Adresse von Tarsus. Die Administration muss sie unter Website-Administration > Allgemein > Sicherheit > HTTP-Sicherheit freigeben (Liste gesperrter cURL-Hosts und erlaubte cURL-Ports).';
 $string['err_voice'] = 'Die eingestellte Stimme ist bei Tarsus nicht bekannt. Bitte melden Sie das dem Support.';
 $string['error_avatar'] = 'Der Avatar konnte nicht als Bild gelesen werden (PNG, JPEG, GIF oder WebP bis 2 MB).';
 $string['error_baseurl'] = 'Geben Sie eine URL ein, die mit http:// oder https:// beginnt.';

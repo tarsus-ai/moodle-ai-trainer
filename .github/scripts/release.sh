@@ -78,7 +78,7 @@ for v in $versions; do
     sum=$(sha256sum "$zip" | cut -d ' ' -f 1)
 
     {
-        echo "Tarsus for Moodle $v – activity module (mod_tarsuscoach) for Moodle 4.1 to 5.3."
+        echo "Tarsus for Moodle $v – activity module (mod_tarsuscoach) for Moodle 4.5 to 5.3."
         echo
         # The version's section of the changelog, without its heading and
         # without the link references at the end of the file.
@@ -89,7 +89,7 @@ for v in $versions; do
         echo
         echo "1. Download \`$zip\` below."
         echo "2. In Moodle: *Site administration › Plugins › Install plugins*, drop the zip into the box and click **Install plugin from the ZIP file**, then **Continue** and **Upgrade Moodle database now**."
-        echo "3. Without that page (it can be switched off): unzip the file into Moodle's \`mod\` folder (Moodle 5.1 and newer: \`public/mod\`) – it contains the \`tarsus\` folder – and open *Site administration › Notifications*."
+        echo "3. Without that page (it can be switched off): unzip the file into Moodle's \`mod\` folder (Moodle 5.1 and newer: \`public/mod\`) – it contains the \`tarsuscoach\` folder – and open *Site administration › Notifications*."
         echo
         echo "Step by step with pictures: [README]($repo_url#installation)."
         echo

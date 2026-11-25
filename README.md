@@ -29,7 +29,7 @@
 
 ---
 
-Tarsus is an AI learning coach for training providers, companies and universities. It explains, lets learners practise, talks with them and answers their questions – always from the organisation's own documents, at the right level for each person. **Tarsus for Moodle** brings this coach into Moodle as an activity (`mod_tarsus`): a *Tarsus* activity sits in a course section like a quiz or a forum, uses only the course material the teacher has indexed and included, and reports to Moodle's gradebook and activity completion. The conversations run in the Tarsus brain; the plugin shows exactly what Tarsus sends and keeps only the figures Moodle needs. It is the same coach as [Tarsus for ILIAS](https://github.com/tarsus-ai/ilias-ai-trainer).
+Tarsus is an AI learning coach for training providers, companies and universities. It explains, lets learners practise, talks with them and answers their questions – always from the organisation's own documents, at the right level for each person. **Tarsus for Moodle** brings this coach into Moodle as an activity (`mod_tarsuscoach`): a *Tarsus* activity sits in a course section like a quiz or a forum, uses only the course material the teacher has indexed and included, and reports to Moodle's gradebook and activity completion. The conversations run in the Tarsus brain; the plugin shows exactly what Tarsus sends and keeps only the figures Moodle needs. It is the same coach as [Tarsus for ILIAS](https://github.com/tarsus-ai/ilias-ai-trainer).
 
 > This repository contains **no API keys and no brain IDs**. The plugin starts in demo mode; the credentials for a real brain are entered in Moodle's site administration and stay in the Moodle database – the browsers of learners and teachers never receive the API key. See [Getting access](#getting-access).
 
@@ -300,8 +300,8 @@ Teachers additionally see the buttons **Settings**, **Evaluation** and **History
 Some Moodle sites switch off installing from the browser, or the web server may not write into Moodle's folders. Then whoever looks after the server puts the plugin in place:
 
 1. Download `Tarsus-moodle-plugin-<version>.zip` from the [latest release](https://github.com/tarsus-ai/moodle-ai-trainer/releases/latest).
-2. Unzip it into the `mod` folder inside the Moodle folder – in Moodle 5.1 and newer, into `public/mod`. The zip contains the folder `tarsus`, so you end up with `mod/tarsus` (or `public/mod/tarsus`).
-3. Give the `tarsus` folder to the user that owns Moodle's files, for example `sudo chown -R www-data:www-data tarsus`.
+2. Unzip it into the `mod` folder inside the Moodle folder – in Moodle 5.1 and newer, into `public/mod`. The zip contains the folder `tarsuscoach`, so you end up with `mod/tarsuscoach` (or `public/mod/tarsuscoach`).
+3. Give the `tarsuscoach` folder to the user that owns Moodle's files, for example `sudo chown -R www-data:www-data tarsuscoach`.
 4. In Moodle, open **Site administration › Notifications** *(Website-Administration › Systemnachrichten)* and continue with [step 9](#part-2--install-it-in-moodle). On the command line, `sudo -u www-data php admin/cli/upgrade.php` in the Moodle folder does the same.
 
 </details>
@@ -328,7 +328,7 @@ Without the cron, changed material is sent again when a teacher opens the *Mater
 2. In Moodle, open **Site administration › Plugins › Install plugins**, put the zip into the box and click **Install plugin from the ZIP file** – as in [steps 4 to 6](#part-2--install-it-in-moodle).
 3. Moodle says that the folder of Tarsus already exists and will be replaced – that is what an update does. Click **Continue**, **Continue** again after the server check, then **Upgrade Moodle database now** and **Continue**.
 
-Your settings, the indexed material, the learners' figures and their grades are kept. The [changelog](CHANGELOG.md) lists what changed in each version. Installed by hand? Replace the `tarsus` folder with the new one and open *Site administration › Notifications*.
+Your settings, the indexed material, the learners' figures and their grades are kept. The [changelog](CHANGELOG.md) lists what changed in each version. Installed by hand? Replace the `tarsuscoach` folder with the new one and open *Site administration › Notifications*.
 
 ## If something does not work
 
@@ -466,7 +466,7 @@ Found something that does not work with your screen reader? Please [open an issu
 ## Data and privacy
 
 - The plugin talks to the brain over HTTPS only; every call carries the installation's API key and brain ID – or, for an existing Tarsus customer, the API key and the license key – and passes the guardrail pipeline (kill switch → circuit breaker, which opens after five consecutive outages for five minutes → monthly credit limit → rate limit). Refusals from Tarsus are shown with their own clear message and do not trip the breaker; nothing is retried blindly.
-- The plugin keeps its data in six tables: `tarsus` (the activities and their settings), `tarsus_idx` (the index map of the material sent to the brain), `tarsus_inc` (the material each activity may use), `tarsus_prg` (the latest figures per learner), `tarsus_use` (a log of the requests sent) and `tarsus_grd` (the guardrail state), plus its settings in Moodle's configuration. Uninstalling the plugin removes them.
+- The plugin keeps its data in six tables: `tarsuscoach` (the activities and their settings), `tarsuscoach_material` (the index map of the material sent to the brain), `tarsuscoach_inclusion` (the material each activity may use), `tarsuscoach_progress` (the latest figures per learner), `tarsuscoach_usage` (a log of the requests sent) and `tarsuscoach_guardrail` (the guardrail state), plus its settings in Moodle's configuration. Uninstalling the plugin removes them.
 - Learners are sent to the brain under a **pseudonym** – an HMAC of the Moodle user id with a secret generated at installation – together with their display name and interface language. The conversation itself lives in the brain. *Reset chat history* *(Chat-Verlauf zurücksetzen)* erases the learner's own conversation in the brain and the local figures. A spoken question is sent to Tarsus as audio to be transcribed.
 - **Moodle's privacy tools** know the plugin: a data request (*Site administration › Users › Privacy and policies › Data requests* – *Datenschutz und Richtlinien › Datenanfragen*) exports a learner's figures and requests, and deleting a learner's data also erases their conversation in the brain.
 - Interactive pages from the brain run sandboxed (see above) and are never stored in Moodle beyond the conversation history the brain returns.

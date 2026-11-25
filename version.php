@@ -17,15 +17,15 @@
 /**
  * Tarsus for Moodle: the AI learning coach as an activity.
  *
- * @package    mod_tarsus
+ * @package    mod_tarsuscoach
  * @copyright  2026 Tarsus GmbH
  * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 defined('MOODLE_INTERNAL') || die();
 
-$plugin->component = 'mod_tarsus';
-$plugin->version = 2026112402;
+$plugin->component = 'mod_tarsuscoach';
+$plugin->version = 2026112500;
 $plugin->release = '1.0.1';
 $plugin->requires = 2022112800; // Moodle 4.1.
 $plugin->supported = [401, 503];

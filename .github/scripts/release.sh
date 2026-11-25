@@ -5,7 +5,7 @@
 # all, also one that did not change version.php, since fixes made after the
 # version was set belong to the release - the plugin zip is
 # built from the tag with `git archive` (docs/ and .github/ are
-# export-ignored, see .gitattributes) - one folder "tarsus", as Moodle's
+# export-ignored, see .gitattributes) - one folder "tarsuscoach", as Moodle's
 # plugin installer expects - and the release notes are the version's
 # changelog section plus install instructions and the zip's checksum.
 #
@@ -55,11 +55,11 @@ for v in $versions; do
     git push origin "refs/tags/$tag"
 
     zip="Tarsus-moodle-plugin-$v.zip"
-    git archive --format=zip --prefix=tarsus/ -o "$zip" "$tag"
+    git archive --format=zip --prefix=tarsuscoach/ -o "$zip" "$tag"
     sum=$(sha256sum "$zip" | cut -d ' ' -f 1)
 
     {
-        echo "Tarsus for Moodle $v – activity module (mod_tarsus) for Moodle 4.1 to 5.3."
+        echo "Tarsus for Moodle $v – activity module (mod_tarsuscoach) for Moodle 4.1 to 5.3."
         echo
         # The version's section of the changelog, without its heading and
         # without the link references at the end of the file.

@@ -15,12 +15,12 @@
 // along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
 /**
- * Capabilities of mod_tarsus.
+ * Capabilities of mod_tarsuscoach.
  *
  * view: use the coach (learners). manage: materials, settings, evaluation
  * and history of one activity (teachers).
  *
- * @package    mod_tarsus
+ * @package    mod_tarsuscoach
  * @copyright  2026 Tarsus GmbH
  * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -28,7 +28,7 @@
 defined('MOODLE_INTERNAL') || die();
 
 $capabilities = [
-    'mod/tarsus:addinstance' => [
+    'mod/tarsuscoach:addinstance' => [
         'riskbitmask' => RISK_XSS,
         'captype' => 'write',
         'contextlevel' => CONTEXT_COURSE,
@@ -38,7 +38,7 @@ $capabilities = [
         ],
         'clonepermissionsfrom' => 'moodle/course:manageactivities',
     ],
-    'mod/tarsus:view' => [
+    'mod/tarsuscoach:view' => [
         'captype' => 'read',
         'contextlevel' => CONTEXT_MODULE,
         'archetypes' => [
@@ -48,7 +48,7 @@ $capabilities = [
             'manager' => CAP_ALLOW,
         ],
     ],
-    'mod/tarsus:manage' => [
+    'mod/tarsuscoach:manage' => [
         'riskbitmask' => RISK_PERSONAL,
         'captype' => 'write',
         'contextlevel' => CONTEXT_MODULE,

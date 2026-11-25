@@ -15,9 +15,9 @@
 // along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
 /**
- * Database upgrades of mod_tarsus.
+ * Database upgrades of mod_tarsuscoach.
  *
- * @package    mod_tarsus
+ * @package    mod_tarsuscoach
  * @copyright  2026 Tarsus GmbH
  * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -28,7 +28,7 @@
  * @param int $oldversion The version installed before.
  * @return bool
  */
-function xmldb_tarsus_upgrade($oldversion) {
+function xmldb_tarsuscoach_upgrade($oldversion) {
     // Version 1.0.0 is the first release: nothing to upgrade yet.
     return true;
 }

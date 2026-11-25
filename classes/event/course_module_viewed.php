@@ -14,12 +14,12 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
-namespace mod_tarsus\event;
+namespace mod_tarsuscoach\event;
 
 /**
  * A learner or teacher opened a Tarsus activity.
  *
- * @package    mod_tarsus
+ * @package    mod_tarsuscoach
  * @copyright  2026 Tarsus GmbH
  * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -30,7 +30,7 @@ class course_module_viewed extends \core\event\course_module_viewed {
     protected function init() {
         $this->data['crud'] = 'r';
         $this->data['edulevel'] = self::LEVEL_PARTICIPATING;
-        $this->data['objecttable'] = 'tarsus';
+        $this->data['objecttable'] = 'tarsuscoach';
     }
 
     /**
@@ -39,6 +39,6 @@ class course_module_viewed extends \core\event\course_module_viewed {
      * @return array
      */
     public static function get_objectid_mapping() {
-        return ['db' => 'tarsus', 'restore' => 'tarsus'];
+        return ['db' => 'tarsuscoach', 'restore' => 'tarsuscoach'];
     }
 }

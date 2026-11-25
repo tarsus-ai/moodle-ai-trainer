@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
-namespace mod_tarsus\privacy;
+namespace mod_tarsuscoach\privacy;
 
 use core_privacy\local\metadata\collection;
 use core_privacy\local\request\approved_contextlist;
@@ -24,16 +24,16 @@ use core_privacy\local\request\helper;
 use core_privacy\local\request\transform;
 use core_privacy\local\request\userlist;
 use core_privacy\local\request\writer;
-use mod_tarsus\local\Activity\Scope;
-use mod_tarsus\local\Client\ClientFactory;
-use mod_tarsus\local\Support\Config;
-use mod_tarsus\local\Support\Platform;
-use mod_tarsus\local\Support\Pseudonymizer;
+use mod_tarsuscoach\local\activity\scope;
+use mod_tarsuscoach\local\client\client_factory;
+use mod_tarsuscoach\local\support\config;
+use mod_tarsuscoach\local\support\platform;
+use mod_tarsuscoach\local\support\pseudonymizer;
 
 /**
- * What mod_tarsus stores about learners and what it sends to Tarsus.
+ * What mod_tarsuscoach stores about learners and what it sends to Tarsus.
  *
- * @package    mod_tarsus
+ * @package    mod_tarsuscoach
  * @copyright  2026 Tarsus GmbH
  * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -49,26 +49,26 @@ class provider implements
      * @return collection
      */
     public static function get_metadata(collection $collection): collection {
-        $collection->add_database_table('tarsus_prg', [
-            'usr_id' => 'privacy:metadata:tarsus_prg:usr_id',
-            'earned_xp' => 'privacy:metadata:tarsus_prg:earned_xp',
-            'earned_units' => 'privacy:metadata:tarsus_prg:earned_units',
-            'overall_prg' => 'privacy:metadata:tarsus_prg:overall_prg',
-            'modified' => 'privacy:metadata:tarsus_prg:modified',
-        ], 'privacy:metadata:tarsus_prg');
-        $collection->add_database_table('tarsus_use', [
-            'usr_id' => 'privacy:metadata:tarsus_use:usr_id',
-            'op_name' => 'privacy:metadata:tarsus_use:op_name',
-            'credits' => 'privacy:metadata:tarsus_use:credits',
-            'created' => 'privacy:metadata:tarsus_use:created',
-        ], 'privacy:metadata:tarsus_use');
-        $collection->add_external_location_link('tarsus', [
-            'pseudonym' => 'privacy:metadata:tarsus:pseudonym',
-            'fullname' => 'privacy:metadata:tarsus:fullname',
-            'question' => 'privacy:metadata:tarsus:question',
-            'voice' => 'privacy:metadata:tarsus:voice',
-            'language' => 'privacy:metadata:tarsus:language',
-        ], 'privacy:metadata:tarsus');
+        $collection->add_database_table('tarsuscoach_progress', [
+            'userid' => 'privacy:metadata:tarsuscoach_progress:userid',
+            'earnedxp' => 'privacy:metadata:tarsuscoach_progress:earnedxp',
+            'earnedunits' => 'privacy:metadata:tarsuscoach_progress:earnedunits',
+            'overallprogress' => 'privacy:metadata:tarsuscoach_progress:overallprogress',
+            'timemodified' => 'privacy:metadata:tarsuscoach_progress:timemodified',
+        ], 'privacy:metadata:tarsuscoach_progress');
+        $collection->add_database_table('tarsuscoach_usage', [
+            'userid' => 'privacy:metadata:tarsuscoach_usage:userid',
+            'operation' => 'privacy:metadata:tarsuscoach_usage:operation',
+            'credits' => 'privacy:metadata:tarsuscoach_usage:credits',
+            'timecreated' => 'privacy:metadata:tarsuscoach_usage:timecreated',
+        ], 'privacy:metadata:tarsuscoach_usage');
+        $collection->add_external_location_link('tarsuscoach', [
+            'pseudonym' => 'privacy:metadata:tarsuscoach:pseudonym',
+            'fullname' => 'privacy:metadata:tarsuscoach:fullname',
+            'question' => 'privacy:metadata:tarsuscoach:question',
+            'voice' => 'privacy:metadata:tarsuscoach:voice',
+            'language' => 'privacy:metadata:tarsuscoach:language',
+        ], 'privacy:metadata:tarsuscoach');
         return $collection;
     }
 
@@ -83,11 +83,11 @@ class provider implements
                   FROM {context} ctx
                   JOIN {course_modules} cm ON cm.id = ctx.instanceid AND ctx.contextlevel = :contextlevel
                   JOIN {modules} m ON m.id = cm.module AND m.name = :modname
-                 WHERE EXISTS (SELECT 1 FROM {tarsus_prg} p WHERE p.obj_id = cm.instance AND p.usr_id = :userid1)
-                    OR EXISTS (SELECT 1 FROM {tarsus_use} u WHERE u.obj_id = cm.instance AND u.usr_id = :userid2)";
+                 WHERE EXISTS (SELECT 1 FROM {tarsuscoach_progress} p WHERE p.tarsuscoachid = cm.instance AND p.userid = :userid1)
+                    OR EXISTS (SELECT 1 FROM {tarsuscoach_usage} u WHERE u.tarsuscoachid = cm.instance AND u.userid = :userid2)";
         $contextlist = new contextlist();
         $contextlist->add_from_sql($sql, [
-            'contextlevel' => CONTEXT_MODULE, 'modname' => 'tarsus', 'userid1' => $userid, 'userid2' => $userid,
+            'contextlevel' => CONTEXT_MODULE, 'modname' => 'tarsuscoach', 'userid1' => $userid, 'userid2' => $userid,
         ]);
         return $contextlist;
     }
@@ -102,14 +102,14 @@ class provider implements
         if (!$context instanceof \context_module) {
             return;
         }
-        $params = ['cmid' => $context->instanceid, 'modname' => 'tarsus'];
-        foreach (['tarsus_prg', 'tarsus_use'] as $table) {
-            $sql = "SELECT t.usr_id
+        $params = ['cmid' => $context->instanceid, 'modname' => 'tarsuscoach'];
+        foreach (['tarsuscoach_progress', 'tarsuscoach_usage'] as $table) {
+            $sql = "SELECT t.userid
                       FROM {course_modules} cm
                       JOIN {modules} m ON m.id = cm.module AND m.name = :modname
-                      JOIN {" . $table . "} t ON t.obj_id = cm.instance
+                      JOIN {" . $table . "} t ON t.tarsuscoachid = cm.instance
                      WHERE cm.id = :cmid";
-            $userlist->add_from_sql('usr_id', $sql, $params);
+            $userlist->add_from_sql('userid', $sql, $params);
         }
     }
 
@@ -119,7 +119,7 @@ class provider implements
      * @param approved_contextlist $contextlist The approved activities.
      */
     public static function export_user_data(approved_contextlist $contextlist) {
-        $db = Platform::db();
+        $db = platform::db();
         $user = $contextlist->get_user();
         foreach ($contextlist->get_contexts() as $context) {
             $cm = self::cm($context);
@@ -127,21 +127,21 @@ class provider implements
                 continue;
             }
             $data = helper::get_context_data($context, $user);
-            $row = $db->get_record('tarsus_prg', ['obj_id' => $cm->instance, 'usr_id' => $user->id]);
+            $row = $db->get_record('tarsuscoach_progress', ['tarsuscoachid' => $cm->instance, 'userid' => $user->id]);
             if ($row) {
                 $data->figures = (object) [
-                    'experiencepoints' => (float) $row->earned_xp . ' / ' . (float) $row->total_xp,
-                    'learningunits' => (float) $row->earned_units . ' / ' . (float) $row->total_units,
-                    'progress' => (float) $row->overall_prg . ' %',
-                    'updated' => transform::datetime($row->modified),
+                    'experiencepoints' => (float) $row->earnedxp . ' / ' . (float) $row->totalxp,
+                    'learningunits' => (float) $row->earnedunits . ' / ' . (float) $row->totalunits,
+                    'progress' => (float) $row->overallprogress . ' %',
+                    'updated' => transform::datetime($row->timemodified),
                 ];
             }
             $requests = [];
-            foreach ($db->get_records('tarsus_use', ['obj_id' => $cm->instance, 'usr_id' => $user->id], 'created') as $use) {
+            foreach ($db->get_records('tarsuscoach_usage', ['tarsuscoachid' => $cm->instance, 'userid' => $user->id], 'timecreated') as $use) {
                 $requests[] = (object) [
-                    'request' => (string) $use->op_name,
+                    'request' => (string) $use->operation,
                     'credits' => (int) $use->credits,
-                    'time' => transform::datetime($use->created),
+                    'time' => transform::datetime($use->timecreated),
                 ];
             }
             if ($requests) {
@@ -161,12 +161,12 @@ class provider implements
         if (!$cm) {
             return;
         }
-        $db = Platform::db();
-        foreach ($db->get_fieldset_select('tarsus_prg', 'usr_id', 'obj_id = ?', [$cm->instance]) as $userid) {
+        $db = platform::db();
+        foreach ($db->get_fieldset_select('tarsuscoach_progress', 'userid', 'tarsuscoachid = ?', [$cm->instance]) as $userid) {
             self::erase((int) $cm->instance, (int) $userid);
         }
-        $db->delete_records('tarsus_prg', ['obj_id' => $cm->instance]);
-        $db->delete_records('tarsus_use', ['obj_id' => $cm->instance]);
+        $db->delete_records('tarsuscoach_progress', ['tarsuscoachid' => $cm->instance]);
+        $db->delete_records('tarsuscoach_usage', ['tarsuscoachid' => $cm->instance]);
     }
 
     /**
@@ -175,7 +175,7 @@ class provider implements
      * @param approved_contextlist $contextlist The approved activities.
      */
     public static function delete_data_for_user(approved_contextlist $contextlist) {
-        $db = Platform::db();
+        $db = platform::db();
         $userid = (int) $contextlist->get_user()->id;
         foreach ($contextlist->get_contexts() as $context) {
             $cm = self::cm($context);
@@ -183,8 +183,8 @@ class provider implements
                 continue;
             }
             self::erase((int) $cm->instance, $userid);
-            $db->delete_records('tarsus_prg', ['obj_id' => $cm->instance, 'usr_id' => $userid]);
-            $db->delete_records('tarsus_use', ['obj_id' => $cm->instance, 'usr_id' => $userid]);
+            $db->delete_records('tarsuscoach_progress', ['tarsuscoachid' => $cm->instance, 'userid' => $userid]);
+            $db->delete_records('tarsuscoach_usage', ['tarsuscoachid' => $cm->instance, 'userid' => $userid]);
         }
     }
 
@@ -198,7 +198,7 @@ class provider implements
         if (!$cm) {
             return;
         }
-        $db = Platform::db();
+        $db = platform::db();
         $userids = $userlist->get_userids();
         if (!$userids) {
             return;
@@ -208,8 +208,8 @@ class provider implements
         }
         [$insql, $params] = $db->get_in_or_equal($userids, SQL_PARAMS_NAMED);
         $params['objid'] = $cm->instance;
-        $db->delete_records_select('tarsus_prg', 'obj_id = :objid AND usr_id ' . $insql, $params);
-        $db->delete_records_select('tarsus_use', 'obj_id = :objid AND usr_id ' . $insql, $params);
+        $db->delete_records_select('tarsuscoach_progress', 'tarsuscoachid = :objid AND userid ' . $insql, $params);
+        $db->delete_records_select('tarsuscoach_usage', 'tarsuscoachid = :objid AND userid ' . $insql, $params);
     }
 
     /**
@@ -222,7 +222,7 @@ class provider implements
         if (!$context instanceof \context_module) {
             return null;
         }
-        $cm = get_coursemodule_from_id('tarsus', $context->instanceid, 0, false, IGNORE_MISSING);
+        $cm = get_coursemodule_from_id('tarsuscoach', $context->instanceid, 0, false, IGNORE_MISSING);
         return $cm ?: null;
     }
 
@@ -234,13 +234,13 @@ class provider implements
      * @param int $userid The learner.
      */
     private static function erase(int $objid, int $userid): void {
-        if (Config::mockMode() || !Config::isConnected()) {
+        if (config::mock_mode() || !config::is_connected()) {
             return;
         }
         try {
-            ClientFactory::getClient()->resetConversation(Scope::conversationContextId($objid), Pseudonymizer::pseudonymize($userid));
+            client_factory::get_client()->reset_conversation(scope::conversation_context_id($objid), pseudonymizer::pseudonymize($userid));
         } catch (\Throwable $e) {
-            Platform::log('could not erase a conversation in the brain: ' . $e->getMessage());
+            platform::log('could not erase a conversation in the brain: ' . $e->getMessage());
         }
     }
 }

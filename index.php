@@ -17,7 +17,7 @@
 /**
  * The Tarsus activities of a course.
  *
- * @package    mod_tarsus
+ * @package    mod_tarsuscoach
  * @copyright  2026 Tarsus GmbH
  * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -28,29 +28,29 @@ $id = required_param('id', PARAM_INT);
 $course = $DB->get_record('course', ['id' => $id], '*', MUST_EXIST);
 require_course_login($course);
 
-$PAGE->set_url('/mod/tarsus/index.php', ['id' => $id]);
-$PAGE->set_title(format_string($course->shortname) . ': ' . get_string('modulenameplural', 'mod_tarsus'));
+$PAGE->set_url('/mod/tarsuscoach/index.php', ['id' => $id]);
+$PAGE->set_title(format_string($course->shortname) . ': ' . get_string('modulenameplural', 'mod_tarsuscoach'));
 $PAGE->set_heading(format_string($course->fullname));
 $PAGE->set_pagelayout('incourse');
-$PAGE->navbar->add(get_string('modulenameplural', 'mod_tarsus'));
+$PAGE->navbar->add(get_string('modulenameplural', 'mod_tarsuscoach'));
 
 echo $OUTPUT->header();
-echo $OUTPUT->heading(get_string('modulenameplural', 'mod_tarsus'));
+echo $OUTPUT->heading(get_string('modulenameplural', 'mod_tarsuscoach'));
 
-$activities = get_all_instances_in_course('tarsus', $course);
+$activities = get_all_instances_in_course('tarsuscoach', $course);
 if (!$activities) {
-    notice(get_string('nonewmodules', 'mod_tarsus'), new moodle_url('/course/view.php', ['id' => $course->id]));
+    notice(get_string('nonewmodules', 'mod_tarsuscoach'), new moodle_url('/course/view.php', ['id' => $course->id]));
 }
 
 $table = new html_table();
-$table->head = [get_string('name', 'mod_tarsus'), get_string('moduleintro')];
+$table->head = [get_string('name', 'mod_tarsuscoach'), get_string('moduleintro')];
 foreach ($activities as $activity) {
     $link = html_writer::link(
-        new moodle_url('/mod/tarsus/view.php', ['id' => $activity->coursemodule]),
+        new moodle_url('/mod/tarsuscoach/view.php', ['id' => $activity->coursemodule]),
         format_string($activity->name),
         $activity->visible ? [] : ['class' => 'dimmed']
     );
-    $table->data[] = [$link, format_module_intro('tarsus', $activity, $activity->coursemodule)];
+    $table->data[] = [$link, format_module_intro('tarsuscoach', $activity, $activity->coursemodule)];
 }
 echo html_writer::table($table);
 echo $OUTPUT->footer();

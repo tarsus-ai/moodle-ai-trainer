@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<XMLDB PATH="mod/tarsus/db" VERSION="20261124" COMMENT="XMLDB file for Moodle mod/tarsus"
+<XMLDB PATH="mod/tarsuscoach/db" VERSION="20261125" COMMENT="XMLDB file for Moodle mod/tarsuscoach"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:noNamespaceSchemaLocation="../../../lib/xmldb/xmldb.xsd"
 >
   <TABLES>
-    <TABLE NAME="tarsus" COMMENT="One Tarsus activity and its settings.">
+    <TABLE NAME="tarsuscoach" COMMENT="One Tarsus activity and its settings.">
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
         <FIELD NAME="course" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
@@ -12,25 +12,25 @@
         <FIELD NAME="intro" TYPE="text" NOTNULL="false" SEQUENCE="false"/>
         <FIELD NAME="introformat" TYPE="int" LENGTH="4" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
         <FIELD NAME="grade" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="100" SEQUENCE="false" COMMENT="Maximum grade (positive), scale (negative) or no grade (0)."/>
-        <FIELD NAME="conv_style" TYPE="int" LENGTH="2" NOTNULL="true" DEFAULT="3" SEQUENCE="false"/>
+        <FIELD NAME="conversationstyle" TYPE="int" LENGTH="2" NOTNULL="true" DEFAULT="3" SEQUENCE="false"/>
         <FIELD NAME="dqr" TYPE="int" LENGTH="2" NOTNULL="true" DEFAULT="6" SEQUENCE="false"/>
         <FIELD NAME="industry" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false"/>
-        <FIELD NAME="tax_levels" TYPE="char" LENGTH="50" NOTNULL="false" SEQUENCE="false"/>
-        <FIELD NAME="q_types" TYPE="char" LENGTH="1000" NOTNULL="false" SEQUENCE="false"/>
+        <FIELD NAME="taxonomylevels" TYPE="char" LENGTH="50" NOTNULL="false" SEQUENCE="false"/>
+        <FIELD NAME="questiontypes" TYPE="char" LENGTH="1000" NOTNULL="false" SEQUENCE="false"/>
         <FIELD NAME="operators" TYPE="char" LENGTH="20" NOTNULL="false" SEQUENCE="false"/>
         <FIELD NAME="anticheat" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
-        <FIELD NAME="learn_tempo" TYPE="number" LENGTH="6" NOTNULL="true" DEFAULT="1" SEQUENCE="false" DECIMALS="2"/>
-        <FIELD NAME="ask_on" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="1" SEQUENCE="false"/>
-        <FIELD NAME="test_on" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="1" SEQUENCE="false"/>
-        <FIELD NAME="build_on" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="1" SEQUENCE="false"/>
-        <FIELD NAME="discuss_on" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="1" SEQUENCE="false"/>
-        <FIELD NAME="gif_on" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
-        <FIELD NAME="learn_method" TYPE="char" LENGTH="50" NOTNULL="false" SEQUENCE="false"/>
-        <FIELD NAME="interaction" TYPE="char" LENGTH="32" NOTNULL="true" DEFAULT="trainer-driven" SEQUENCE="false"/>
-        <FIELD NAME="think_level" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="4" SEQUENCE="false"/>
-        <FIELD NAME="visual_acc" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
-        <FIELD NAME="refs_on" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="1" SEQUENCE="false"/>
-        <FIELD NAME="voice_on" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="1" SEQUENCE="false"/>
+        <FIELD NAME="learntempo" TYPE="number" LENGTH="6" NOTNULL="true" DEFAULT="1" SEQUENCE="false" DECIMALS="2"/>
+        <FIELD NAME="askenabled" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="1" SEQUENCE="false"/>
+        <FIELD NAME="testenabled" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="1" SEQUENCE="false"/>
+        <FIELD NAME="buildenabled" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="1" SEQUENCE="false"/>
+        <FIELD NAME="discussenabled" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="1" SEQUENCE="false"/>
+        <FIELD NAME="gifenabled" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+        <FIELD NAME="learningmethod" TYPE="char" LENGTH="50" NOTNULL="false" SEQUENCE="false"/>
+        <FIELD NAME="interactiontype" TYPE="char" LENGTH="32" NOTNULL="true" DEFAULT="trainer-driven" SEQUENCE="false"/>
+        <FIELD NAME="thinkinglevel" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="4" SEQUENCE="false"/>
+        <FIELD NAME="visualaccessibility" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+        <FIELD NAME="referencesenabled" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="1" SEQUENCE="false"/>
+        <FIELD NAME="voiceinput" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="1" SEQUENCE="false"/>
         <FIELD NAME="completionprogress" TYPE="int" LENGTH="3" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Completion rule: progress in percent the learner reaches; 0 is off."/>
         <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
         <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
@@ -40,106 +40,106 @@
         <KEY NAME="course" TYPE="foreign" FIELDS="course" REFTABLE="course" REFFIELDS="id"/>
       </KEYS>
     </TABLE>
-    <TABLE NAME="tarsus_idx" COMMENT="The index map: one row per bit of course material the brain holds or is about to hold.">
+    <TABLE NAME="tarsuscoach_material" COMMENT="The index map: one row per bit of course material the brain holds or is about to hold.">
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
-        <FIELD NAME="resource_id" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false"/>
-        <FIELD NAME="asset_id" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false"/>
-        <FIELD NAME="container_ref" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="The course."/>
-        <FIELD NAME="src_type" TYPE="char" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="The module of the material (resource, page, url...)."/>
-        <FIELD NAME="src_ref" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="The course module of the material."/>
-        <FIELD NAME="content_hash" TYPE="char" LENGTH="64" NOTNULL="false" SEQUENCE="false"/>
-        <FIELD NAME="bit_ref" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false"/>
-        <FIELD NAME="idx_status" TYPE="char" LENGTH="32" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="resourceid" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="assetid" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="courseid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="The course."/>
+        <FIELD NAME="sourcetype" TYPE="char" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="The module of the material (resource, page, url...)."/>
+        <FIELD NAME="sourceid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="The course module of the material."/>
+        <FIELD NAME="contenthash" TYPE="char" LENGTH="64" NOTNULL="false" SEQUENCE="false"/>
+        <FIELD NAME="bitref" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false"/>
+        <FIELD NAME="status" TYPE="char" LENGTH="32" NOTNULL="true" SEQUENCE="false"/>
         <FIELD NAME="attempts" TYPE="int" LENGTH="4" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
-        <FIELD NAME="next_retry" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
-        <FIELD NAME="created" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
-        <FIELD NAME="modified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+        <FIELD NAME="nextretry" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+        <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+        <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
       </FIELDS>
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
       </KEYS>
       <INDEXES>
-        <INDEX NAME="resource_id" UNIQUE="true" FIELDS="resource_id"/>
-        <INDEX NAME="container_ref" UNIQUE="false" FIELDS="container_ref"/>
-        <INDEX NAME="idx_status" UNIQUE="false" FIELDS="idx_status"/>
+        <INDEX NAME="resourceid" UNIQUE="true" FIELDS="resourceid"/>
+        <INDEX NAME="courseid" UNIQUE="false" FIELDS="courseid"/>
+        <INDEX NAME="status" UNIQUE="false" FIELDS="status"/>
       </INDEXES>
     </TABLE>
-    <TABLE NAME="tarsus_inc" COMMENT="Which indexed material a Tarsus activity may use.">
+    <TABLE NAME="tarsuscoach_inclusion" COMMENT="Which indexed material a Tarsus activity may use.">
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
-        <FIELD NAME="obj_id" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="The Tarsus activity."/>
-        <FIELD NAME="resource_id" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false"/>
-        <FIELD NAME="created" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+        <FIELD NAME="tarsuscoachid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="The Tarsus activity."/>
+        <FIELD NAME="resourceid" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
       </FIELDS>
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
-        <KEY NAME="obj_id" TYPE="foreign" FIELDS="obj_id" REFTABLE="tarsus" REFFIELDS="id"/>
+        <KEY NAME="tarsuscoachid" TYPE="foreign" FIELDS="tarsuscoachid" REFTABLE="tarsuscoach" REFFIELDS="id"/>
       </KEYS>
       <INDEXES>
-        <INDEX NAME="obj_resource" UNIQUE="true" FIELDS="obj_id, resource_id"/>
-        <INDEX NAME="resource_id" UNIQUE="false" FIELDS="resource_id"/>
+        <INDEX NAME="tarsuscoachid-resourceid" UNIQUE="true" FIELDS="tarsuscoachid, resourceid"/>
+        <INDEX NAME="resourceid" UNIQUE="false" FIELDS="resourceid"/>
       </INDEXES>
     </TABLE>
-    <TABLE NAME="tarsus_prg" COMMENT="The latest figures the brain reported per learner and activity.">
+    <TABLE NAME="tarsuscoach_progress" COMMENT="The latest figures the brain reported per learner and activity.">
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
-        <FIELD NAME="obj_id" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="The Tarsus activity."/>
-        <FIELD NAME="usr_id" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="The learner."/>
-        <FIELD NAME="earned_xp" TYPE="number" LENGTH="12" NOTNULL="true" DEFAULT="0" SEQUENCE="false" DECIMALS="4"/>
-        <FIELD NAME="total_xp" TYPE="number" LENGTH="12" NOTNULL="true" DEFAULT="0" SEQUENCE="false" DECIMALS="4"/>
-        <FIELD NAME="earned_units" TYPE="number" LENGTH="12" NOTNULL="true" DEFAULT="0" SEQUENCE="false" DECIMALS="4"/>
-        <FIELD NAME="total_units" TYPE="number" LENGTH="12" NOTNULL="true" DEFAULT="0" SEQUENCE="false" DECIMALS="4"/>
-        <FIELD NAME="practice_prg" TYPE="number" LENGTH="12" NOTNULL="true" DEFAULT="0" SEQUENCE="false" DECIMALS="4"/>
-        <FIELD NAME="learn_prg" TYPE="number" LENGTH="12" NOTNULL="true" DEFAULT="0" SEQUENCE="false" DECIMALS="4"/>
-        <FIELD NAME="overall_prg" TYPE="number" LENGTH="12" NOTNULL="true" DEFAULT="0" SEQUENCE="false" DECIMALS="4"/>
-        <FIELD NAME="modified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+        <FIELD NAME="tarsuscoachid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="The Tarsus activity."/>
+        <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="The learner."/>
+        <FIELD NAME="earnedxp" TYPE="number" LENGTH="12" NOTNULL="true" DEFAULT="0" SEQUENCE="false" DECIMALS="4"/>
+        <FIELD NAME="totalxp" TYPE="number" LENGTH="12" NOTNULL="true" DEFAULT="0" SEQUENCE="false" DECIMALS="4"/>
+        <FIELD NAME="earnedunits" TYPE="number" LENGTH="12" NOTNULL="true" DEFAULT="0" SEQUENCE="false" DECIMALS="4"/>
+        <FIELD NAME="totalunits" TYPE="number" LENGTH="12" NOTNULL="true" DEFAULT="0" SEQUENCE="false" DECIMALS="4"/>
+        <FIELD NAME="practiceprogress" TYPE="number" LENGTH="12" NOTNULL="true" DEFAULT="0" SEQUENCE="false" DECIMALS="4"/>
+        <FIELD NAME="learnprogress" TYPE="number" LENGTH="12" NOTNULL="true" DEFAULT="0" SEQUENCE="false" DECIMALS="4"/>
+        <FIELD NAME="overallprogress" TYPE="number" LENGTH="12" NOTNULL="true" DEFAULT="0" SEQUENCE="false" DECIMALS="4"/>
+        <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
       </FIELDS>
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
-        <KEY NAME="obj_id" TYPE="foreign" FIELDS="obj_id" REFTABLE="tarsus" REFFIELDS="id"/>
-        <KEY NAME="usr_id" TYPE="foreign" FIELDS="usr_id" REFTABLE="user" REFFIELDS="id"/>
+        <KEY NAME="tarsuscoachid" TYPE="foreign" FIELDS="tarsuscoachid" REFTABLE="tarsuscoach" REFFIELDS="id"/>
+        <KEY NAME="userid" TYPE="foreign" FIELDS="userid" REFTABLE="user" REFFIELDS="id"/>
       </KEYS>
       <INDEXES>
-        <INDEX NAME="obj_usr" UNIQUE="true" FIELDS="obj_id, usr_id"/>
+        <INDEX NAME="tarsuscoachid-userid" UNIQUE="true" FIELDS="tarsuscoachid, userid"/>
       </INDEXES>
     </TABLE>
-    <TABLE NAME="tarsus_use" COMMENT="Usage ledger: the AI credits of each request.">
+    <TABLE NAME="tarsuscoach_usage" COMMENT="Usage ledger: the AI credits of each request.">
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
-        <FIELD NAME="container_ref" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="The course."/>
-        <FIELD NAME="obj_id" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="The Tarsus activity."/>
-        <FIELD NAME="usr_id" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
-        <FIELD NAME="op_name" TYPE="char" LENGTH="50" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="courseid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="The course."/>
+        <FIELD NAME="tarsuscoachid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="The Tarsus activity."/>
+        <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+        <FIELD NAME="operation" TYPE="char" LENGTH="50" NOTNULL="true" SEQUENCE="false"/>
         <FIELD NAME="credits" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
-        <FIELD NAME="created" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+        <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
       </FIELDS>
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
       </KEYS>
       <INDEXES>
-        <INDEX NAME="created" UNIQUE="false" FIELDS="created"/>
-        <INDEX NAME="obj_usr" UNIQUE="false" FIELDS="obj_id, usr_id"/>
+        <INDEX NAME="timecreated" UNIQUE="false" FIELDS="timecreated"/>
+        <INDEX NAME="tarsuscoachid-userid" UNIQUE="false" FIELDS="tarsuscoachid, userid"/>
       </INDEXES>
     </TABLE>
-    <TABLE NAME="tarsus_grd" COMMENT="Guardrail state: circuit breaker, monthly budget, token bucket.">
+    <TABLE NAME="tarsuscoach_guardrail" COMMENT="Guardrail state: circuit breaker, monthly budget, token bucket.">
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
-        <FIELD NAME="g_name" TYPE="char" LENGTH="32" NOTNULL="true" SEQUENCE="false"/>
-        <FIELD NAME="g_state" TYPE="char" LENGTH="16" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="name" TYPE="char" LENGTH="32" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="state" TYPE="char" LENGTH="16" NOTNULL="true" SEQUENCE="false"/>
         <FIELD NAME="failures" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
-        <FIELD NAME="open_since" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+        <FIELD NAME="opensince" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
         <FIELD NAME="tokens" TYPE="number" LENGTH="12" NOTNULL="true" DEFAULT="0" SEQUENCE="false" DECIMALS="4"/>
-        <FIELD NAME="last_refill" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
-        <FIELD NAME="credits_used" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
-        <FIELD NAME="period_start" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
-        <FIELD NAME="modified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+        <FIELD NAME="lastrefill" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+        <FIELD NAME="creditsused" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+        <FIELD NAME="periodstart" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+        <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
       </FIELDS>
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
       </KEYS>
       <INDEXES>
-        <INDEX NAME="g_name" UNIQUE="true" FIELDS="g_name"/>
+        <INDEX NAME="name" UNIQUE="true" FIELDS="name"/>
       </INDEXES>
     </TABLE>
   </TABLES>

@@ -17,30 +17,30 @@
 /**
  * The evaluation as a CSV file: every learner's figures, result and status.
  *
- * @package    mod_tarsus
+ * @package    mod_tarsuscoach
  * @copyright  2026 Tarsus GmbH
  * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 require(__DIR__ . '/../../config.php');
 
-use mod_tarsus\local\Activity\Learners;
-use mod_tarsus\local\Activity\Scoring;
-use mod_tarsus\local\Activity\Settings;
-use mod_tarsus\local\Support\Platform;
+use mod_tarsuscoach\local\activity\learners;
+use mod_tarsuscoach\local\activity\scoring;
+use mod_tarsuscoach\local\activity\settings;
+use mod_tarsuscoach\local\support\platform;
 
 $id = required_param('id', PARAM_INT);
-$cm = get_coursemodule_from_id('tarsus', $id, 0, false, MUST_EXIST);
+$cm = get_coursemodule_from_id('tarsuscoach', $id, 0, false, MUST_EXIST);
 $course = $DB->get_record('course', ['id' => $cm->course], '*', MUST_EXIST);
-$tarsus = $DB->get_record('tarsus', ['id' => $cm->instance], '*', MUST_EXIST);
+$tarsus = $DB->get_record('tarsuscoach', ['id' => $cm->instance], '*', MUST_EXIST);
 
 require_login($course, false, $cm);
 $context = context_module::instance($cm->id);
-require_capability('mod/tarsus:manage', $context);
+require_capability('mod/tarsuscoach:manage', $context);
 
-$settings = Settings::load((int) $tarsus->id);
-$overview = (new Learners((int) $tarsus->id, (int) $course->id, $settings))->overview();
-$t = static fn(string $key): string => get_string($key, 'mod_tarsus');
+$settings = settings::load((int) $tarsus->id);
+$overview = (new learners((int) $tarsus->id, (int) $course->id, $settings))->overview();
+$t = static fn(string $key): string => get_string($key, 'mod_tarsuscoach');
 
 $lines = [[
     get_string('lastname'), get_string('firstname'), get_string('username'),
@@ -49,8 +49,8 @@ $lines = [[
     $t('col_score'), $t('col_lp_status'), $t('col_last_activity'),
 ]];
 foreach ($overview['learners'] as $learner) {
-    $status = $learner['status'] === Scoring::LP_COMPLETED ? 'lp_completed'
-        : ($learner['status'] === Scoring::LP_IN_PROGRESS ? 'lp_in_progress' : 'lp_not_attempted');
+    $status = $learner['status'] === scoring::LP_COMPLETED ? 'lp_completed'
+        : ($learner['status'] === scoring::LP_IN_PROGRESS ? 'lp_in_progress' : 'lp_not_attempted');
     $lines[] = [
         $learner['lastname'], $learner['firstname'], $learner['login'],
         number_format((float) $learner['progress'], 2, '.', ''),
@@ -71,4 +71,4 @@ foreach ($lines as $line) {
     }, $line)) . "\r\n";
 }
 
-Platform::sendDownload('tarsus_' . clean_filename(format_string($tarsus->name)) . '_' . date('Ymd') . '.csv', $csv, 'text/csv; charset=utf-8');
+platform::send_download('tarsus_' . clean_filename(format_string($tarsus->name)) . '_' . date('Ymd') . '.csv', $csv, 'text/csv; charset=utf-8');

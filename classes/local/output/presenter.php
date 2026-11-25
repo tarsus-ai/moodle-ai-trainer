@@ -1,0 +1,95 @@
+<?php
+
+namespace mod_tarsuscoach\local\output;
+
+use mod_tarsuscoach\local\index\status;
+
+/**
+ * Maps an index status to its presentation: badge and available actions.
+ *
+ * Single source of truth for the server-rendered material list and its
+ * live updates, so the two never drift.
+ *
+ * @author  Tarsus GmbH
+ * @license GPL-3.0-or-later
+ */
+final class presenter
+{
+    /**
+     * Seconds after which a resource still awaiting the brain's
+     * confirmation counts as stuck and may be removed by the teacher.
+     */
+    public const STUCK_AFTER = 600;
+
+    /** @var array<string, string> status => badge modifier. */
+    private const BADGES = [
+        status::NOT_INDEXED => 'neutral',
+        status::PENDING => 'warning',
+        status::PENDING_CONFIRMATION => 'warning',
+        status::PENDING_REINDEX => 'warning',
+        status::PENDING_DELETION => 'muted',
+        status::INDEXED => 'success',
+        status::ERROR => 'danger',
+    ];
+
+    public static function badge_class(string $status): string
+    {
+        return 'tarsus-badge tarsus-badge--' . (self::BADGES[$status] ?? 'neutral');
+    }
+
+    /**
+     * Whether a call is pending for the resource.
+     */
+    public static function is_inflight(string $status): bool
+    {
+        // pendingreindex is not in flight: it is a stable "content changed"
+        // state that waits for the teacher (or the cron job).
+        return in_array($status, [status::PENDING, status::PENDING_CONFIRMATION, status::PENDING_DELETION], true);
+    }
+
+    /**
+     * @return string[] Subset of index, reindex, remove, retry.
+     */
+    public static function actions_for(string $status, int $age = 0): array
+    {
+        switch ($status) {
+            case status::NOT_INDEXED:
+                return ['index'];
+            case status::INDEXED:
+            case status::PENDING_REINDEX:
+                return ['reindex', 'remove'];
+            case status::ERROR:
+                return ['retry', 'remove'];
+            case status::PENDING_CONFIRMATION:
+                // The brain never answered: after a while the teacher may
+                // give up on the upload and untrack it.
+                return $age >= self::STUCK_AFTER ? ['remove'] : [];
+            default:
+                return [];
+        }
+    }
+
+    /**
+     * The full presentational payload of one bit.
+     *
+     * @return array<string, mixed>
+     */
+    public static function present(string $resourceid, string $status, int $timemodified = 0): array
+    {
+        $age = $timemodified > 0 ? max(0, time() - $timemodified) : 0;
+        $actions = self::actions_for($status, $age);
+        return [
+            'resourceid' => $resourceid,
+            'status' => $status,
+            'statuslabel' => status::label($status),
+            'badgeclass' => self::badge_class($status),
+            'inflight' => self::is_inflight($status),
+            'canindex' => in_array('index', $actions, true),
+            'canreindex' => in_array('reindex', $actions, true),
+            'canremove' => in_array('remove', $actions, true),
+            'canretry' => in_array('retry', $actions, true),
+            // Only content the brain holds may be put in an object's scope.
+            'caninclude' => $status === status::INDEXED,
+        ];
+    }
+}

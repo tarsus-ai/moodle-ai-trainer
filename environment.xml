@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!-- What Tarsus for Moodle needs from the server, on every Moodle version. -->
 <COMPATIBILITY_MATRIX>
-  <PLUGIN name="mod_tarsus">
+  <PLUGIN name="mod_tarsuscoach">
     <PHP version="8.1.0" level="required">
     </PHP>
     <PHP_EXTENSIONS>

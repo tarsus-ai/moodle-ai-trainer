@@ -16,9 +16,9 @@
 
 /**
  * The requests of the coach and of the materials list. Every request
- * carries the session key; the teacher's requests need mod/tarsus:manage.
+ * carries the session key; the teacher's requests need mod/tarsuscoach:manage.
  *
- * @package    mod_tarsus
+ * @package    mod_tarsuscoach
  * @copyright  2026 Tarsus GmbH
  * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -28,33 +28,33 @@ define('AJAX_SCRIPT', true);
 require(__DIR__ . '/../../config.php');
 require_once(__DIR__ . '/lib.php');
 
-use mod_tarsus\local\Activity\Scoring;
-use mod_tarsus\local\Activity\Settings;
-use mod_tarsus\local\Page\Coach;
-use mod_tarsus\local\Service\SettingsApi;
-use mod_tarsus\local\Support\Platform;
+use mod_tarsuscoach\local\activity\scoring;
+use mod_tarsuscoach\local\activity\settings;
+use mod_tarsuscoach\local\page\coach;
+use mod_tarsuscoach\local\service\settings_api;
+use mod_tarsuscoach\local\support\platform;
 
 $id = required_param('id', PARAM_INT);
 $action = required_param('action', PARAM_ALPHA);
 
-$cm = get_coursemodule_from_id('tarsus', $id, 0, false, MUST_EXIST);
+$cm = get_coursemodule_from_id('tarsuscoach', $id, 0, false, MUST_EXIST);
 $course = $DB->get_record('course', ['id' => $cm->course], '*', MUST_EXIST);
-$tarsus = $DB->get_record('tarsus', ['id' => $cm->instance], '*', MUST_EXIST);
+$tarsus = $DB->get_record('tarsuscoach', ['id' => $cm->instance], '*', MUST_EXIST);
 
 require_login($course, false, $cm, false, true);
 require_sesskey();
 $context = context_module::instance($cm->id);
-require_capability('mod/tarsus:view', $context);
+require_capability('mod/tarsuscoach:view', $context);
 
 if (isguestuser()) {
-    Platform::sendJson(['status' => 'error', 'ok' => false, 'error' => get_string('noguestaccess', 'mod_tarsus')], 403);
+    platform::send_json(['status' => 'error', 'ok' => false, 'error' => get_string('noguestaccess', 'mod_tarsuscoach')], 403);
 }
-$isteacher = in_array($action, Coach::TEACHER_ACTIONS, true);
-if (!$isteacher && !in_array($action, Coach::LEARNER_ACTIONS, true)) {
-    Platform::sendJson(['status' => 'error', 'ok' => false, 'error' => get_string('invalid_request', 'mod_tarsus')], 400);
+$isteacher = in_array($action, coach::TEACHER_ACTIONS, true);
+if (!$isteacher && !in_array($action, coach::LEARNER_ACTIONS, true)) {
+    platform::send_json(['status' => 'error', 'ok' => false, 'error' => get_string('invalid_request', 'mod_tarsuscoach')], 400);
 }
-if ($isteacher && !has_capability('mod/tarsus:manage', $context)) {
-    Platform::sendJson(['status' => 'error', 'ok' => false, 'error' => get_string('nopermissions', 'error', '')], 403);
+if ($isteacher && !has_capability('mod/tarsuscoach:manage', $context)) {
+    platform::send_json(['status' => 'error', 'ok' => false, 'error' => get_string('nopermissions', 'error', '')], 403);
 }
 
 // Requests to Tarsus take a while: free the session so the learner can go
@@ -63,26 +63,26 @@ if ($isteacher && !has_capability('mod/tarsus:manage', $context)) {
 // a quick follow-up request ("progress") that keeps its session.
 if (!in_array($action, ['progress', 'settings', 'saveSettings'], true)) {
     \core\session\manager::write_close();
-    Scoring::deferPushes();
-    Platform::completeJson(static function (array $data): array {
-        if (Scoring::pushesPending()) {
+    scoring::defer_pushes();
+    platform::complete_json(static function (array $data): array {
+        if (scoring::pushes_pending()) {
             $data['progressSync'] = true;
         }
         return $data;
     });
 }
 
-$settings = Settings::load((int) $tarsus->id);
-$payload = Platform::jsonPayload();
+$settings = settings::load((int) $tarsus->id);
+$payload = platform::json_payload();
 
 try {
     switch ($action) {
         // Learner.
         case 'feed':
-            Platform::sendJson(Coach::learnerApi($tarsus, $settings)->feed((int) ($payload['offset'] ?? 0)));
+            platform::send_json(coach::learner_api($tarsus, $settings)->feed((int) ($payload['offset'] ?? 0)));
             break;
         case 'ask':
-            Platform::sendJson(Coach::learnerApi($tarsus, $settings)->ask(
+            platform::send_json(coach::learner_api($tarsus, $settings)->ask(
                 (string) ($payload['query'] ?? ''),
                 (string) ($payload['replyto'] ?? ''),
                 (string) ($payload['replystack'] ?? '')
@@ -94,11 +94,11 @@ try {
             $file = $_FILES['audio'] ?? null;
             $error = is_array($file) ? (int) ($file['error'] ?? UPLOAD_ERR_NO_FILE) : UPLOAD_ERR_NO_FILE;
             if ($error === UPLOAD_ERR_INI_SIZE || $error === UPLOAD_ERR_FORM_SIZE) {
-                Platform::sendJson(['status' => 'error', 'error' => get_string('err_toolarge', 'mod_tarsus')]);
+                platform::send_json(['status' => 'error', 'error' => get_string('err_toolarge', 'mod_tarsuscoach')]);
             }
             $path = is_array($file) ? (string) ($file['tmp_name'] ?? '') : '';
             if ($error !== UPLOAD_ERR_OK || $path === '' || !is_uploaded_file($path)) {
-                Platform::sendJson(['status' => 'error', 'error' => get_string('err_audio_format', 'mod_tarsus')]);
+                platform::send_json(['status' => 'error', 'error' => get_string('err_audio_format', 'mod_tarsuscoach')]);
             }
             // The browser's type without its parameters (audio/webm;codecs=opus).
             $mimetype = strtolower(trim(explode(';', (string) ($file['type'] ?? ''))[0]));
@@ -106,7 +106,7 @@ try {
                 $mimetype = 'application/octet-stream';
             }
             $name = clean_param(basename((string) ($file['name'] ?? 'question.webm')), PARAM_FILE);
-            Platform::sendJson(Coach::learnerApi($tarsus, $settings)->askVoice(
+            platform::send_json(coach::learner_api($tarsus, $settings)->ask_voice(
                 $path,
                 $mimetype,
                 $name !== '' ? $name : 'question.webm',
@@ -115,27 +115,27 @@ try {
             ));
             break;
         case 'practiceNext':
-            Platform::sendJson(Coach::learnerApi($tarsus, $settings)->practiceNext());
+            platform::send_json(coach::learner_api($tarsus, $settings)->practice_next());
             break;
         case 'practiceCheck':
-            Platform::sendJson(Coach::learnerApi($tarsus, $settings)->practiceCheck($payload));
+            platform::send_json(coach::learner_api($tarsus, $settings)->practice_check($payload));
             break;
         case 'learnNext':
-            Platform::sendJson(Coach::learnerApi($tarsus, $settings)->learnNext());
+            platform::send_json(coach::learner_api($tarsus, $settings)->learn_next());
             break;
         case 'audio':
-            Platform::sendJson(Coach::learnerApi($tarsus, $settings)->stackAudio((string) ($payload['stackid'] ?? '')));
+            platform::send_json(coach::learner_api($tarsus, $settings)->stack_audio((string) ($payload['stackid'] ?? '')));
             break;
         case 'discuss':
-            Platform::sendJson(Coach::learnerApi($tarsus, $settings)->discuss());
+            platform::send_json(coach::learner_api($tarsus, $settings)->discuss());
             break;
         case 'progress':
             // The grade and completion a request with a closed session left.
-            Scoring::pushLearningProgress((int) $tarsus->id, (int) $USER->id);
-            Platform::sendJson(['status' => 'success', 'error' => '']);
+            scoring::push_learning_progress((int) $tarsus->id, (int) $USER->id);
+            platform::send_json(['status' => 'success', 'error' => '']);
             break;
         case 'references':
-            Platform::sendJson(Coach::learnerApi($tarsus, $settings)->references(
+            platform::send_json(coach::learner_api($tarsus, $settings)->references(
                 (string) ($payload['widgetid'] ?? ''),
                 (string) ($payload['state'] ?? 'ask')
             ));
@@ -143,44 +143,44 @@ try {
 
         // Teacher: the panels.
         case 'stats':
-            Platform::sendJson(Coach::teacherApi($tarsus, $settings)->statistics());
+            platform::send_json(coach::teacher_api($tarsus, $settings)->statistics());
             break;
         case 'history':
-            Platform::sendJson(Coach::teacherApi($tarsus, $settings)->history(
+            platform::send_json(coach::teacher_api($tarsus, $settings)->history(
                 (int) ($payload['userid'] ?? 0),
                 (int) ($payload['offset'] ?? 0)
             ));
             break;
         case 'analytics':
-            Platform::sendJson(Coach::teacherApi($tarsus, $settings)->analytics((int) ($payload['userid'] ?? 0)));
+            platform::send_json(coach::teacher_api($tarsus, $settings)->analytics((int) ($payload['userid'] ?? 0)));
             break;
         case 'settings':
-            Platform::sendJson(['status' => 'success', 'error' => ''] + (new SettingsApi($settings))->describe());
+            platform::send_json(['status' => 'success', 'error' => ''] + (new settings_api($settings))->describe());
             break;
         case 'saveSettings':
             $settings->objid = (int) $tarsus->id;
-            Platform::sendJson((new SettingsApi($settings))->save((array) ($payload['values'] ?? [])));
+            platform::send_json((new settings_api($settings))->save((array) ($payload['values'] ?? [])));
             break;
 
         // Teacher: the materials list.
         case 'action':
-            Platform::sendJson(Coach::managerApi($tarsus)->action(
+            platform::send_json(coach::manager_api($tarsus)->action(
                 (string) ($payload['resourceid'] ?? ''),
                 (string) ($payload['action'] ?? '')
             ));
             break;
         case 'include':
-            Platform::sendJson(Coach::managerApi($tarsus)->setIncluded(
+            platform::send_json(coach::manager_api($tarsus)->set_included(
                 (string) ($payload['resourceid'] ?? ''),
                 !empty($payload['included'])
             ));
             break;
         case 'sync':
             $ids = array_values(array_filter(array_map('strval', (array) ($payload['resourceids'] ?? [])), 'strlen'));
-            Platform::sendJson(Coach::managerApi($tarsus)->sync($ids));
+            platform::send_json(coach::manager_api($tarsus)->sync($ids));
             break;
     }
 } catch (\Throwable $e) {
-    Platform::log($action . ' failed: ' . $e->getMessage(), 'error');
-    Platform::sendJson(['status' => 'error', 'ok' => false, 'error' => get_string('unexpected_error', 'mod_tarsus')], 500);
+    platform::log($action . ' failed: ' . $e->getMessage(), 'error');
+    platform::send_json(['status' => 'error', 'ok' => false, 'error' => get_string('unexpected_error', 'mod_tarsuscoach')], 500);
 }

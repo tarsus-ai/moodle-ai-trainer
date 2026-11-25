@@ -91,7 +91,7 @@ The coach adapts to the **DQR level**, the **taxonomy stage** (Anderson & Krathw
 
 - The modes in the order Tarsus uses: **Build knowledge**, **Test knowledge**, **Live interaction**, **Ask a question**. Widgets form a centred column like in Tarsus.
 - **Spoken questions:** *Switch to voice input*, record, listen back, send – the answer shows the recording and the text Tarsus heard.
-- **Live interaction:** a voice call with the AI trainer; the page of the call may use the microphone.
+- **Live interaction:** a voice call with the AI trainer. The call runs sealed off from Moodle, like the AI trainer's other pages; the microphone is recorded by the plugin and passed on to the call.
 - **Screen readers and keyboard:** everything works without a mouse, and screen readers hear the answers, the results and every step – see [Accessibility](#accessibility-screen-readers-and-keyboard).
 - **English and German**, following the user's language in Moodle. A **help button** opens the support links and videos the administrator configured.
 
@@ -393,7 +393,7 @@ Each activity has an interaction type, sent to the brain as `interaction_type` w
 - **trainer-driven** – the coach answers with text, formulas, tables, pictures and the usual question widgets.
 - **ai-driven** – the coach may additionally answer with HTML pages: animations, simulations, small tools (a rotating cylinder whose volume follows the sliders, a capacitor discharge curve with a marker, a diagram of a process, …), both in *Ask a question* and in *Build knowledge*.
 
-Pages are rendered in an `<iframe sandbox="allow-scripts allow-forms allow-pointer-lock">` with `srcdoc`, so they can run their scripts but cannot reach Moodle, its cookies or the surrounding page. They size themselves to their content; an *Enlarge* button opens a page in a dialog. The page of the **live interaction** is the one exception: it runs in a frame without the sandbox that may use the microphone (`allow="microphone; autoplay"`), because the call needs it. AI-driven interaction and the live interaction are available on the Build Knowledge and Pay as you grow packages.
+Pages are rendered in an `<iframe sandbox="allow-scripts allow-forms allow-pointer-lock">` with `srcdoc`, so they can run their scripts but cannot reach Moodle, its cookies or the surrounding page. They size themselves to their content; an *Enlarge* button opens a page in a dialog. The page of the **live interaction** runs sandboxed too (`sandbox="allow-scripts allow-forms"`). Browsers give a sandboxed page no microphone, so the plugin's own script records it (only while a call runs, and only for that frame) and hands the sound over through a message channel; a small script placed first in the call page stands in for the microphone there. A call that starts in another tab ends the running one. AI-driven interaction and the live interaction are available on the Build Knowledge and Pay as you grow packages.
 
 ## Grades and completion
 
@@ -469,7 +469,7 @@ Found something that does not work with your screen reader? Please [open an issu
 - The plugin keeps its data in six tables: `tarsuscoach` (the activities and their settings), `tarsuscoach_material` (the index map of the material sent to the brain), `tarsuscoach_inclusion` (the material each activity may use), `tarsuscoach_progress` (the latest figures per learner), `tarsuscoach_usage` (a log of the requests sent) and `tarsuscoach_guardrail` (the guardrail state), plus its settings in Moodle's configuration. Uninstalling the plugin removes them.
 - Learners are sent to the brain under a **pseudonym** – an HMAC of the Moodle user id with a secret generated at installation – together with their display name and interface language. The conversation itself lives in the brain. *Reset chat history* *(Chat-Verlauf zurücksetzen)* erases the learner's own conversation in the brain and the local figures. A spoken question is sent to Tarsus as audio to be transcribed.
 - **Moodle's privacy tools** know the plugin: a data request (*Site administration › Users › Privacy and policies › Data requests* – *Datenschutz und Richtlinien › Datenanfragen*) exports a learner's figures and requests, and deleting a learner's data also erases their conversation in the brain.
-- Interactive pages from the brain run sandboxed (see above) and are never stored in Moodle beyond the conversation history the brain returns.
+- Interactive pages and the live call page from the brain run sandboxed (see above) and are never stored in Moodle beyond the conversation history the brain returns.
 - The coach does not search the internet: it generates explanations and answers exclusively from the documents your organisation provides. Tarsus stores your content at Microsoft Azure in Germany, GDPR-compliant – and the entire stack can be deployed on-premise on request ([Getting access](#getting-access)).
 
 ## Development

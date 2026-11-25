@@ -30,14 +30,14 @@
  * happens (a live region, headings on every card, words for colours) and
  * everything works with the keyboard alone.
  *
- * @module     mod_tarsuscoach/coach
+ * @module     mod_tarsuscoach/coach-lazy
  * @copyright  2026 Tarsus GmbH
  * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 import Ajax from 'core/ajax';
 import Log from 'core/log';
-import Markdown from 'mod_tarsuscoach/markdown';
+import Markdown from 'mod_tarsuscoach/markdown-lazy';
 
 var FEED_SCROLL_THRESHOLD = 80;
 
@@ -152,7 +152,7 @@ function show(node, visible) {
 
 /**
  * Render the Markdown texts in and under a node. The server sends each
- * text escaped in a .tarsus-md element; mod_tarsuscoach/markdown turns it
+ * text escaped in a .tarsus-md element; mod_tarsuscoach/markdown-lazy turns it
  * into HTML with React-Markdown's pipeline (GitHub tables, KaTeX
  * formulas), so it looks as it does in the Tarsus app.
  *

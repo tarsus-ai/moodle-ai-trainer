@@ -1,6 +1,7 @@
 /**
  * Builds the plugin's Markdown renderer from entry.js:
- * - the module amd/src/markdown.js (Moodle's build turns it into amd/build/markdown.min.js),
+ * - the module amd/src/markdown-lazy.js (Moodle's build turns it into amd/build/markdown-lazy.min.js;
+ *   "-lazy" keeps it out of the bundle Moodle loads on every page of the site),
  * - the licences of every library inside it,
  * - KaTeX's stylesheet and fonts (woff2: every browser the plugin supports).
  *
@@ -22,6 +23,9 @@ const TARGET = {
   licences: here,
   katex: join(root, 'assets', 'vendor', 'katex'),
 };
+
+/** The module's file name. */
+const MODULE = 'markdown-lazy.js';
 
 const LICENSE_FILES = ['LICENSE', 'license', 'LICENSE.md', 'license.md', 'LICENSE.txt', 'license.txt', 'LICENCE'];
 
@@ -76,7 +80,7 @@ const result = await build({
   legalComments: 'eof',
   metafile: true,
   banner: {js: '/* Tarsus Markdown (build/markdown): unified, remark, rehype and KaTeX, MIT licensed - see build/markdown/licenses.txt */'},
-  outfile: join(TARGET.script, 'markdown.js'),
+  outfile: join(TARGET.script, MODULE),
 });
 
 // The licences of the bundled libraries.
@@ -87,7 +91,7 @@ for (const input of Object.keys(result.metafile.inputs)) {
     packages.add(name);
   }
 }
-const notices = ['Libraries bundled in amd/src/markdown.js', ''];
+const notices = ['Libraries bundled in amd/src/' + MODULE, ''];
 for (const name of [...packages].sort()) {
   const folder = join(here, 'node_modules', name);
   const meta = JSON.parse(readFileSync(join(folder, 'package.json'), 'utf8'));
@@ -107,4 +111,4 @@ for (const file of readdirSync(join(katex, 'dist', 'fonts'))) {
     copyFileSync(join(katex, 'dist', 'fonts', file), join(fonts, file));
   }
 }
-console.log('Built', packages.size, 'libraries into amd/src/markdown.js; KaTeX', JSON.parse(readFileSync(join(katex, 'package.json'), 'utf8')).version);
+console.log('Built', packages.size, 'libraries into amd/src/' + MODULE + '; KaTeX', JSON.parse(readFileSync(join(katex, 'package.json'), 'utf8')).version);

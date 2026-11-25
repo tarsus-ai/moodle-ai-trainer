@@ -22,7 +22,7 @@ use mod_tarsuscoach\local\support\platform;
 /**
  * Server-rendered markup of the plugin's screens, from the templates in
  * templates/. The chat's cards are rendered by the coach script
- * (amd/src/coach.js); everything here is the frame they live in, and the
+ * (amd/src/coach-lazy.js); everything here is the frame they live in, and the
  * teacher's material list.
  *
  * @package    mod_tarsuscoach

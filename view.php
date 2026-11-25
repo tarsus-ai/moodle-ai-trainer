@@ -83,7 +83,7 @@ tarsuscoach_view($tarsus, $course, $cm, $context);
 $version = platform::plugin_version();
 // Tarsus's texts are markdown with KaTeX formulas: the coach renders them
 // like the Tarsus app, with KaTeX's stylesheet and the bundled renderer
-// (mod_tarsuscoach/markdown).
+// (mod_tarsuscoach/markdown-lazy).
 $PAGE->requires->css(new moodle_url('/mod/tarsuscoach/assets/vendor/katex/katex.min.css', ['v' => $version]));
 
 echo $OUTPUT->header();
@@ -131,6 +131,6 @@ echo views::chat(
     coach::config($cm, $settings, $teacher),
     views::help(help::links(), 'tarsus-help-chat')
 );
-$PAGE->requires->js_call_amd('mod_tarsuscoach/coach', 'init');
+$PAGE->requires->js_call_amd('mod_tarsuscoach/coach-lazy', 'init');
 
 echo $OUTPUT->footer();

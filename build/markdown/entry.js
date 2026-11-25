@@ -10,7 +10,7 @@
  * without an allowed address shows its alt text, and tables scroll
  * sideways on narrow screens.
  *
- * Built into the plugin's amd/src/markdown.js (npm run build); Moodle's build minifies it.
+ * Built into the plugin's amd/src/markdown-lazy.js (npm run build); Moodle's build minifies it.
  *
  * @license GPL-3.0-or-later (this file); the bundled libraries are MIT.
  */

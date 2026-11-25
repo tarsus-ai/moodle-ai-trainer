@@ -1,4 +1,4 @@
-Libraries bundled in amd/src/markdown.js
+Libraries bundled in amd/src/markdown-lazy.js
 
 ========================================================================
 @ungap/structured-clone 1.4.0 (ISC)

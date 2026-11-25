@@ -145,5 +145,5 @@ if ($help !== '') {
     echo html_writer::div($help, 'tarsus-app tarsus-help-row');
 }
 echo views::materials('tarsus-materials-' . $tarsus->id, $pageentries, $pager, $config, $counts);
-$PAGE->requires->js_call_amd('mod_tarsuscoach/coach', 'init');
+$PAGE->requires->js_call_amd('mod_tarsuscoach/coach-lazy', 'init');
 echo $OUTPUT->footer();

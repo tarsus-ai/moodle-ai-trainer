@@ -422,7 +422,8 @@ switch ($tab) {
             $list[] = [
                 'resourceid' => (string) $row->resourceid,
                 'title' => $course
-                    ? format_string($course->fullname) . ' (' . $course->id . ')'
+                    ? format_string($course->fullname, true, ['context' => context_course::instance($course->id)])
+                        . ' (' . $course->id . ')'
                     : $t('container_gone', ['ref' => (int) $row->containerref]),
                 'since' => views::date((int) $row->timemodified),
             ];

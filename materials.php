@@ -73,6 +73,10 @@ try {
 $rows = $repo->get_by_container((int) $course->id);
 $included = array_flip(inclusions::for_object((int) $tarsus->id));
 
+// Names as Moodle shows them (filters, e.g. multi-language names): HTML.
+$coursecontext = context_course::instance($course->id);
+$name = static fn(string $text): string => format_string($text, true, ['context' => $coursecontext]);
+
 $typelabel = static function (string $srctype, string $bittype): string {
     $label = platform::mod_label($srctype);
     if ($bittype !== '' && platform::has_txt('bittype_' . $bittype)) {
@@ -89,8 +93,8 @@ foreach ($materials as $material) {
     $status = $row->status ?? status::NOT_INDEXED;
     $entries[] = presenter::present($material->resourceid, $status, (int) ($row->timemodified ?? 0)) + [
         'included' => isset($included[$material->resourceid]),
-        'title' => $material->title,
-        'objecttitle' => $material->objecttitle,
+        'title' => $name($material->title),
+        'objecttitle' => $name($material->objecttitle),
         'typelabel' => $typelabel($material->srctype, $material->bittype),
         'url' => platform::cm_alive($material->srcref) ? platform::cm_url($material->srcref, $material->srctype) : '',
     ];

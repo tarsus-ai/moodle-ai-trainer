@@ -71,4 +71,6 @@ foreach ($lines as $line) {
     }, $line)) . "\r\n";
 }
 
-platform::send_download('tarsus_' . clean_filename(format_string($tarsus->name)) . '_' . date('Ymd') . '.csv', $csv, 'text/csv; charset=utf-8');
+// The file name: the activity's name as text (filtered, not escaped).
+$filename = clean_filename(format_string($tarsus->name, true, ['context' => $context, 'escape' => false]));
+platform::send_download('tarsus_' . $filename . '_' . date('Ymd') . '.csv', $csv, 'text/csv; charset=utf-8');

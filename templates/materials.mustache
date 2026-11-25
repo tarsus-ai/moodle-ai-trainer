@@ -33,7 +33,7 @@
     * config - The coach script's configuration, as JSON.
     * counttotal, countindexed, countincluded - The figures above the list.
     * hasrows - Whether the course holds any material.
-    * rows - The material: resourceid, hasurl, url, objecttitle, showtitle, title, typelabel, badgeclass,
+    * rows - The material: resourceid, hasurl, url, objecttitle and title (HTML, from format_string), showtitle, typelabel, badgeclass,
       statuslabel, inflight, included, caninclude, actions (action, modifier, visible, label).
     * pager - The pager (mod_tarsuscoach/pager), or empty.
     * icons - The icons, as SVG: refresh.
@@ -100,7 +100,7 @@
             <tbody>
                 {{#rows}}
                 <tr data-region="resource" data-resourceid="{{resourceid}}">
-                    <td>{{#hasurl}}<a href="{{url}}">{{objecttitle}}</a>{{/hasurl}}{{^hasurl}}{{objecttitle}}{{/hasurl}}{{#showtitle}}<div class="tarsus-muted tarsus-small">{{title}}</div>{{/showtitle}}</td>
+                    <td>{{#hasurl}}<a href="{{url}}">{{{objecttitle}}}</a>{{/hasurl}}{{^hasurl}}{{{objecttitle}}}{{/hasurl}}{{#showtitle}}<div class="tarsus-muted tarsus-small">{{{title}}}</div>{{/showtitle}}</td>
                     <td class="tarsus-nowrap">{{typelabel}}</td>
                     <td class="tarsus-nowrap"><span class="{{badgeclass}}" data-region="status-badge">{{statuslabel}}</span><span class="tarsus-spinner tarsus-spinner--inline" data-region="status-spinner"{{^inflight}} hidden{{/inflight}}></span></td>
                     <td><label class="tarsus-switch"><input type="checkbox" role="switch" data-region="include-toggle" aria-label="{{#cleanstr}}col_included, mod_tarsuscoach{{/cleanstr}}"{{#included}} checked{{/included}}{{^caninclude}} disabled{{/caninclude}}><span class="tarsus-switch__track" aria-hidden="true"></span></label></td>

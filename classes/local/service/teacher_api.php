@@ -167,9 +167,14 @@ final class teacher_api
             if (!platform::course_alive($this->containerref)) {
                 return ['list' => [], 'members' => []];
             }
+            $context = \context_course::instance($this->containerref);
             foreach (groups_get_all_groups($this->containerref) as $group) {
                 $groupid = (int) $group->id;
-                $list[] = ['id' => $groupid, 'title' => format_string($group->name)];
+                // The coach script shows the name as text: filtered, not escaped.
+                $list[] = [
+                    'id' => $groupid,
+                    'title' => format_string($group->name, true, ['context' => $context, 'escape' => false]),
+                ];
                 foreach (groups_get_members($groupid, 'u.id') as $user) {
                     $members[(int) $user->id][] = $groupid;
                 }

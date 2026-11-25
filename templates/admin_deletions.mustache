@@ -28,7 +28,7 @@
 
     Context variables required for this template:
     * retry - The button that tries the deletions again.
-    * rows - The material: resourceid, title (its course), since.
+    * rows - The material: resourceid, title (its course, HTML from format_string), since.
 
     Example context (json):
     {
@@ -49,7 +49,7 @@
             </thead>
             <tbody>
                 {{#rows}}
-                <tr><td><code>{{resourceid}}</code></td><td>{{title}}</td><td class="tarsus-nowrap">{{since}}</td></tr>
+                <tr><td><code>{{resourceid}}</code></td><td>{{{title}}}</td><td class="tarsus-nowrap">{{since}}</td></tr>
                 {{/rows}}
             </tbody>
         </table>

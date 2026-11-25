@@ -204,7 +204,11 @@ final class platform {
      */
     public static function site_title(): string {
         global $SITE;
-        $title = trim(format_string((string) ($SITE->fullname ?? ''), true, ['context' => \context_system::instance()]));
+        // Plain text (mails): filtered, not escaped.
+        $title = trim(format_string((string) ($SITE->fullname ?? ''), true, [
+            'context' => \context_system::instance(),
+            'escape' => false,
+        ]));
         return $title !== '' ? $title : 'Moodle';
     }
 

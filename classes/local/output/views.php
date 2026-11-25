@@ -105,7 +105,7 @@ final class views {
      * The teacher's material list with status, inclusion switch and actions.
      *
      * @param string $rootid The id of the list's root element.
-     * @param array $rows presenter rows plus title, objecttitle, url, typelabel and included.
+     * @param array $rows presenter rows plus title and objecttitle (HTML, from format_string), url, typelabel and included.
      * @param string $pager The pager (views::pager()), or ''.
      * @param array $config The client configuration (JSON-encoded into the page).
      * @param array $counts The figures above the list: total, indexed, included.

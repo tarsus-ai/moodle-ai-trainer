@@ -1,4 +1,18 @@
 <?php
+// This file is part of Moodle - https://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
 namespace mod_tarsuscoach\local\service;
 
@@ -30,13 +44,11 @@ final class settings_api
 
     private settings $settings;
 
-    public function __construct(settings $settings)
-    {
+    public function __construct(settings $settings) {
         $this->settings = $settings;
     }
 
-    private static function t(string $key, array $params = []): string
-    {
+    private static function t(string $key, array $params = []): string {
         return platform::txt($key, $params);
     }
 
@@ -46,8 +58,7 @@ final class settings_api
      *
      * @return array<string, mixed>
      */
-    public function describe(): array
-    {
+    public function describe(): array {
         $s = $this->settings;
         $planlock = static fn(string $key): string => self::t($key, ['plan' => plan::label()]);
 
@@ -172,8 +183,7 @@ final class settings_api
      * @param array<string, mixed> $values
      * @return array<string, string> Field name => error message; empty when applied.
      */
-    public function apply(array $values): array
-    {
+    public function apply(array $values): array {
         $s = $this->settings;
         $errors = [];
         $bool = static fn(string $name, bool $current): bool => array_key_exists($name, $values) ? !empty($values[$name]) : $current;
@@ -264,8 +274,7 @@ final class settings_api
      * @param array<string, mixed> $values
      * @return array<string, mixed>
      */
-    public function save(array $values): array
-    {
+    public function save(array $values): array {
         $errors = $this->apply($values);
         if ($errors !== []) {
             return ['status' => 'error', 'error' => self::t('form_invalid'), 'errors' => $errors];

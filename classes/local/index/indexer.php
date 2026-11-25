@@ -1,4 +1,18 @@
 <?php
+// This file is part of Moodle - https://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
 namespace mod_tarsuscoach\local\index;
 
@@ -27,8 +41,7 @@ class indexer
     private repository $repo;
     private tracker $tracker;
 
-    public function __construct(?resolver $resolver = null, ?repository $repo = null, ?tracker $tracker = null)
-    {
+    public function __construct(?resolver $resolver = null, ?repository $repo = null, ?tracker $tracker = null) {
         $this->resolver = $resolver ?? new resolver();
         $this->repo = $repo ?? new repository();
         $this->tracker = $tracker ?? new tracker($this->repo, null, null, $this->resolver);
@@ -37,8 +50,7 @@ class indexer
     /**
      * Index one material by its resource id (opt-in per-item action).
      */
-    public function index_resource(string $resourceid): bool
-    {
+    public function index_resource(string $resourceid): bool {
         $material = $this->resolver->resolve_by_resource_id($resourceid);
         if ($material === null) {
             return false;
@@ -49,8 +61,7 @@ class indexer
     /**
      * Force a re-index of one resource.
      */
-    public function reindex_resource(string $resourceid): bool
-    {
+    public function reindex_resource(string $resourceid): bool {
         $row = $this->repo->get($resourceid);
         if ($row === null) {
             // Not tracked yet: a re-index request degrades to a first index.
@@ -72,8 +83,7 @@ class indexer
     /**
      * Mark one resource for removal from the brain.
      */
-    public function remove_resource(string $resourceid): bool
-    {
+    public function remove_resource(string $resourceid): bool {
         $row = $this->repo->get($resourceid);
         if ($row === null || !status::can_transition($row->status, status::PENDING_DELETION)) {
             return false;
@@ -86,8 +96,7 @@ class indexer
     /**
      * Retry one resource stuck in the error state.
      */
-    public function retry_resource(string $resourceid): bool
-    {
+    public function retry_resource(string $resourceid): bool {
         $row = $this->repo->get($resourceid);
         if ($row === null || $row->status !== status::ERROR) {
             return false;
@@ -107,8 +116,7 @@ class indexer
      *
      * @throws blocked_exception|transport_exception
      */
-    public function execute_now(string $resourceid): void
-    {
+    public function execute_now(string $resourceid): void {
         $row = $this->repo->get($resourceid);
         if ($row === null) {
             return;
@@ -125,8 +133,7 @@ class indexer
         }
     }
 
-    private function revert(\stdClass $row): void
-    {
+    private function revert(\stdClass $row): void {
         switch ($row->status) {
             case status::PENDING:
                 // A first upload failed: back to square one.
@@ -145,8 +152,7 @@ class indexer
      *
      * @param bool $onlytracked When true, skip materials that have no row yet.
      */
-    public function index_material(material $material, bool $onlytracked = false): bool
-    {
+    public function index_material(material $material, bool $onlytracked = false): bool {
         $existing = $this->repo->get($material->resourceid);
         if ($onlytracked && $existing === null) {
             return false;
@@ -169,8 +175,7 @@ class indexer
         return true;
     }
 
-    private function target_status(\stdClass $row, string $hash): ?string
-    {
+    private function target_status(\stdClass $row, string $hash): ?string {
         if ($row->status === status::NOT_INDEXED || $row->status === status::ERROR) {
             return status::PENDING;
         }

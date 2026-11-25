@@ -1,4 +1,18 @@
 <?php
+// This file is part of Moodle - https://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
 namespace mod_tarsuscoach\local\index;
 
@@ -38,8 +52,7 @@ class status_sync
     private pipeline $pipeline;
     private client_interface $client;
 
-    public function __construct(?repository $repo = null, ?pipeline $pipeline = null, ?client_interface $client = null)
-    {
+    public function __construct(?repository $repo = null, ?pipeline $pipeline = null, ?client_interface $client = null) {
         $this->repo = $repo ?? new repository();
         $this->pipeline = $pipeline ?? new pipeline();
         $this->client = $client ?? client_factory::get_client();
@@ -52,8 +65,7 @@ class status_sync
      * @return array<string, string> Resource ids whose status changed => new status.
      * @throws blocked_exception|transport_exception
      */
-    public function refresh(array $resourceids): array
-    {
+    public function refresh(array $resourceids): array {
         $rows = [];
         foreach ($this->repo->get_many($resourceids) as $resourceid => $row) {
             if (in_array($row->status, self::SYNCABLE, true)) {
@@ -82,8 +94,7 @@ class status_sync
         return $changed;
     }
 
-    private function apply(\stdClass $row, string $reported): bool
-    {
+    private function apply(\stdClass $row, string $reported): bool {
         if (!status::is_valid($reported) || !status::can_transition($row->status, $reported)) {
             return false;
         }

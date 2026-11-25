@@ -1,4 +1,18 @@
 <?php
+// This file is part of Moodle - https://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
 namespace mod_tarsuscoach\local\service;
 
@@ -38,8 +52,7 @@ final class teacher_api
     private client_interface $client;
     private pipeline $pipeline;
 
-    public function __construct(int $objid, int $containerref, settings $settings)
-    {
+    public function __construct(int $objid, int $containerref, settings $settings) {
         $this->objid = $objid;
         $this->containerref = $containerref;
         $this->settings = $settings;
@@ -51,8 +64,7 @@ final class teacher_api
      * @param array<string, mixed> $extra
      * @return array<string, mixed>
      */
-    private static function result(string $status, string $error = '', array $extra = []): array
-    {
+    private static function result(string $status, string $error = '', array $extra = []): array {
         return $extra + ['status' => $status, 'error' => $error];
     }
 
@@ -60,8 +72,7 @@ final class teacher_api
      * @param callable(): array<string, mixed> $call
      * @return array<string, mixed>|string The response, or the message of the failure.
      */
-    private function read(callable $call, string $context)
-    {
+    private function read(callable $call, string $context) {
         try {
             $response = $this->pipeline->execute($call);
             return is_array($response) ? $response : [];
@@ -81,8 +92,7 @@ final class teacher_api
      *
      * @return array<string, mixed>
      */
-    public function statistics(): array
-    {
+    public function statistics(): array {
         $learners = new learners($this->objid, $this->containerref, $this->settings);
         $userids = array_column($learners->overview()['learners'], 'userid');
 
@@ -150,8 +160,7 @@ final class teacher_api
      *
      * @return array{list: array<int, array{id: int, title: string}>, members: array<int, int[]>}
      */
-    private function groups(): array
-    {
+    private function groups(): array {
         $list = [];
         $members = [];
         try {
@@ -177,8 +186,7 @@ final class teacher_api
      *
      * @return array<string, mixed>
      */
-    public function history(int $userid, int $offset): array
-    {
+    public function history(int $userid, int $offset): array {
         if (!$this->is_learner($userid)) {
             return self::result('error', platform::txt('invalid_request'));
         }
@@ -211,8 +219,7 @@ final class teacher_api
      *
      * @return array<string, mixed>
      */
-    public function analytics(int $userid): array
-    {
+    public function analytics(int $userid): array {
         if (!$this->is_learner($userid)) {
             return self::result('error', platform::txt('invalid_request'));
         }
@@ -239,8 +246,7 @@ final class teacher_api
      * Whether a user belongs to this object's learners: a member of its
      * course or group, or someone with figures here.
      */
-    private function is_learner(int $userid): bool
-    {
+    private function is_learner(int $userid): bool {
         if ($userid <= 0 || !platform::db()->record_exists('user', ['id' => $userid, 'deleted' => 0])) {
             return false;
         }

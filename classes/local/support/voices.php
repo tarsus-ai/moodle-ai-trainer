@@ -1,4 +1,18 @@
 <?php
+// This file is part of Moodle - https://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
 namespace mod_tarsuscoach\local\support;
 
@@ -26,8 +40,7 @@ final class voices
     /**
      * @return array<int, array{alias: string, country: string, gender: string}>
      */
-    public static function catalogue(bool $refresh = false): array
-    {
+    public static function catalogue(bool $refresh = false): array {
         $cached = json_decode((string) config::get('voices_cache', ''), true);
         $fetched = (int) config::get('voices_cachetime', '0');
         if (!$refresh && is_array($cached) && $fetched > time() - self::CACHE_TTL) {
@@ -50,8 +63,7 @@ final class voices
     /**
      * @return array<string, string> alias => "Alias (language, gender)".
      */
-    public static function options(): array
-    {
+    public static function options(): array {
         return self::options_of(self::catalogue());
     }
 
@@ -61,8 +73,7 @@ final class voices
      *
      * @return array<string, string> alias => "Alias (language, gender)".
      */
-    public static function cached_options(): array
-    {
+    public static function cached_options(): array {
         $cached = json_decode((string) config::get('voices_cache', ''), true);
         return self::options_of(is_array($cached) ? $cached : []);
     }
@@ -71,8 +82,7 @@ final class voices
      * @param array<int, array{alias: string, country: string, gender: string}> $catalogue
      * @return array<string, string>
      */
-    private static function options_of(array $catalogue): array
-    {
+    private static function options_of(array $catalogue): array {
         $languages = get_string_manager()->get_list_of_languages();
         $options = [];
         foreach ($catalogue as $voice) {
@@ -90,8 +100,7 @@ final class voices
     /**
      * The voice to read to a learner with.
      */
-    public static function choose(string $language): string
-    {
+    public static function choose(string $language): string {
         $fixed = trim((string) config::get('voice', ''));
         if ($fixed === '') {
             $fixed = self::DEFAULT_VOICE;

@@ -1,4 +1,18 @@
 <?php
+// This file is part of Moodle - https://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
 namespace mod_tarsuscoach\local\service;
 
@@ -60,8 +74,7 @@ final class learner_api
     private pipeline $pipeline;
     private usage_meter $usage;
 
-    public function __construct(int $objid, string $title, string $description, settings $settings, int $containerref)
-    {
+    public function __construct(int $objid, string $title, string $description, settings $settings, int $containerref) {
         $this->objid = $objid;
         $this->title = $title;
         $this->description = $description;
@@ -72,16 +85,14 @@ final class learner_api
         $this->usage = new usage_meter();
     }
 
-    private function user_id(): int
-    {
+    private function user_id(): int {
         return platform::user_id();
     }
 
     /**
      * @return string[]
      */
-    private function scope(): array
-    {
+    private function scope(): array {
         return scope::allowed_resource_ids($this->objid, $this->containerref);
     }
 
@@ -89,8 +100,7 @@ final class learner_api
      * @param string[] $allowed
      * @return array<string, mixed>
      */
-    private function params(array $allowed): array
-    {
+    private function params(array $allowed): array {
         return conversation::params($this->objid, $this->title, $this->description, $this->settings, $allowed);
     }
 
@@ -98,16 +108,14 @@ final class learner_api
      * @param array<string, mixed> $extra
      * @return array<string, mixed>
      */
-    private static function result(string $status, string $error = '', array $extra = []): array
-    {
+    private static function result(string $status, string $error = '', array $extra = []): array {
         return $extra + ['status' => $status, 'error' => $error];
     }
 
     /**
      * Whether a value is an id as Tarsus issues them (widget, stack).
      */
-    public static function is_id(string $value): bool
-    {
+    public static function is_id(string $value): bool {
         $length = strlen($value);
         return $length > 0 && $length <= 100 && strspn($value, self::ID_CHARACTERS) === $length;
     }
@@ -121,8 +129,7 @@ final class learner_api
      * @param string $context For the message and the log.
      * @return array<string, mixed>
      */
-    private function guarded(callable $call, bool $charged, callable $then, string $context): array
-    {
+    private function guarded(callable $call, bool $charged, callable $then, string $context): array {
         try {
             $response = $this->pipeline->execute($call, $charged);
         } catch (blocked_exception $e) {
@@ -146,8 +153,7 @@ final class learner_api
      *
      * @return array<string, mixed>
      */
-    public function feed(int $offset): array
-    {
+    public function feed(int $offset): array {
         $allowed = $this->scope();
         if ($allowed === []) {
             return self::result('noscope', platform::txt('chat_noscope'), ['items' => [], 'hasmore' => false]);
@@ -173,8 +179,7 @@ final class learner_api
      * @param array<string, mixed> $response
      * @return array{items: array<int, array<string, mixed>>, hasmore: bool}
      */
-    public static function feed_page(array $response): array
-    {
+    public static function feed_page(array $response): array {
         $items = [];
         foreach ((array) ($response['items'] ?? []) as $item) {
             if (is_array($item) && ($shaped = shaper::feed_item($item)) !== null) {
@@ -195,8 +200,7 @@ final class learner_api
      *
      * @return array<string, mixed>
      */
-    public function ask(string $query, string $replywidget = '', string $replystack = ''): array
-    {
+    public function ask(string $query, string $replywidget = '', string $replystack = ''): array {
         $query = trim($query);
         if ($query === '') {
             return self::result('error', platform::txt('empty_query'));
@@ -213,8 +217,7 @@ final class learner_api
      *
      * @return array<string, mixed>
      */
-    public function ask_voice(string $file, string $mimetype, string $filename, string $replywidget = '', string $replystack = ''): array
-    {
+    public function ask_voice(string $file, string $mimetype, string $filename, string $replywidget = '', string $replystack = ''): array {
         if (!$this->settings->voice_input_active()) {
             return self::result('disabled', platform::txt('voice_unavailable'));
         }
@@ -232,8 +235,7 @@ final class learner_api
      * @param array<string, mixed> $question query, or the recording
      * @return array<string, mixed>
      */
-    private function answer(array $question, string $replywidget, string $replystack, string $context): array
-    {
+    private function answer(array $question, string $replywidget, string $replystack, string $context): array {
         if (!$this->settings->askenabled || !plan::allows_mode('ask')) {
             return self::result('disabled', platform::txt('chat_modedisabled'));
         }
@@ -249,7 +251,7 @@ final class learner_api
         $replywidget = trim($replywidget);
         if ($replystack !== '' && self::is_id($replystack)) {
             $params['replytostack'] = $replystack;
-        } elseif ($replywidget !== '' && self::is_id($replywidget)) {
+        } else if ($replywidget !== '' && self::is_id($replywidget)) {
             $params['replytowidget'] = $replywidget;
         }
 
@@ -297,8 +299,7 @@ final class learner_api
      *
      * @return array<string, mixed>
      */
-    public function references(string $widgetid, string $state): array
-    {
+    public function references(string $widgetid, string $state): array {
         $widgetid = trim($widgetid);
         if (!self::is_id($widgetid)) {
             return self::result('error', platform::txt('invalid_request'));
@@ -334,16 +335,17 @@ final class learner_api
      * @param array<string, mixed> $bit
      * @return array<string, mixed>
      */
-    private function shape_reference(array $bit): array
-    {
+    private function shape_reference(array $bit): array {
         $rows = [];
         foreach ((array) ($bit['rows'] ?? []) as $row) {
             $rows[] = array_values(array_map('strval', (array) $row));
         }
         $link = '';
         $parsed = resource_id::parse((string) ($bit['sourceid'] ?? ''));
-        if ($parsed !== null && $parsed['refid'] > 0 && resource_id::is_local((string) ($bit['sourceid'] ?? ''))
-            && platform::cm_visible_to_user($parsed['refid'], $parsed['containerref'])) {
+        if (
+            $parsed !== null && $parsed['refid'] > 0 && resource_id::is_local((string) ($bit['sourceid'] ?? ''))
+            && platform::cm_visible_to_user($parsed['refid'], $parsed['containerref'])
+        ) {
             // Only material the learner may open is linked.
             $link = platform::cm_url($parsed['refid'], $parsed['type']);
         }
@@ -365,8 +367,7 @@ final class learner_api
     /**
      * @return array<string, mixed>
      */
-    public function practice_next(): array
-    {
+    public function practice_next(): array {
         if (!$this->settings->testenabled || !plan::allows_mode('test')) {
             return self::result('disabled', platform::txt('chat_modedisabled'));
         }
@@ -407,8 +408,7 @@ final class learner_api
      * @param array<string, mixed> $payload
      * @return array<string, mixed>
      */
-    public function practice_check(array $payload): array
-    {
+    public function practice_check(array $payload): array {
         $widgetid = trim((string) ($payload['widgetid'] ?? ''));
         $widgettype = (string) ($payload['widgettype'] ?? '');
         $state = (string) ($payload['state'] ?? 'practice');
@@ -435,7 +435,7 @@ final class learner_api
             if ($useranswers === []) {
                 return self::result('error', platform::txt('empty_answer'));
             }
-        } elseif ($widgettype === didactics::TYPE_TRADECOSTING) {
+        } else if ($widgettype === didactics::TYPE_TRADECOSTING) {
             // The whole table travels; no asked cell may stay unanswered.
             if ($columns === []) {
                 return self::result('error', platform::txt('invalid_request'));
@@ -450,7 +450,7 @@ final class learner_api
             if ($usertable === []) {
                 return self::result('error', platform::txt('empty_answer'));
             }
-        } elseif ($answer === '') {
+        } else if ($answer === '') {
             return self::result('error', platform::txt('empty_answer'));
         }
 
@@ -522,8 +522,7 @@ final class learner_api
      *
      * @return array<string, mixed>
      */
-    public function learn_next(): array
-    {
+    public function learn_next(): array {
         if (!$this->settings->buildenabled || !plan::allows_mode('build')) {
             return self::result('disabled', platform::txt('chat_modedisabled'), ['items' => []]);
         }
@@ -561,8 +560,7 @@ final class learner_api
      *
      * @return array<string, mixed>
      */
-    public function stack_audio(string $stackid): array
-    {
+    public function stack_audio(string $stackid): array {
         $stackid = trim($stackid);
         if (!self::is_id($stackid)) {
             return self::result('error', platform::txt('invalid_request'));
@@ -612,8 +610,7 @@ final class learner_api
      *
      * @return array<string, mixed>
      */
-    public function discuss(): array
-    {
+    public function discuss(): array {
         if (!$this->settings->discussenabled || !plan::allows_mode('discuss')) {
             return self::result('disabled', platform::txt('chat_modedisabled'));
         }
@@ -654,8 +651,7 @@ final class learner_api
      *
      * @return array<string, mixed>
      */
-    public function reset(): array
-    {
+    public function reset(): array {
         $contextid = scope::conversation_context_id($this->objid);
         $userid = pseudonymizer::pseudonymize($this->user_id());
 

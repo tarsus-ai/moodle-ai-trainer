@@ -1,4 +1,18 @@
 <?php
+// This file is part of Moodle - https://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
 namespace mod_tarsuscoach\local\material;
 
@@ -25,8 +39,7 @@ final class resource_id
 
     private const SEP = ':';
 
-    public static function build(int $containerref, string $type, int $refid, string $bitkey = self::MAIN): string
-    {
+    public static function build(int $containerref, string $type, int $refid, string $bitkey = self::MAIN): string {
         return implode(self::SEP, [
             config::site_token(),
             $containerref,
@@ -39,17 +52,18 @@ final class resource_id
     /**
      * @return array{sitetoken: string, containerref: int, type: string, refid: int, bitkey: string}|null
      */
-    public static function parse(string $resourceid): ?array
-    {
+    public static function parse(string $resourceid): ?array {
         $parts = explode(self::SEP, $resourceid);
         if (count($parts) !== 5) {
             return null;
         }
 
         [$sitetoken, $containerref, $type, $refid, $bitkey] = $parts;
-        if ($sitetoken === '' || $type === '' || $bitkey === ''
+        if (
+            $sitetoken === '' || $type === '' || $bitkey === ''
                 || !ctype_digit($containerref) || !ctype_digit($refid)
-                || !preg_match('/^[a-z]{2,8}$/', $type)) {
+                || !preg_match('/^[a-z]{2,8}$/', $type)
+        ) {
             return null;
         }
 
@@ -66,22 +80,19 @@ final class resource_id
      * The brain-side asset id of a container: every bit is filed under its
      * course (or group), so removing a course costs one call.
      */
-    public static function asset_id(int $containerref): string
-    {
+    public static function asset_id(int $containerref): string {
         return config::site_token() . self::SEP . $containerref;
     }
 
     /**
      * Whether an id belongs to this installation.
      */
-    public static function is_local(string $resourceid): bool
-    {
+    public static function is_local(string $resourceid): bool {
         $parts = self::parse($resourceid);
         return $parts !== null && $parts['sitetoken'] === config::site_token();
     }
 
-    private static function clean_bitkey(string $bitkey): string
-    {
+    private static function clean_bitkey(string $bitkey): string {
         $clean = preg_replace('/[^a-z0-9_.-]/i', '', $bitkey);
         return ($clean === '' || $clean === null) ? self::MAIN : $clean;
     }

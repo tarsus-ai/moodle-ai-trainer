@@ -1,4 +1,18 @@
 <?php
+// This file is part of Moodle - https://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
 namespace mod_tarsuscoach\local\service;
 
@@ -38,8 +52,7 @@ final class manager_api
     private repository $repo;
     private resolver $resolver;
 
-    public function __construct(int $objid, int $containerref)
-    {
+    public function __construct(int $objid, int $containerref) {
         $this->objid = $objid;
         $this->containerref = $containerref;
         $this->repo = new repository();
@@ -49,8 +62,7 @@ final class manager_api
     /**
      * Whether a resource id from the browser may be acted on here.
      */
-    private function allowed(string $resourceid): bool
-    {
+    private function allowed(string $resourceid): bool {
         $parts = resource_id::parse($resourceid);
         if ($parts === null || !resource_id::is_local($resourceid) || $parts['containerref'] !== $this->containerref) {
             return false;
@@ -67,8 +79,7 @@ final class manager_api
     /**
      * @return array<string, mixed>
      */
-    private function present(string $resourceid): array
-    {
+    private function present(string $resourceid): array {
         $row = $this->repo->get($resourceid);
         $status = $row->status ?? status::NOT_INDEXED;
         return presenter::present($resourceid, $status, (int) ($row->timemodified ?? 0))
@@ -80,8 +91,7 @@ final class manager_api
      *
      * @return array<string, mixed> {ok, error?, row}
      */
-    public function action(string $resourceid, string $action): array
-    {
+    public function action(string $resourceid, string $action): array {
         if (!in_array($action, self::ACTIONS, true) || !$this->allowed($resourceid)) {
             return ['ok' => false, 'error' => platform::txt('invalid_resource')];
         }
@@ -130,8 +140,7 @@ final class manager_api
      *
      * @return array<string, mixed>
      */
-    public function set_included(string $resourceid, bool $included): array
-    {
+    public function set_included(string $resourceid, bool $included): array {
         if (!$this->allowed($resourceid)) {
             return ['ok' => false, 'error' => platform::txt('invalid_resource')];
         }
@@ -155,8 +164,7 @@ final class manager_api
      * @param string[] $resourceids
      * @return array<string, mixed>
      */
-    public function sync(array $resourceids): array
-    {
+    public function sync(array $resourceids): array {
         $resourceids = array_values(array_unique(array_map('strval', $resourceids)));
         if (count($resourceids) > client_interface::BATCH_LIMIT) {
             return ['ok' => false, 'error' => platform::txt('too_many_resources', ['max' => client_interface::BATCH_LIMIT])];

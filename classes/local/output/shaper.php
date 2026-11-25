@@ -1,4 +1,18 @@
 <?php
+// This file is part of Moodle - https://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
 namespace mod_tarsuscoach\local\output;
 
@@ -15,8 +29,7 @@ use mod_tarsuscoach\local\support\platform;
  */
 final class shaper
 {
-    public static function taxonomy(string $level): string
-    {
+    public static function taxonomy(string $level): string {
         switch (strtoupper($level)) {
             case 'WISSEN':
                 return platform::txt('taxonomy_knowledge');
@@ -29,8 +42,7 @@ final class shaper
         }
     }
 
-    public static function taxonomy_icon(string $level): string
-    {
+    public static function taxonomy_icon(string $level): string {
         switch (strtoupper($level)) {
             case 'WISSEN':
                 return 'taxonomy_knowledge';
@@ -43,8 +55,7 @@ final class shaper
         }
     }
 
-    public static function difficulty(int $grade): string
-    {
+    public static function difficulty(int $grade): string {
         switch ($grade) {
             case 1:
                 return platform::txt('difficulty_easy');
@@ -60,8 +71,7 @@ final class shaper
     /**
      * Localise a choice value: true/false widgets answer with booleans.
      */
-    public static function choice(string $value, string $widgettype): string
-    {
+    public static function choice(string $value, string $widgettype): string {
         if ($widgettype === 'trueFalseQuestionWidget') {
             if (strcasecmp($value, 'true') === 0) {
                 return platform::txt('choice_true');
@@ -73,8 +83,7 @@ final class shaper
         return $value;
     }
 
-    public static function is_supported_type(string $widgettype): bool
-    {
+    public static function is_supported_type(string $widgettype): bool {
         return in_array($widgettype, client_interface::QUESTION_WIDGET_TYPES, true);
     }
 
@@ -82,8 +91,7 @@ final class shaper
      * @param array<int, mixed> $answers
      * @return array<int, array{variable: string, answer: string, iscorrect: bool, clarification: string}>
      */
-    public static function answers(array $answers): array
-    {
+    public static function answers(array $answers): array {
         $out = [];
         foreach ($answers as $entry) {
             if (!is_array($entry)) {
@@ -106,8 +114,7 @@ final class shaper
      * @param array<int, mixed> $rows
      * @return array<int, array<int, array{value: string, ask: bool}>>
      */
-    public static function cells(array $rows): array
-    {
+    public static function cells(array $rows): array {
         $out = [];
         foreach ($rows as $row) {
             if (!is_array($row)) {
@@ -130,8 +137,7 @@ final class shaper
      * @param array<int, mixed> $rows
      * @return array<int, string[]>
      */
-    public static function values(array $rows): array
-    {
+    public static function values(array $rows): array {
         $out = [];
         foreach ($rows as $row) {
             if (is_array($row)) {
@@ -147,8 +153,7 @@ final class shaper
      * @param array<int, mixed> $rows
      * @return array<int, array<int, array{value: string, verdict: int}>>
      */
-    public static function verdicts(array $rows): array
-    {
+    public static function verdicts(array $rows): array {
         $out = [];
         foreach ($rows as $row) {
             if (!is_array($row)) {
@@ -170,8 +175,7 @@ final class shaper
      * @param array<int, mixed> $choices
      * @return array<int, array{value: string, label: string}>
      */
-    public static function choices(array $choices, string $type): array
-    {
+    public static function choices(array $choices, string $type): array {
         $out = [];
         foreach ($choices as $choice) {
             $out[] = ['value' => (string) $choice, 'label' => self::choice((string) $choice, $type)];
@@ -185,8 +189,7 @@ final class shaper
      * @param array<string, mixed> $widget
      * @return array<string, mixed>
      */
-    public static function widget(array $widget): array
-    {
+    public static function widget(array $widget): array {
         $type = (string) ($widget['type'] ?? '');
         return [
             'id' => (string) ($widget['id'] ?? ''),
@@ -209,8 +212,7 @@ final class shaper
      * @param array<string, mixed> $item
      * @return array<string, mixed>
      */
-    public static function practice_item(array $item): array
-    {
+    public static function practice_item(array $item): array {
         $shaped = self::widget($item);
         return ['kind' => 'practice'] + $shaped + [
             'answered' => !empty($item['answered']),
@@ -231,8 +233,7 @@ final class shaper
      * @param array<string, mixed> $item
      * @return array<string, mixed>
      */
-    public static function learn_item(array $item): array
-    {
+    public static function learn_item(array $item): array {
         $kind = (string) ($item['kind'] ?? '');
         if ($kind === 'complete' || $kind === 'motivation' || $kind === 'message') {
             return [
@@ -305,8 +306,7 @@ final class shaper
      * @param array<string, mixed> $item
      * @return array<string, mixed>|null
      */
-    public static function feed_item(array $item): ?array
-    {
+    public static function feed_item(array $item): ?array {
         $kind = (string) ($item['kind'] ?? '');
         switch ($kind) {
             case 'message':
@@ -340,8 +340,7 @@ final class shaper
      * @param array<string, mixed> $progress
      * @return array<string, float>
      */
-    public static function progress(array $progress): array
-    {
+    public static function progress(array $progress): array {
         return [
             'earnedxp' => (float) ($progress['earnedxp'] ?? 0),
             'totalxp' => (float) ($progress['totalxp'] ?? 0),

@@ -1,4 +1,18 @@
 <?php
+// This file is part of Moodle - https://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
 namespace mod_tarsuscoach\local\output;
 
@@ -15,8 +29,7 @@ use mod_tarsuscoach\local\support\platform;
  */
 final class views
 {
-    private static function t(string $key, array $params = []): string
-    {
+    private static function t(string $key, array $params = []): string {
         return html::e(platform::txt($key, $params));
     }
 
@@ -28,8 +41,7 @@ final class views
      *
      * @param array<string, mixed> $config The client configuration (JSON-encoded into the page).
      */
-    public static function chat(string $containerid, array $config, string $help = ''): string
-    {
+    public static function chat(string $containerid, array $config, string $help = ''): string {
         $modes = (array) $config['modes'];
         $buttons = '';
         foreach ($modes as $mode) {
@@ -151,8 +163,7 @@ final class views
      *
      * @param array<int, array<string, mixed>> $rows presenter rows plus name, url, typelabel, title.
      */
-    public static function materials(string $rootid, array $rows, string $pager, array $config, array $counts): string
-    {
+    public static function materials(string $rootid, array $rows, string $pager, array $config, array $counts): string {
         $html = '<div class="tarsus-app tarsus-dashboard" id="' . html::e($rootid) . '" data-config="' . html::e(html::json($config)) . '">';
 
         $html .= '<div class="tarsus-dashboard__intro">'
@@ -214,8 +225,7 @@ final class views
         return $html;
     }
 
-    private static function action_button(string $action, string $modifier, bool $visible): string
-    {
+    private static function action_button(string $action, string $modifier, bool $visible): string {
         return '<button type="button" class="tarsus-btn tarsus-btn--sm ' . $modifier . '" data-action="' . $action . '"'
             . ($visible ? '' : ' hidden') . '>' . self::t('action_' . $action) . '</button>';
     }
@@ -223,8 +233,7 @@ final class views
     /**
      * Simple previous/next paging.
      */
-    public static function pager(int $page, int $pages, callable $url): string
-    {
+    public static function pager(int $page, int $pages, callable $url): string {
         if ($pages <= 1) {
             return '';
         }
@@ -245,8 +254,7 @@ final class views
      *
      * @param array<int, array{title: string, url: string, embed: string}> $links
      */
-    public static function help(array $links, string $id = 'tarsus-help'): string
-    {
+    public static function help(array $links, string $id = 'tarsus-help'): string {
         if ($links === []) {
             return '';
         }
@@ -272,8 +280,7 @@ final class views
     /**
      * A horizontal usage bar: used against limit, coloured by severity.
      */
-    public static function usage_bar(float $used, int $limit, string $level): string
-    {
+    public static function usage_bar(float $used, int $limit, string $level): string {
         $percent = $limit > 0 ? min(100, $used / $limit * 100) : 0;
         // The brain's figure, written the way the user's language writes numbers.
         $label = $limit > 0
@@ -294,8 +301,7 @@ final class views
      *
      * @param array<string, mixed> $data
      */
-    public static function plan_usage(array $data): string
-    {
+    public static function plan_usage(array $data): string {
         $rows = '';
         foreach ($data['rows'] as [$label, $value]) {
             $rows .= '<tr><th scope="row" style="width:30%">' . $label . '</th><td>' . $value . '</td></tr>';
@@ -321,13 +327,11 @@ final class views
         return $html . '</div>';
     }
 
-    public static function figure(float $value): string
-    {
+    public static function figure(float $value): string {
         return rtrim(rtrim(number_format($value, 1, '.', ''), '0'), '.');
     }
 
-    public static function date(int $timestamp): string
-    {
+    public static function date(int $timestamp): string {
         return platform::date($timestamp);
     }
 }

@@ -1,4 +1,18 @@
 <?php
+// This file is part of Moodle - https://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
 namespace mod_tarsuscoach\local\support;
 
@@ -96,14 +110,12 @@ final class plan
     /**
      * The configured package; Build Knowledge until the partner sets another.
      */
-    public static function current(): string
-    {
+    public static function current(): string {
         $plan = (string) config::get('plan', '');
         return in_array($plan, self::ALL, true) ? $plan : self::LEARN;
     }
 
-    public static function is_configured(): bool
-    {
+    public static function is_configured(): bool {
         return in_array((string) config::get('plan', ''), self::ALL, true);
     }
 
@@ -112,13 +124,11 @@ final class plan
      * exists: the agreement asks the partner to enforce the booked
      * package, and until it is set every feature is reachable.
      */
-    public static function needs_configuration(): bool
-    {
+    public static function needs_configuration(): bool {
         return !self::is_configured() && !config::mock_mode() && config::api_key() !== '';
     }
 
-    public static function label(?string $plan = null): string
-    {
+    public static function label(?string $plan = null): string {
         return platform::txt('plan_' . ($plan ?? self::current()));
     }
 
@@ -127,8 +137,7 @@ final class plan
      *
      * @return string[]
      */
-    public static function features(?string $plan = null): array
-    {
+    public static function features(?string $plan = null): array {
         return self::FEATURES[$plan ?? self::current()] ?? self::FEATURES[self::LEARN];
     }
 
@@ -136,8 +145,7 @@ final class plan
      * Whether a package includes a feature. Unknown features are never
      * included: a typo cannot open a door.
      */
-    public static function allows(string $feature, ?string $plan = null): bool
-    {
+    public static function allows(string $feature, ?string $plan = null): bool {
         return in_array($feature, self::features($plan), true);
     }
 
@@ -146,16 +154,14 @@ final class plan
      *
      * @return string[]
      */
-    public static function modes(?string $plan = null): array
-    {
+    public static function modes(?string $plan = null): array {
         return array_values(array_filter(
             self::MODES,
             static fn(string $mode): bool => self::allows($mode, $plan)
         ));
     }
 
-    public static function allows_mode(string $mode, ?string $plan = null): bool
-    {
+    public static function allows_mode(string $mode, ?string $plan = null): bool {
         return in_array($mode, self::MODES, true) && self::allows($mode, $plan);
     }
 
@@ -163,16 +169,14 @@ final class plan
      * The audio explainer of learning units: Build Knowledge and Pay as
      * you grow.
      */
-    public static function allows_audio(?string $plan = null): bool
-    {
+    public static function allows_audio(?string $plan = null): bool {
         return self::allows(self::FEATURE_AUDIO_EXPLAINER, $plan);
     }
 
     /**
      * Spoken questions and answers: Build Knowledge and Pay as you grow.
      */
-    public static function allows_voice_input(?string $plan = null): bool
-    {
+    public static function allows_voice_input(?string $plan = null): bool {
         return self::allows(self::FEATURE_VOICE_INPUT, $plan);
     }
 
@@ -180,8 +184,7 @@ final class plan
      * AI-driven interaction (interactive HTML answers and units): Build
      * Knowledge and Pay as you grow.
      */
-    public static function allows_ai_driven(?string $plan = null): bool
-    {
+    public static function allows_ai_driven(?string $plan = null): bool {
         return self::allows(self::FEATURE_AI_DRIVEN, $plan);
     }
 
@@ -189,13 +192,11 @@ final class plan
      * The interaction type that may actually be sent for a wanted one: the
      * package decides, not the object's setting.
      */
-    public static function interaction_type(string $wanted): string
-    {
+    public static function interaction_type(string $wanted): string {
         return ($wanted === self::INTERACTION_AI && self::allows_ai_driven()) ? self::INTERACTION_AI : self::INTERACTION_TRAINER;
     }
 
-    public static function is_pay_as_you_grow(): bool
-    {
+    public static function is_pay_as_you_grow(): bool {
         return self::current() === self::PAYG;
     }
 
@@ -204,8 +205,7 @@ final class plan
      * customer carries a license key, and the partner's prices and cost
      * estimates do not apply.
      */
-    public static function billed_by_tarsus(): bool
-    {
+    public static function billed_by_tarsus(): bool {
         return config::license_key() !== '';
     }
 
@@ -213,8 +213,7 @@ final class plan
      * AI interactions the package includes per calendar month; none for
      * Pay as you grow.
      */
-    public static function included_credits(): int
-    {
+    public static function included_credits(): int {
         if (self::is_pay_as_you_grow()) {
             return 0;
         }
@@ -226,14 +225,12 @@ final class plan
      * Price of one interaction beyond the included amount (or of every
      * interaction on Pay as you grow).
      */
-    public static function price_per_request(): float
-    {
+    public static function price_per_request(): float {
         $value = config::get('plan_price');
         return ($value === null || $value === '') ? self::DEFAULT_PRICE : max(0.0, (float) str_replace(',', '.', $value));
     }
 
-    public static function currency(): string
-    {
+    public static function currency(): string {
         $value = trim((string) config::get('plan_currency', ''));
         return $value !== '' ? $value : self::DEFAULT_CURRENCY;
     }
@@ -241,8 +238,7 @@ final class plan
     /**
      * Money formatted for the interface language.
      */
-    public static function money(float $amount): string
-    {
+    public static function money(float $amount): string {
         $decimal = platform::user_language() === 'de' ? ',' : '.';
         $thousands = platform::user_language() === 'de' ? '.' : ',';
         return number_format($amount, 2, $decimal, $thousands) . ' ' . self::currency();

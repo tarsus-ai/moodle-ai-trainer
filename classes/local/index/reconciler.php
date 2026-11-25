@@ -1,4 +1,18 @@
 <?php
+// This file is part of Moodle - https://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
 namespace mod_tarsuscoach\local\index;
 
@@ -44,8 +58,7 @@ class reconciler
     /** Whether this request has already swept. */
     private static bool $swept = false;
 
-    public function __construct(?repository $repo = null, ?resolver $resolver = null, ?tracker $tracker = null)
-    {
+    public function __construct(?repository $repo = null, ?resolver $resolver = null, ?tracker $tracker = null) {
         $this->repo = $repo ?? new repository();
         $this->resolver = $resolver ?? new resolver();
         $this->tracker = $tracker ?? new tracker($this->repo, null, null, $this->resolver);
@@ -63,8 +76,7 @@ class reconciler
      *                           current material, when the caller has it.
      * @return array{withdrawn: int, changed: int, uploaded: int, failed: int, gone: bool}
      */
-    public function reconcile_container(int $containerref, int $uploadbudget = 0, bool $deliver = true, ?array $materials = null): array
-    {
+    public function reconcile_container(int $containerref, int $uploadbudget = 0, bool $deliver = true, ?array $materials = null): array {
         $summary = ['withdrawn' => 0, 'changed' => 0, 'uploaded' => 0, 'failed' => 0, 'gone' => false];
         $rows = $this->repo->get_by_container($containerref);
         if ($rows === []) {
@@ -111,7 +123,7 @@ class reconciler
             if ($row->status === status::INDEXED && $row->contenthash !== $material->content_hash()) {
                 $this->repo->set_status($resourceid, status::PENDING_REINDEX);
                 $changed[] = $resourceid;
-            } elseif ($row->status === status::PENDING_REINDEX) {
+            } else if ($row->status === status::PENDING_REINDEX) {
                 $changed[] = $resourceid;
             }
         }
@@ -154,8 +166,7 @@ class reconciler
      *
      * @return int How many resources will be sent to the new brain.
      */
-    public function retarget(): int
-    {
+    public function retarget(): int {
         // Read every affected row first: a row changed below would otherwise
         // be met again under its new status.
         $rows = [];
@@ -181,8 +192,7 @@ class reconciler
      *
      * @return array{containers: int, withdrawn: int, changed: int, uploaded: int, failed: int, confirmed: int}
      */
-    public function reconcile_all(int $uploadbudget): array
-    {
+    public function reconcile_all(int $uploadbudget): array {
         $total = ['containers' => 0, 'withdrawn' => 0, 'changed' => 0, 'uploaded' => 0, 'failed' => 0, 'confirmed' => 0];
         foreach ($this->repo->containers() as $containerref) {
             $total['containers']++;
@@ -212,8 +222,7 @@ class reconciler
      *
      * @return int How many rows were cleared.
      */
-    public function sweep(bool $force = false): int
-    {
+    public function sweep(bool $force = false): int {
         if (self::$swept && !$force) {
             return 0;
         }
@@ -249,8 +258,7 @@ class reconciler
      *
      * @return \stdClass[]
      */
-    public function outstanding(): array
-    {
+    public function outstanding(): array {
         return $this->repo->get_by_status(status::PENDING_DELETION);
     }
 
@@ -259,8 +267,7 @@ class reconciler
      *
      * @param array<string, \stdClass> $rows
      */
-    private function withdraw_container(int $containerref, array $rows): bool
-    {
+    private function withdraw_container(int $containerref, array $rows): bool {
         foreach ($rows as $resourceid => $row) {
             if ($row->status !== status::PENDING_DELETION && status::can_transition($row->status, status::PENDING_DELETION)) {
                 $this->repo->set_status($resourceid, status::PENDING_DELETION);
@@ -279,8 +286,7 @@ class reconciler
     /**
      * Run an outbound call, never letting its failure escape.
      */
-    private function deliver(callable $call): bool
-    {
+    private function deliver(callable $call): bool {
         try {
             $call();
             return true;
@@ -293,8 +299,7 @@ class reconciler
     /**
      * Allow this request to sweep again (tests).
      */
-    public static function reset_sweep(): void
-    {
+    public static function reset_sweep(): void {
         self::$swept = false;
     }
 }

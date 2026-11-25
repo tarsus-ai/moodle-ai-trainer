@@ -54,13 +54,21 @@ class plan_form extends \moodleform {
 
         $mform->addElement('text', 'plan_credits', get_string('plan_credits', 'mod_tarsuscoach'), ['size' => 10]);
         $mform->setType('plan_credits', PARAM_INT);
-        $mform->addElement('static', 'plan_credits_desc', '',
-            get_string('plan_credits_desc', 'mod_tarsuscoach', (object) ['default' => number_format(plan::DEFAULT_CREDITS)]));
+        $mform->addElement(
+            'static',
+            'plan_credits_desc',
+            '',
+            get_string('plan_credits_desc', 'mod_tarsuscoach', (object) ['default' => number_format(plan::DEFAULT_CREDITS)])
+        );
 
         $mform->addElement('text', 'plan_price', get_string('plan_price', 'mod_tarsuscoach'), ['size' => 8]);
         $mform->setType('plan_price', PARAM_RAW_TRIMMED);
-        $mform->addElement('static', 'plan_price_desc', '',
-            get_string('plan_price_desc', 'mod_tarsuscoach', (object) ['default' => number_format(plan::DEFAULT_PRICE, 2)]));
+        $mform->addElement(
+            'static',
+            'plan_price_desc',
+            '',
+            get_string('plan_price_desc', 'mod_tarsuscoach', (object) ['default' => number_format(plan::DEFAULT_PRICE, 2)])
+        );
 
         $mform->addElement('text', 'plan_currency', get_string('plan_currency', 'mod_tarsuscoach'), ['size' => 6, 'maxlength' => 8]);
         $mform->setType('plan_currency', PARAM_TEXT);

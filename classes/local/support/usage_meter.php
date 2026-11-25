@@ -1,4 +1,18 @@
 <?php
+// This file is part of Moodle - https://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
 namespace mod_tarsuscoach\local\support;
 
@@ -14,8 +28,7 @@ final class usage_meter
 {
     public const TABLE = 'tarsuscoach_usage';
 
-    public function record(int $containerref, int $objid, int $userid, string $operation, int $credits = 0): void
-    {
+    public function record(int $containerref, int $objid, int $userid, string $operation, int $credits = 0): void {
         platform::db()->insert_record(self::TABLE, (object) [
             'courseid' => $containerref,
             'tarsuscoachid' => $objid,
@@ -37,8 +50,7 @@ final class usage_meter
      *
      * @return array<string, array{calls: int, credits: int}>
      */
-    public function daily(int $since, ?int $objid = null): array
-    {
+    public function daily(int $since, ?int $objid = null): array {
         [$where, $params] = self::where($since, $objid, 'credits > 0');
         $days = [];
         $rows = platform::db()->get_recordset_select(self::TABLE, $where, $params, 'timecreated', 'id, timecreated, credits');
@@ -57,8 +69,7 @@ final class usage_meter
     /**
      * Distinct users with charged calls since a point in time.
      */
-    public function active_users(int $since, ?int $objid = null): int
-    {
+    public function active_users(int $since, ?int $objid = null): int {
         [$where, $params] = self::where($since, $objid, 'credits > 0 AND userid > 0');
         return (int) platform::db()->count_records_sql('SELECT COUNT(DISTINCT userid) FROM {' . self::TABLE . '} WHERE ' . $where, $params);
     }
@@ -68,8 +79,7 @@ final class usage_meter
      *
      * @return array<int, array{usrid: int, calls: int, credits: int, last: int}>
      */
-    public function per_user(int $since, ?int $objid = null, int $limit = 10): array
-    {
+    public function per_user(int $since, ?int $objid = null, int $limit = 10): array {
         [$where, $params] = self::where($since, $objid, 'credits > 0 AND userid > 0');
         $records = platform::db()->get_records_sql(
             'SELECT userid, COUNT(1) AS calls, SUM(credits) AS creditsum, MAX(timecreated) AS lastused FROM {' . self::TABLE . '}'
@@ -90,8 +100,7 @@ final class usage_meter
      *
      * @return array<string, array{calls: int, credits: int}>
      */
-    public function summary(int $since, ?int $objid = null): array
-    {
+    public function summary(int $since, ?int $objid = null): array {
         [$where, $params] = self::where($since, $objid, '');
         $records = platform::db()->get_records_sql(
             'SELECT operation, COUNT(1) AS calls, SUM(credits) AS creditsum FROM {' . self::TABLE . '} WHERE ' . $where . ' GROUP BY operation ORDER BY operation',
@@ -107,8 +116,7 @@ final class usage_meter
     /**
      * Remove a user's ledger rows (the conversation was erased).
      */
-    public function forget_user(int $objid, int $userid): void
-    {
+    public function forget_user(int $objid, int $userid): void {
         platform::db()->delete_records(self::TABLE, ['tarsuscoachid' => $objid, 'userid' => $userid]);
     }
 
@@ -118,8 +126,7 @@ final class usage_meter
      *
      * @return array{0: string, 1: array}
      */
-    private static function where(int $since, ?int $objid, string $extra): array
-    {
+    private static function where(int $since, ?int $objid, string $extra): array {
         $where = 'timecreated >= ?';
         $params = [$since];
         if ($extra !== '') {

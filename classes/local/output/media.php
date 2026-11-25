@@ -1,4 +1,18 @@
 <?php
+// This file is part of Moodle - https://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
 namespace mod_tarsuscoach\local\output;
 
@@ -37,8 +51,7 @@ final class media
      * an https link. '' when the value is neither (an empty GIF field, for
      * instance, means Tarsus found no GIF).
      */
-    public static function image(string $value): string
-    {
+    public static function image(string $value): string {
         $value = trim($value);
         if ($value === '') {
             return '';
@@ -70,8 +83,7 @@ final class media
      * carry them (data.content and data.extension). Tarsus stores SVG
      * pictures with the extension "svg" or "bin".
      */
-    public static function image_from_base64(string $content, string $extension): string
-    {
+    public static function image_from_base64(string $content, string $extension): string {
         $extension = strtolower(trim($extension, ". \t"));
         if ($extension === 'bin') {
             $extension = 'svg';
@@ -88,8 +100,7 @@ final class media
      * which format it sends, so the format is read from the first bytes;
      * the declared type is used only when those are not recognised.
      */
-    public static function audio(string $base64, string $declared = ''): string
-    {
+    public static function audio(string $base64, string $declared = ''): string {
         $payload = self::base64($base64);
         if ($payload === '') {
             return '';
@@ -97,8 +108,7 @@ final class media
         return 'data:' . self::audio_type($payload, $declared) . ';base64,' . $payload;
     }
 
-    private static function audio_type(string $payload, string $declared): string
-    {
+    private static function audio_type(string $payload, string $declared): string {
         $head = base64_decode(substr($payload, 0, 16), true);
         if (is_string($head) && $head !== '') {
             if (strncmp($head, 'RIFF', 4) === 0) {
@@ -125,8 +135,10 @@ final class media
         }
         $declared = strtolower(trim($declared));
         $subtype = substr($declared, 6);
-        if (strncmp($declared, 'audio/', 6) === 0 && $subtype !== ''
-            && strspn($subtype, 'abcdefghijklmnopqrstuvwxyz0123456789.+-') === strlen($subtype)) {
+        if (
+            strncmp($declared, 'audio/', 6) === 0 && $subtype !== ''
+            && strspn($subtype, 'abcdefghijklmnopqrstuvwxyz0123456789.+-') === strlen($subtype)
+        ) {
             return $declared;
         }
         return 'audio/wav';
@@ -135,8 +147,7 @@ final class media
     /**
      * Base64 without line breaks or spaces; '' when anything else is in it.
      */
-    private static function base64(string $value): string
-    {
+    private static function base64(string $value): string {
         $value = str_replace(["\r", "\n", "\t", ' '], '', $value);
         if ($value === '' || strspn($value, self::BASE64_ALPHABET) !== strlen($value)) {
             return '';

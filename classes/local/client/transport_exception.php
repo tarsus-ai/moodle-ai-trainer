@@ -1,4 +1,18 @@
 <?php
+// This file is part of Moodle - https://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
 namespace mod_tarsuscoach\local\client;
 
@@ -23,8 +37,7 @@ class transport_exception extends \RuntimeException
     /** @var string The start of the response body on an HTTP error, for callers that recognise the brain's messages. */
     public string $body;
 
-    public function __construct(int $httpstatus, string $detail = '', string $body = '')
-    {
+    public function __construct(int $httpstatus, string $detail = '', string $body = '') {
         $this->httpstatus = $httpstatus;
         $this->body = $body;
         parent::__construct(
@@ -37,8 +50,7 @@ class transport_exception extends \RuntimeException
      * Whether Tarsus could not be reached or failed itself: no answer, a
      * timeout or a 5xx. Only these trip the circuit breaker.
      */
-    public function is_outage(): bool
-    {
+    public function is_outage(): bool {
         return $this->httpstatus === 0 || $this->httpstatus >= 500;
     }
 
@@ -47,8 +59,7 @@ class transport_exception extends \RuntimeException
      * answers refusals with an upper-case sentence such as "UNKNOWN OR
      * INACTIVE API KEY" as the whole body.
      */
-    public function says(string $phrase): bool
-    {
+    public function says(string $phrase): bool {
         return $phrase !== '' && stripos($this->body, $phrase) !== false;
     }
 }

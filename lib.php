@@ -80,8 +80,10 @@ function tarsuscoach_form_values(stdClass $data): array {
                 }
             }
             $values[$name] = $ticked;
-        } else if (in_array($name, ['askenabled', 'testenabled', 'buildenabled', 'discussenabled', 'voiceinput',
-                'referencesenabled', 'visualaccessibility', 'anticheat', 'gifenabled'], true)) {
+        } else if (
+            in_array($name, ['askenabled', 'testenabled', 'buildenabled', 'discussenabled', 'voiceinput',
+                'referencesenabled', 'visualaccessibility', 'anticheat', 'gifenabled'], true)
+        ) {
             $values[$name] = !empty($data->$name);
         } else if (property_exists($data, $name)) {
             $values[$name] = $data->$name;

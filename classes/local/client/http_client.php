@@ -1,4 +1,18 @@
 <?php
+// This file is part of Moodle - https://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
 namespace mod_tarsuscoach\local\client;
 
@@ -73,16 +87,14 @@ class http_client implements client_interface
     protected string $brainid;
     protected string $licensekey;
 
-    public function __construct(string $baseurl, string $apikey, string $brainid, string $licensekey = '')
-    {
+    public function __construct(string $baseurl, string $apikey, string $brainid, string $licensekey = '') {
         $this->baseurl = $baseurl;
         $this->apikey = $apikey;
         $this->brainid = $brainid;
         $this->licensekey = $licensekey;
     }
 
-    public function track_resource(array $resource): array
-    {
+    public function track_resource(array $resource): array {
         [$path, $params, $tempfile] = $this->build_track_request($resource);
 
         try {
@@ -106,8 +118,7 @@ class http_client implements client_interface
         ];
     }
 
-    public function retrieve_feed(array $params): array
-    {
+    public function retrieve_feed(array $params): array {
         $body = $this->send('POST', '/api/t0/activity/retrieve/next/widgets', [
             'brain_id' => $this->brain(),
             'context_id' => (string) ($params['contextid'] ?? ''),
@@ -159,8 +170,7 @@ class http_client implements client_interface
         ];
     }
 
-    public function generate_stack_audio(array $params): array
-    {
+    public function generate_stack_audio(array $params): array {
         $body = $this->send('POST', '/api/t0/activity/generate/audio/explainer/stack', [
             'brain_id' => $this->brain(),
             'context_id' => (string) ($params['contextid'] ?? ''),
@@ -195,8 +205,7 @@ class http_client implements client_interface
         ];
     }
 
-    public function reset_conversation(string $contextid, string $userid): void
-    {
+    public function reset_conversation(string $contextid, string $userid): void {
         $this->send('DELETE', '/api/t0/activity/reset/user/widgets', [
             'brain_id' => $this->brain(),
             'context_id' => $contextid,
@@ -205,8 +214,7 @@ class http_client implements client_interface
         ]);
     }
 
-    public function untrack_resource(array $resourceids): array
-    {
+    public function untrack_resource(array $resourceids): array {
         $result = [];
 
         foreach ($this->chunk($resourceids) as $chunk) {
@@ -226,8 +234,7 @@ class http_client implements client_interface
         return $result;
     }
 
-    public function untrack_assets(array $assetids): array
-    {
+    public function untrack_assets(array $assetids): array {
         $result = [];
 
         foreach ($this->chunk($assetids) as $chunk) {
@@ -247,8 +254,7 @@ class http_client implements client_interface
         return $result;
     }
 
-    public function get_resource_status(string $resourceid): array
-    {
+    public function get_resource_status(string $resourceid): array {
         // The plural endpoint reports a brain-side status; the singular one does not.
         $checked = $this->check_tracked_resources([$resourceid]);
 
@@ -256,8 +262,7 @@ class http_client implements client_interface
             ?? ['status' => status::PENDING_CONFIRMATION, 'tracked' => false, 'brainstatus' => ''];
     }
 
-    public function check_tracked_resources(array $resourceids): array
-    {
+    public function check_tracked_resources(array $resourceids): array {
         $result = [];
 
         foreach ($this->chunk($resourceids) as $chunk) {
@@ -281,8 +286,7 @@ class http_client implements client_interface
         return $result;
     }
 
-    public function list_brains(): array
-    {
+    public function list_brains(): array {
         $body = $this->send('GET', 'awareness/list/memories', []);
 
         $brains = [];
@@ -302,8 +306,7 @@ class http_client implements client_interface
         return $brains;
     }
 
-    public function get_usage(int $start, int $end): array
-    {
+    public function get_usage(int $start, int $end): array {
         $body = $this->send('GET', 'awareness/get/usage', [
             'brain_id' => $this->brain(),
             'start_timestamp' => (string) max(0, $start),
@@ -331,8 +334,7 @@ class http_client implements client_interface
         return ['total' => round($total, 2), 'items' => $items];
     }
 
-    public function list_voices(): array
-    {
+    public function list_voices(): array {
         $body = $this->send('GET', 'awareness/list/clone-voices', ['brain_id' => $this->brain()]);
 
         $voices = [];
@@ -356,8 +358,7 @@ class http_client implements client_interface
      * @param array<string, mixed> $params
      * @return array<string, string>
      */
-    private function generation_fields(array $params, string $state): array
-    {
+    private function generation_fields(array $params, string $state): array {
         // context_type is a constant, default_robot stays true, input is
         // text unless a recording is sent. full_brain_access must be an
         // explicit 'false': that is what makes resource_ids the retrieval
@@ -402,14 +403,12 @@ class http_client implements client_interface
      *
      * @param array<string, mixed> $params
      */
-    public static function thinking_level(array $params): int
-    {
+    public static function thinking_level(array $params): int {
         $level = (int) ($params['thinkinglevel'] ?? self::THINKING_LEVEL_DEFAULT);
         return in_array($level, self::THINKING_LEVELS, true) ? $level : self::THINKING_LEVEL_DEFAULT;
     }
 
-    private static function interaction_type(array $params): string
-    {
+    private static function interaction_type(array $params): string {
         $type = (string) ($params['interactiontype'] ?? '');
         return $type === 'ai-driven' ? 'ai-driven' : 'trainer-driven';
     }
@@ -423,8 +422,7 @@ class http_client implements client_interface
      *
      * @param array<string, mixed> $bit
      */
-    private static function page_of(array $bit): string
-    {
+    private static function page_of(array $bit): string {
         $type = (string) ($bit['type'] ?? '');
         if ($type !== self::WEB_WIDGET && $type !== self::LIVE_WIDGET) {
             return '';
@@ -444,8 +442,7 @@ class http_client implements client_interface
      * @param array<string, mixed> $widget
      * @return array<string, mixed>|null
      */
-    private static function feed_item(array $widget): ?array
-    {
+    private static function feed_item(array $widget): ?array {
         if (isset($widget['stackedWidgets']) && is_array($widget['stackedWidgets'])) {
             return self::learn_item($widget);
         }
@@ -480,8 +477,7 @@ class http_client implements client_interface
      * @param array<string, mixed> $data
      * @return array<string, mixed>
      */
-    private static function exchange_item(array $widget, array $bit, array $data, string $page): array
-    {
+    private static function exchange_item(array $widget, array $bit, array $data, string $page): array {
         return [
             'kind' => 'exchange',
             'id' => self::str($widget['_id'] ?? ''),
@@ -494,8 +490,7 @@ class http_client implements client_interface
         ];
     }
 
-    public function generate_widgets(array $params): array
-    {
+    public function generate_widgets(array $params): array {
         $fields = $this->generation_fields($params, 'ask') + [
             'query' => (string) ($params['query'] ?? ''),
         ];
@@ -513,7 +508,7 @@ class http_client implements client_interface
         $replywidget = trim((string) ($params['replytowidget'] ?? ''));
         if ($replystack !== '') {
             $fields['reply_to_stack'] = $replystack;
-        } elseif ($replywidget !== '') {
+        } else if ($replywidget !== '') {
             $fields['reply_to_widget'] = $replywidget;
         }
 
@@ -586,8 +581,7 @@ class http_client implements client_interface
      * @param array<string, mixed> $params
      * @return array{page: string, progress: array<string, float>}
      */
-    public function start_discuss(array $params): array
-    {
+    public function start_discuss(array $params): array {
         $fields = $this->generation_fields($params, 'discuss') + ['query' => ''];
         $industry = trim((string) ($params['industry'] ?? ''));
         if ($industry !== '') {
@@ -628,8 +622,7 @@ class http_client implements client_interface
      * @param array<string, mixed> $params contextid, userid, state, widgetid
      * @return array<int, array<string, mixed>>
      */
-    public function get_references(array $params): array
-    {
+    public function get_references(array $params): array {
         $body = $this->send('POST', '/api/t0/activity/retrieve/widget/references', [
             'brain_id' => $this->brain(),
             'context_id' => (string) ($params['contextid'] ?? ''),
@@ -657,8 +650,7 @@ class http_client implements client_interface
      * @param array<string, mixed> $bit
      * @return array<string, mixed>
      */
-    private static function reference_item(array $bit): array
-    {
+    private static function reference_item(array $bit): array {
         // A bit is either flat or a vector-store point with the bit in its payload.
         if (isset($bit['payload']) && is_array($bit['payload'])) {
             $bit = $bit['payload'] + ['id' => $bit['id'] ?? ''];
@@ -676,7 +668,7 @@ class http_client implements client_interface
                     $rows[] = array_values(array_map([self::class, 'str'], $cells));
                 }
             }
-        } elseif ($type === 'image' && is_array($data)) {
+        } else if ($type === 'image' && is_array($data)) {
             $image = media::image_from_base64(self::str($data['content'] ?? ''), self::str($data['extension'] ?? ''));
             if ($image === '') {
                 $image = media::image(self::str($bit['url'] ?? ''));
@@ -685,7 +677,7 @@ class http_client implements client_interface
                 // Tarsus marks a picture without a description this way.
                 $text = '';
             }
-        } elseif ($type === 'question' && is_array($data)) {
+        } else if ($type === 'question' && is_array($data)) {
             $question = self::str($data['question'] ?? '');
             $answer = $data['answer'] ?? '';
             if ($question !== '') {
@@ -714,8 +706,7 @@ class http_client implements client_interface
      * @param string[] $userids Pseudonymised user ids.
      * @return array<string, array<string, float>> User id => figures.
      */
-    public function get_context_statistics(string $contextid, array $userids): array
-    {
+    public function get_context_statistics(string $contextid, array $userids): array {
         $result = [];
         foreach (array_chunk(array_values(array_unique(array_filter(array_map('strval', $userids), 'strlen'))), 200) as $chunk) {
             $parameters = [];
@@ -742,8 +733,7 @@ class http_client implements client_interface
      *
      * @return array{xp: array<int, array{x: int, y: float}>, units: array<int, array{x: int, y: float}>}
      */
-    public function get_user_analytics(string $contextid, string $userid, int $start, int $end): array
-    {
+    public function get_user_analytics(string $contextid, string $userid, int $start, int $end): array {
         $body = $this->send('POST', '/api/t0/activity/retrieve/user/analytics', [
             'brain_id' => $this->brain(),
             'context_id' => $contextid,
@@ -765,8 +755,7 @@ class http_client implements client_interface
         return ['xp' => $points($analytics['experiencePoints'] ?? []), 'units' => $points($analytics['learningUnits'] ?? [])];
     }
 
-    public function generate_practice_widget(array $params): array
-    {
+    public function generate_practice_widget(array $params): array {
         // Same call as the chat, but state 'practice' makes the brain
         // generate the next question instead of answering one. The query is
         // required by the endpoint and stays empty here; question_types
@@ -836,8 +825,7 @@ class http_client implements client_interface
         ];
     }
 
-    public function generate_learn_widget(array $params): array
-    {
+    public function generate_learn_widget(array $params): array {
         // Same call as the practice, with state 'learn': the brain first
         // sends the learning objectives, then one micro-learning stack per
         // call. learning_method picks the didactic concept, gif allows
@@ -907,8 +895,7 @@ class http_client implements client_interface
      * @param array<string, mixed> $data
      * @return array<string, mixed>
      */
-    private static function question_item(array $widget, string $type, array $data): array
-    {
+    private static function question_item(array $widget, string $type, array $data): array {
         $bit = (array) ($widget['bit'] ?? []);
         $choices = [];
         foreach ((array) ($data['choices'] ?? []) as $choice) {
@@ -951,8 +938,7 @@ class http_client implements client_interface
      * @param array<string, mixed> $widget
      * @return array<string, mixed>|null
      */
-    private static function learn_item(array $widget): ?array
-    {
+    private static function learn_item(array $widget): ?array {
         if (isset($widget['stackedWidgets']) && is_array($widget['stackedWidgets'])) {
             $slides = [];
             foreach ($widget['stackedWidgets'] as $slide) {
@@ -1036,8 +1022,7 @@ class http_client implements client_interface
      * @param array<string, mixed> $slide
      * @return array<string, mixed>|null
      */
-    private static function slide_of(array $slide): ?array
-    {
+    private static function slide_of(array $slide): ?array {
         $bit = (array) ($slide['bit'] ?? []);
         $data = (array) ($bit['data'] ?? []);
         $type = (string) ($bit['type'] ?? '');
@@ -1100,8 +1085,7 @@ class http_client implements client_interface
      * @param array<string, mixed> $data
      * @return array{0: string, 1: string}
      */
-    private static function image_of(array $data): array
-    {
+    private static function image_of(array $data): array {
         $image = $data['image'] ?? null;
         if (!is_array($image)) {
             return ['', 'right'];
@@ -1121,8 +1105,7 @@ class http_client implements client_interface
      * @param array<string, mixed> $data
      * @return array<string, mixed>
      */
-    private static function page_stack(array $widget, array $bit, array $data, string $page): array
-    {
+    private static function page_stack(array $widget, array $bit, array $data, string $page): array {
         $id = self::str($widget['stackId'] ?? ($widget['_id'] ?? ''));
         return [
             'kind' => 'stack',
@@ -1141,8 +1124,7 @@ class http_client implements client_interface
         ];
     }
 
-    public function evaluate_practice_answer(array $params): array
-    {
+    public function evaluate_practice_answer(array $params): array {
         $paths = [
             'singleChoiceQuestionWidget' => '/api/t0/activity/evaluate/single-choice-question/widget',
             'trueFalseQuestionWidget' => '/api/t0/activity/evaluate/true-false-question/widget',
@@ -1186,7 +1168,7 @@ class http_client implements client_interface
                 static fn(array $entry): array => ['variable' => $entry['variable'], 'answer' => $entry['answer']],
                 self::variable_answers($params['useranswers'])
             ));
-        } elseif (!empty($params['usertable'])) {
+        } else if (!empty($params['usertable'])) {
             // A spreadsheet calculation (and an accounting task, which comes
             // as one) is answered as the whole table: the given cells echoed,
             // the '?' cells filled, under the column names the question came
@@ -1267,8 +1249,7 @@ class http_client implements client_interface
      * @param array<int|string, mixed> $rows
      * @return string[]
      */
-    private static function table_columns(array $rows): array
-    {
+    private static function table_columns(array $rows): array {
         foreach ($rows as $row) {
             if (is_array($row)) {
                 return array_values(array_map('strval', array_filter(
@@ -1288,8 +1269,7 @@ class http_client implements client_interface
      * @param string[] $columns
      * @return array<int, array<int, array{value: string, ask: bool}>>
      */
-    private static function question_table(array $data, array $columns): array
-    {
+    private static function question_table(array $data, array $columns): array {
         $rows = [];
         foreach (self::table_values($data['questionTable'] ?? [], $columns) as $values) {
             $rows[] = array_map(static fn(string $value): array => ['value' => $value, 'ask' => trim($value) === '?'], $values);
@@ -1304,8 +1284,7 @@ class http_client implements client_interface
      * @param string[] $columns
      * @return array<int, string[]>
      */
-    private static function table_values($entries, array $columns): array
-    {
+    private static function table_values($entries, array $columns): array {
         $rows = [];
         foreach ((array) $entries as $entry) {
             if (!is_array($entry)) {
@@ -1329,8 +1308,7 @@ class http_client implements client_interface
      * @param string[] $columns
      * @return array<int, array<int, array{value: string, verdict: int}>>
      */
-    private static function table_verdicts(array $data, array $columns): array
-    {
+    private static function table_verdicts(array $data, array $columns): array {
         $evaluation = (array) ($data['evaluation'] ?? []);
         $mask = array_values(array_filter((array) ($evaluation['evaluationMask'] ?? []), 'is_array'));
         $rows = [];
@@ -1351,8 +1329,7 @@ class http_client implements client_interface
      * @param array<string, mixed> $data
      * @return array<int, array{variable: string, answer: string, iscorrect: bool, clarification: string}>
      */
-    private static function variable_verdicts(array $data): array
-    {
+    private static function variable_verdicts(array $data): array {
         $evaluation = (array) ($data['evaluation'] ?? []);
         $verdicts = [];
         foreach ((array) ($evaluation['evaluationMask'] ?? []) as $entry) {
@@ -1374,8 +1351,7 @@ class http_client implements client_interface
      * @param array<string, mixed> $data
      * @return string[]
      */
-    private static function variables_of(array $data): array
-    {
+    private static function variables_of(array $data): array {
         $variables = [];
         foreach ((array) ($data['answers'] ?? []) as $entry) {
             if (!is_array($entry)) {
@@ -1395,8 +1371,7 @@ class http_client implements client_interface
      * @param mixed $entries
      * @return array<int, array{variable: string, answer: string, iscorrect: bool, clarification: string}>
      */
-    private static function variable_answers($entries): array
-    {
+    private static function variable_answers($entries): array {
         $answers = [];
         foreach ((array) $entries as $entry) {
             if (!is_array($entry)) {
@@ -1421,8 +1396,7 @@ class http_client implements client_interface
      *
      * @param array<string, mixed> $params
      */
-    private static function operators(array $params): string
-    {
+    private static function operators(array $params): string {
         $value = strtolower(trim((string) ($params['operators'] ?? '')));
         return in_array($value, ['standard', 'ihk'], true) ? $value : 'standard';
     }
@@ -1432,8 +1406,7 @@ class http_client implements client_interface
      *
      * @param array<string, mixed> $params
      */
-    private static function learn_tempo(array $params): string
-    {
+    private static function learn_tempo(array $params): string {
         $value = $params['learntempo'] ?? null;
         if ($value === null || $value === '' || !is_numeric($value)) {
             return '1';
@@ -1447,8 +1420,7 @@ class http_client implements client_interface
      *
      * @param array<int|string, mixed> $map
      */
-    private static function encode_question_types(array $map): string
-    {
+    private static function encode_question_types(array $map): string {
         $encoded = [];
         foreach ($map as $grade => $types) {
             $encoded[(string) (int) $grade] = array_values((array) $types);
@@ -1461,8 +1433,7 @@ class http_client implements client_interface
      *
      * @param mixed $choice
      */
-    private static function choice_text($choice): string
-    {
+    private static function choice_text($choice): string {
         if (is_bool($choice)) {
             return $choice ? 'true' : 'false';
         }
@@ -1472,8 +1443,7 @@ class http_client implements client_interface
     /**
      * Compare answers leniently: case and surrounding space do not matter.
      */
-    private static function normalise_answer(string $answer): string
-    {
+    private static function normalise_answer(string $answer): string {
         return mb_strtolower(trim($answer), 'UTF-8');
     }
 
@@ -1482,8 +1452,7 @@ class http_client implements client_interface
      *
      * @param mixed $value
      */
-    private static function str($value): string
-    {
+    private static function str($value): string {
         if (is_string($value)) {
             return $value;
         }
@@ -1505,8 +1474,7 @@ class http_client implements client_interface
      * @param array<string, mixed> $widgetdata
      * @return array<string, float>
      */
-    private static function extract_progress(array $activity, array $widgetdata): array
-    {
+    private static function extract_progress(array $activity, array $widgetdata): array {
         $pick = static function (string $key) use ($activity, $widgetdata): float {
             $value = $widgetdata[$key] ?? ($activity[$key] ?? 0);
             return is_numeric($value) ? (float) $value : 0.0;
@@ -1534,8 +1502,7 @@ class http_client implements client_interface
      *
      * @param array<string, mixed> $entry
      */
-    private function map_status(array $entry): string
-    {
+    private function map_status(array $entry): string {
         switch (strtolower(self::str($entry['status'] ?? ''))) {
             case 'done':
                 return status::INDEXED;
@@ -1552,8 +1519,7 @@ class http_client implements client_interface
      * @param array<string, mixed> $resource
      * @return array{0: string, 1: array<string, mixed>, 2: ?string} Path, form fields, temp file to clean up.
      */
-    private function build_track_request(array $resource): array
-    {
+    private function build_track_request(array $resource): array {
         $title = (string) ($resource['title'] ?? '');
         $type = (string) ($resource['type'] ?? bit_type::TEXT);
 
@@ -1586,8 +1552,7 @@ class http_client implements client_interface
      * @param array<string, mixed> $common
      * @return array{0: string, 1: array<string, mixed>, 2: string}
      */
-    private function build_file_track_request(array $resource, array $common, string $title, string $type): array
-    {
+    private function build_file_track_request(array $resource, array $common, string $title, string $type): array {
         $temppath = self::copy_to_temp((string) ($resource['rid'] ?? ''));
         if ($temppath === null) {
             throw new transport_exception(0, 'stored file for the resource no longer exists');
@@ -1615,8 +1580,7 @@ class http_client implements client_interface
      *
      * @return string|null The temporary path, or null when the file is gone.
      */
-    public static function copy_to_temp(string $rid): ?string
-    {
+    public static function copy_to_temp(string $rid): ?string {
         if ($rid === '' || !ctype_digit($rid)) {
             return null;
         }
@@ -1640,8 +1604,7 @@ class http_client implements client_interface
      * deliberately does not go through here: an admin must be able to
      * discover the available brains before one has been chosen.
      */
-    private function brain(): string
-    {
+    private function brain(): string {
         $brainid = trim($this->brainid);
         if ($brainid === '' && trim($this->licensekey) === '') {
             throw new configuration_exception('err_nobrainselected');
@@ -1655,8 +1618,7 @@ class http_client implements client_interface
      * @param string[] $resourceids
      * @return array<int, string[]>
      */
-    private function chunk(array $resourceids): array
-    {
+    private function chunk(array $resourceids): array {
         $ids = array_values(array_unique(array_filter(array_map('strval', $resourceids), 'strlen')));
 
         return $ids === [] ? [] : array_chunk($ids, self::BATCH_LIMIT);
@@ -1671,8 +1633,7 @@ class http_client implements client_interface
      * @param array<string, mixed> $params
      * @return array<string, mixed>
      */
-    private function send(string $method, string $path, array $params, bool $uploading = false, ?int $timeout = null): array
-    {
+    private function send(string $method, string $path, array $params, bool $uploading = false, ?int $timeout = null): array {
         $baseurl = rtrim(trim($this->baseurl), '/');
 
         if ($baseurl === '' || trim($this->apikey) === '') {
@@ -1749,13 +1710,12 @@ class http_client implements client_interface
      * @param array<string, mixed> $params
      * @return array<string, mixed>
      */
-    protected function request_fields(array $params): array
-    {
+    protected function request_fields(array $params): array {
         $params['api_key'] = $this->apikey;
         if (trim($this->licensekey) !== '') {
             $params[self::LICENSE_FIELD] = trim($this->licensekey);
             unset($params['brain_id']);
-        } elseif (isset($params['brain_id']) && (string) $params['brain_id'] === '') {
+        } else if (isset($params['brain_id']) && (string) $params['brain_id'] === '') {
             unset($params['brain_id']);
         }
         return $params;
@@ -1767,8 +1727,7 @@ class http_client implements client_interface
      *
      * @param \CurlHandle|resource $curl
      */
-    private static function apply_proxy($curl, string $url): void
-    {
+    private static function apply_proxy($curl, string $url): void {
         global $CFG;
         if (empty($CFG->proxyhost) || is_proxybypass($url)) {
             return;

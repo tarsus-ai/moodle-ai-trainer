@@ -1,4 +1,18 @@
 <?php
+// This file is part of Moodle - https://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
 namespace mod_tarsuscoach\local\activity;
 
@@ -26,8 +40,7 @@ final class conversation
      * @param string[] $allowed Resource ids allowed to ground the call.
      * @return array<string, mixed>
      */
-    public static function params(int $objid, string $title, string $description, settings $settings, array $allowed): array
-    {
+    public static function params(int $objid, string $title, string $description, settings $settings, array $allowed): array {
         $name = trim($title);
         $description = trim(html_entity_decode(strip_tags($description), ENT_QUOTES, 'UTF-8'));
         if ($description === '') {
@@ -70,8 +83,7 @@ final class conversation
     /**
      * The user's interface language, reduced to what the brain supports.
      */
-    public static function language(): string
-    {
+    public static function language(): string {
         $language = platform::user_language();
         return in_array($language, self::LANGUAGES, true) ? $language : 'de';
     }

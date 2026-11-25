@@ -59,8 +59,10 @@ class mod_tarsuscoach_mod_form extends moodleform_mod {
             if (!plan::allows_mode($mode)) {
                 // Not part of the customer's package: shown, explained, locked.
                 $mform->hardFreeze($name);
-                $mform->addElement('static', $name . 'locked', '', html_writer::tag('strong',
-                    get_string('plan_mode_unavailable', 'mod_tarsuscoach', (object) ['plan' => $plan])));
+                $mform->addElement('static', $name . 'locked', '', html_writer::tag(
+                    'strong',
+                    get_string('plan_mode_unavailable', 'mod_tarsuscoach', (object) ['plan' => $plan])
+                ));
             }
         }
 
@@ -69,25 +71,43 @@ class mod_tarsuscoach_mod_form extends moodleform_mod {
         $mform->addElement('static', 'tarsusinteractiondesc', '', get_string('settings_interaction_desc', 'mod_tarsuscoach'));
         $radios = [
             $mform->createElement('radio', 'interactiontype', '', get_string('interaction_trainer', 'mod_tarsuscoach'), plan::INTERACTION_TRAINER),
-            $mform->createElement('radio', 'interactiontype', '', get_string('interaction_ai', 'mod_tarsuscoach'), plan::INTERACTION_AI,
-                plan::allows_ai_driven() ? [] : ['disabled' => 'disabled']),
+            $mform->createElement(
+                'radio',
+                'interactiontype',
+                '',
+                get_string('interaction_ai', 'mod_tarsuscoach'),
+                plan::INTERACTION_AI,
+                plan::allows_ai_driven() ? [] : ['disabled' => 'disabled']
+            ),
         ];
         $mform->addGroup($radios, 'interactiontypegroup', get_string('interactiontype', 'mod_tarsuscoach'), html_writer::empty_tag('br'), false);
         if (!plan::allows_ai_driven()) {
-            $mform->addElement('static', 'interactionlocked', '', html_writer::tag('strong',
-                get_string('plan_interaction_unavailable', 'mod_tarsuscoach', (object) ['plan' => $plan])));
+            $mform->addElement('static', 'interactionlocked', '', html_writer::tag(
+                'strong',
+                get_string('plan_interaction_unavailable', 'mod_tarsuscoach', (object) ['plan' => $plan])
+            ));
         }
 
         $mform->addElement('advcheckbox', 'voiceinput', get_string('voiceinput', 'mod_tarsuscoach'), get_string('voiceinput_help', 'mod_tarsuscoach'));
         if (!plan::allows_voice_input()) {
             $mform->hardFreeze('voiceinput');
-            $mform->addElement('static', 'voicelocked', '', html_writer::tag('strong',
-                get_string('plan_feature_locked', 'mod_tarsuscoach', (object) ['plan' => $plan])));
+            $mform->addElement('static', 'voicelocked', '', html_writer::tag(
+                'strong',
+                get_string('plan_feature_locked', 'mod_tarsuscoach', (object) ['plan' => $plan])
+            ));
         }
-        $mform->addElement('advcheckbox', 'referencesenabled', get_string('referencesenabled', 'mod_tarsuscoach'),
-            get_string('referencesenabled_help', 'mod_tarsuscoach'));
-        $mform->addElement('advcheckbox', 'visualaccessibility', get_string('visualaccessibility', 'mod_tarsuscoach'),
-            get_string('visualaccessibility_help', 'mod_tarsuscoach'));
+        $mform->addElement(
+            'advcheckbox',
+            'referencesenabled',
+            get_string('referencesenabled', 'mod_tarsuscoach'),
+            get_string('referencesenabled_help', 'mod_tarsuscoach')
+        );
+        $mform->addElement(
+            'advcheckbox',
+            'visualaccessibility',
+            get_string('visualaccessibility', 'mod_tarsuscoach'),
+            get_string('visualaccessibility_help', 'mod_tarsuscoach')
+        );
 
         // Thinking level: how thoroughly the coach thinks.
         $levels = [];

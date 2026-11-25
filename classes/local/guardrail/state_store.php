@@ -1,4 +1,18 @@
 <?php
+// This file is part of Moodle - https://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
 namespace mod_tarsuscoach\local\guardrail;
 
@@ -24,8 +38,7 @@ class state_store
     /**
      * Fetch a guardrail row, creating it with defaults if absent.
      */
-    public function get(string $name): \stdClass
-    {
+    public function get(string $name): \stdClass {
         $row = platform::db()->get_record(self::TABLE, ['name' => $name]);
         if (!$row) {
             $defaults = $this->default_row($name);
@@ -51,8 +64,7 @@ class state_store
      *
      * @param callable(\stdClass): void $mutator
      */
-    public function mutate(string $name, callable $mutator): \stdClass
-    {
+    public function mutate(string $name, callable $mutator): \stdClass {
         $lock = null;
         try {
             $lock = \core\lock\lock_config::get_lock_factory('mod_tarsuscoach')->get_lock('guardrail_' . $name, self::LOCK_TIMEOUT);
@@ -78,8 +90,7 @@ class state_store
     /**
      * Store a guardrail row (insert or update by name).
      */
-    private function write(string $name, \stdClass $row): void
-    {
+    private function write(string $name, \stdClass $row): void {
         $db = platform::db();
         $record = (object) [
             'state' => (string) $row->state,
@@ -110,8 +121,7 @@ class state_store
         }
     }
 
-    private function default_row(string $name): \stdClass
-    {
+    private function default_row(string $name): \stdClass {
         return (object) [
             'name' => $name,
             'state' => 'closed',

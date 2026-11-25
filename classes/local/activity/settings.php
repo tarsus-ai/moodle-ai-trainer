@@ -1,4 +1,18 @@
 <?php
+// This file is part of Moodle - https://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
 namespace mod_tarsuscoach\local\activity;
 
@@ -58,14 +72,12 @@ final class settings
     /** Completion threshold in percent; 0 switches the rule off. */
     public int $completionprogress = self::DEFAULT_COMPLETION;
 
-    public function __construct(int $objid = 0)
-    {
+    public function __construct(int $objid = 0) {
         $this->objid = $objid;
         $this->questiontypes = didactics::default_question_types();
     }
 
-    public static function load(int $objid): self
-    {
+    public static function load(int $objid): self {
         $settings = new self($objid);
         $record = platform::db()->get_record(self::TABLE, ['id' => $objid]);
         if (!$record) {
@@ -96,8 +108,7 @@ final class settings
         return $settings;
     }
 
-    public function save(): void
-    {
+    public function save(): void {
         if ($this->objid <= 0) {
             return;
         }
@@ -133,8 +144,7 @@ final class settings
     /**
      * A valid interaction type; trainer-driven for anything else.
      */
-    public static function interaction(string $value): string
-    {
+    public static function interaction(string $value): string {
         return in_array($value, plan::INTERACTIONS, true) ? $value : plan::INTERACTION_TRAINER;
     }
 
@@ -142,16 +152,14 @@ final class settings
      * The interaction type that is actually in effect: the object's wish,
      * bounded by the plan.
      */
-    public function effective_interaction(): string
-    {
+    public function effective_interaction(): string {
         return plan::interaction_type($this->interactiontype);
     }
 
     /**
      * Whether a mode is switched on here and included in the plan.
      */
-    public function mode_active(string $mode): bool
-    {
+    public function mode_active(string $mode): bool {
         return $this->mode_enabled($mode) && plan::allows_mode($mode);
     }
 
@@ -160,8 +168,7 @@ final class settings
      *
      * @return string[]
      */
-    public function available_modes(): array
-    {
+    public function available_modes(): array {
         return array_values(array_filter($this->modes(), static fn(string $mode): bool => plan::allows_mode($mode)));
     }
 
@@ -169,15 +176,13 @@ final class settings
     /**
      * A copy of these settings for another object.
      */
-    public function copy_to(int $objid): self
-    {
+    public function copy_to(int $objid): self {
         $copy = clone $this;
         $copy->objid = $objid;
         return $copy;
     }
 
-    public function mode_enabled(string $mode): bool
-    {
+    public function mode_enabled(string $mode): bool {
         switch ($mode) {
             case 'ask':
                 return $this->askenabled;
@@ -195,8 +200,7 @@ final class settings
      * Whether learners may speak their question: switched on here and part
      * of the package.
      */
-    public function voice_input_active(): bool
-    {
+    public function voice_input_active(): bool {
         return $this->voiceinput && $this->mode_active('ask') && plan::allows_voice_input();
     }
 
@@ -205,16 +209,14 @@ final class settings
      *
      * @return string[]
      */
-    public function modes(): array
-    {
+    public function modes(): array {
         return array_values(array_filter(didactics::MODES, fn(string $mode): bool => $this->mode_enabled($mode)));
     }
 
     /**
      * Whether the online flag of an object is set (cheap, for access checks).
      */
-    public static function is_online(int $objid): bool
-    {
+    public static function is_online(int $objid): bool {
         $cm = get_coursemodule_from_instance('tarsuscoach', $objid, 0, false, IGNORE_MISSING);
         return $cm !== false && !empty($cm->visible);
     }
@@ -222,8 +224,7 @@ final class settings
     /**
      * @param int[] $allowed
      */
-    private static function within(int $value, array $allowed, int $default): int
-    {
+    private static function within(int $value, array $allowed, int $default): int {
         return in_array($value, $allowed, true) ? $value : $default;
     }
 }

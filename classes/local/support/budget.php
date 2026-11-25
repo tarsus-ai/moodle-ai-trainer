@@ -1,4 +1,18 @@
 <?php
+// This file is part of Moodle - https://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
 namespace mod_tarsuscoach\local\support;
 
@@ -45,27 +59,23 @@ final class budget
      * Midnight of the first day of the month containing $time, in the
      * installation's time zone.
      */
-    public static function month_start(?int $time = null): int
-    {
+    public static function month_start(?int $time = null): int {
         $date = self::local($time ?? time());
         $date->modify('first day of this month midnight');
         return $date->getTimestamp();
     }
 
-    public static function next_month_start(?int $time = null): int
-    {
+    public static function next_month_start(?int $time = null): int {
         $date = self::local($time ?? time());
         $date->modify('first day of next month midnight');
         return $date->getTimestamp();
     }
 
-    public static function month_key(?int $time = null): string
-    {
+    public static function month_key(?int $time = null): string {
         return self::local($time ?? time())->format('Y-m');
     }
 
-    private static function local(int $time): \DateTime
-    {
+    private static function local(int $time): \DateTime {
         $zone = null;
         try {
             $zone = new \DateTimeZone(platform::timezone());
@@ -86,8 +96,7 @@ final class budget
      * one is set, the plan's included credits (or the default amount on
      * Pay as you grow) bound the spending.
      */
-    public static function limit(): int
-    {
+    public static function limit(): int {
         $value = config::fresh('monthly_limit');
         if ($value === null || $value === '') {
             $included = plan::included_credits();
@@ -96,8 +105,7 @@ final class budget
         return max(0, (int) $value);
     }
 
-    public static function has_limit(): bool
-    {
+    public static function has_limit(): bool {
         return self::limit() > 0;
     }
 
@@ -106,8 +114,7 @@ final class budget
      *
      * @return array{credits: float, fetched: int, items: array<int, array{key: string, name: string, service: string, credits: float}>}|null
      */
-    public static function remote(): ?array
-    {
+    public static function remote(): ?array {
         $raw = config::fresh(self::KEY_REMOTE);
         if ($raw === null || $raw === '') {
             return null;
@@ -129,8 +136,7 @@ final class budget
      *
      * @return array{credits: float, fetched: int, items: array}|null The current figure.
      */
-    public static function refresh_remote(bool $force = false): ?array
-    {
+    public static function refresh_remote(bool $force = false): ?array {
         $current = self::remote();
         if (!$force && $current !== null && time() - $current['fetched'] < self::REMOTE_TTL) {
             return $current;
@@ -180,14 +186,12 @@ final class budget
      * Credits the brain charged this month, as last fetched; 0 until a
      * figure exists for the month.
      */
-    public static function used(): float
-    {
+    public static function used(): float {
         $remote = self::remote();
         return $remote === null ? 0.0 : $remote['credits'];
     }
 
-    public static function percent(): float
-    {
+    public static function percent(): float {
         $limit = self::limit();
         if ($limit <= 0) {
             return 0.0;
@@ -195,8 +199,7 @@ final class budget
         return min(999.0, round(self::used() / $limit * 100, 1));
     }
 
-    public static function remaining(): float
-    {
+    public static function remaining(): float {
         return max(0.0, self::limit() - self::used());
     }
 
@@ -204,8 +207,7 @@ final class budget
      * Whether the month's limit is reached. With $refresh the brain's
      * figure is fetched first when it is older than a minute.
      */
-    public static function exhausted(bool $refresh = false): bool
-    {
+    public static function exhausted(bool $refresh = false): bool {
         if (!self::has_limit()) {
             return false;
         }
@@ -218,8 +220,7 @@ final class budget
     /**
      * Severity of the current usage against the limit.
      */
-    public static function level(): string
-    {
+    public static function level(): string {
         if (!self::has_limit()) {
             return 'ok';
         }
@@ -252,8 +253,7 @@ final class budget
      *
      * @return array{used: float, cost: float, included: int, charged: float}
      */
-    public static function overage(): array
-    {
+    public static function overage(): array {
         return self::overage_of(self::used(), plan::included_credits(), plan::price_per_request(), plan::billed_by_tarsus());
     }
 
@@ -263,8 +263,7 @@ final class budget
      *
      * @return array{used: float, cost: float, included: int, charged: float}
      */
-    public static function overage_of(float $used, int $included, float $price, bool $billedbytarsus = false): array
-    {
+    public static function overage_of(float $used, int $included, float $price, bool $billedbytarsus = false): array {
         $charged = round(max(0.0, $used - max(0, $included)), 2);
         return [
             'used' => round($used, 2),
@@ -278,8 +277,7 @@ final class budget
      * A credit figure for people: whole numbers without decimals, fractions
      * with two (1,234.57 / 1.234,57).
      */
-    public static function format(float $credits): string
-    {
+    public static function format(float $credits): string {
         $decimals = abs($credits - round($credits)) < 0.005 ? 0 : 2;
         $german = platform::user_language() === 'de';
         return number_format($credits, $decimals, $german ? ',' : '.', $german ? '.' : ',');
@@ -295,8 +293,7 @@ final class budget
      *
      * @return array{type: string, text: string}|null
      */
-    public static function banner(): ?array
-    {
+    public static function banner(): ?array {
         $level = self::level();
         if ($level === 'ok') {
             return null;
@@ -317,8 +314,7 @@ final class budget
      * Send the mails for thresholds crossed this month that were not
      * announced yet. Cheap when nothing changed: one config read.
      */
-    public static function check_thresholds(): void
-    {
+    public static function check_thresholds(): void {
         if (!self::has_limit()) {
             return;
         }
@@ -356,8 +352,7 @@ final class budget
      *
      * @return string[]
      */
-    public static function recipients(): array
-    {
+    public static function recipients(): array {
         $raw = (string) config::get('notify_emails', '');
         $addresses = [];
         foreach (preg_split('/[\s,;]+/', $raw) ?: [] as $address) {
@@ -375,8 +370,7 @@ final class budget
         return array_values(array_unique($addresses));
     }
 
-    private static function notify(int $threshold): void
-    {
+    private static function notify(int $threshold): void {
         $recipients = self::recipients();
         if ($recipients === []) {
             return;
@@ -396,8 +390,7 @@ final class budget
     /**
      * Forget the month's warning record (the limit was raised).
      */
-    public static function reset_warnings(): void
-    {
+    public static function reset_warnings(): void {
         config::set(self::KEY_NOTIFIED, null);
     }
 }

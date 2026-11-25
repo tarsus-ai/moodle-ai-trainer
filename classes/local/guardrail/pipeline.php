@@ -1,4 +1,18 @@
 <?php
+// This file is part of Moodle - https://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
 namespace mod_tarsuscoach\local\guardrail;
 
@@ -31,8 +45,7 @@ class pipeline
 
     private state_store $store;
 
-    public function __construct(?state_store $store = null)
-    {
+    public function __construct(?state_store $store = null) {
         $this->store = $store ?? new state_store();
     }
 
@@ -49,8 +62,7 @@ class pipeline
      * @throws blocked_exception  When a gate refuses the call.
      * @throws transport_exception When the call fails at the transport level.
      */
-    public function execute(callable $call, bool $charged = false)
-    {
+    public function execute(callable $call, bool $charged = false) {
         $this->guard_killswitch();
         $this->guard_breaker();
         $this->guard_budget($charged);
@@ -77,8 +89,7 @@ class pipeline
         return $result;
     }
 
-    private function guard_killswitch(): void
-    {
+    private function guard_killswitch(): void {
         if (config::killswitch()) {
             throw new blocked_exception('killswitch');
         }
@@ -87,8 +98,7 @@ class pipeline
     /**
      * Fail fast while the circuit breaker is open; close it after the cooldown.
      */
-    private function guard_breaker(): void
-    {
+    private function guard_breaker(): void {
         $this->store->mutate('breaker', function (\stdClass $row): void {
             if ($row->state !== 'open') {
                 return;
@@ -106,8 +116,7 @@ class pipeline
      * Refuse a call that may cost credits once the month's limit is
      * reached - by what the brain says it charged, not by an estimate.
      */
-    private function guard_budget(bool $charged): void
-    {
+    private function guard_budget(bool $charged): void {
         if ($charged && budget::exhausted(true)) {
             throw new blocked_exception('budget');
         }
@@ -116,8 +125,7 @@ class pipeline
     /**
      * Take a token from the refilling bucket, or refuse the call.
      */
-    private function guard_ratelimit(): void
-    {
+    private function guard_ratelimit(): void {
         $capacity = config::rate_limit();
         $ratepersecond = $capacity / 60;
 
@@ -144,8 +152,7 @@ class pipeline
         });
     }
 
-    private function record_failure(): void
-    {
+    private function record_failure(): void {
         $this->store->mutate('breaker', function (\stdClass $row): void {
             $row->failurecount = (int) $row->failurecount + 1;
             if ($row->failurecount >= self::FAILURE_THRESHOLD) {
@@ -155,8 +162,7 @@ class pipeline
         });
     }
 
-    private function record_success(): void
-    {
+    private function record_success(): void {
         $this->store->mutate('breaker', function (\stdClass $row): void {
             $row->failurecount = 0;
             $row->state = 'closed';
@@ -168,8 +174,7 @@ class pipeline
      *
      * @return array<string, \stdClass>
      */
-    public function snapshot(): array
-    {
+    public function snapshot(): array {
         return [
             'breaker' => $this->store->get('breaker'),
             'bucket' => $this->store->get('bucket'),
@@ -179,8 +184,7 @@ class pipeline
     /**
      * Close the breaker by hand (admin action).
      */
-    public function reset_breaker(): void
-    {
+    public function reset_breaker(): void {
         $this->store->mutate('breaker', function (\stdClass $row): void {
             $row->failurecount = 0;
             $row->state = 'closed';

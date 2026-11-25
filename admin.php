@@ -136,8 +136,12 @@ if ($action !== '') {
 
         case 'retrydeletions':
             $cleared = (new reconciler())->sweep(true);
-            redirect($url, $t('deletions_retried', ['count' => $cleared]), null,
-                $cleared > 0 ? notification::NOTIFY_SUCCESS : notification::NOTIFY_INFO);
+            redirect(
+                $url,
+                $t('deletions_retried', ['count' => $cleared]),
+                null,
+                $cleared > 0 ? notification::NOTIFY_SUCCESS : notification::NOTIFY_INFO
+            );
             break;
 
         case 'confirmplan':

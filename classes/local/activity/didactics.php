@@ -1,4 +1,18 @@
 <?php
+// This file is part of Moodle - https://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
 namespace mod_tarsuscoach\local\activity;
 
@@ -71,14 +85,12 @@ final class didactics
     /** @var int[] DQR levels. */
     public const DQR_LEVELS = [3, 4, 5, 6, 7];
 
-    public static function learning_method(?string $value): string
-    {
+    public static function learning_method(?string $value): string {
         $value = strtolower(trim((string) $value));
         return in_array($value, self::LEARNING_METHODS, true) ? $value : self::METHOD_MICROLEARNING;
     }
 
-    public static function operators(?string $value): string
-    {
+    public static function operators(?string $value): string {
         $value = strtolower(trim((string) $value));
         return in_array($value, self::OPERATORS, true) ? $value : self::OPERATORS_STANDARD;
     }
@@ -86,8 +98,7 @@ final class didactics
     /**
      * @param mixed $value
      */
-    public static function learn_tempo($value): float
-    {
+    public static function learn_tempo($value): float {
         if ($value === null || $value === '' || !is_numeric($value)) {
             return self::LEARN_TEMPO_DEFAULT;
         }
@@ -97,8 +108,7 @@ final class didactics
     /**
      * The language key of a question type's label.
      */
-    public static function type_label_key(string $type): string
-    {
+    public static function type_label_key(string $type): string {
         switch ($type) {
             case self::TYPE_SINGLECHOICE:
                 return 'qtype_singlechoice';
@@ -120,8 +130,7 @@ final class didactics
     /**
      * @return int[]
      */
-    public static function default_taxonomy_levels(): array
-    {
+    public static function default_taxonomy_levels(): array {
         return self::TAXONOMY_LEVELS;
     }
 
@@ -131,8 +140,7 @@ final class didactics
      *
      * @return array<int, string[]>
      */
-    public static function default_question_types(): array
-    {
+    public static function default_question_types(): array {
         return [
             1 => [self::TYPE_SINGLECHOICE, self::TYPE_TRUEFALSE],
             2 => [self::TYPE_SINGLECHOICE, self::TYPE_TRUEFALSE, self::TYPE_OPEN],
@@ -143,8 +151,7 @@ final class didactics
     /**
      * @param array<int|string, mixed> $levels
      */
-    public static function encode_taxonomy_levels(array $levels): string
-    {
+    public static function encode_taxonomy_levels(array $levels): string {
         $levels = array_values(array_unique(array_intersect(array_map('intval', $levels), self::TAXONOMY_LEVELS)));
         sort($levels);
         return implode(',', $levels);
@@ -153,8 +160,7 @@ final class didactics
     /**
      * @return int[] At least one level; invalid values fall back to the defaults.
      */
-    public static function decode_taxonomy_levels(?string $encoded): array
-    {
+    public static function decode_taxonomy_levels(?string $encoded): array {
         $levels = array_values(array_unique(array_intersect(
             array_map('intval', explode(',', (string) $encoded)),
             self::TAXONOMY_LEVELS
@@ -166,8 +172,7 @@ final class didactics
     /**
      * @param array<int|string, mixed> $map Grade => question widget types.
      */
-    public static function encode_question_types(array $map): string
-    {
+    public static function encode_question_types(array $map): string {
         $clean = [];
         foreach (self::GRADES as $grade) {
             $types = array_values(array_intersect((array) ($map[$grade] ?? []), self::TYPES));
@@ -184,8 +189,7 @@ final class didactics
      *
      * @return array<int, string[]>
      */
-    public static function decode_question_types(?string $encoded): array
-    {
+    public static function decode_question_types(?string $encoded): array {
         $decoded = json_decode((string) $encoded, true);
         $map = [];
         if (is_array($decoded)) {
@@ -210,8 +214,7 @@ final class didactics
     /**
      * Format a pace for display: x0.25, x1, ...
      */
-    public static function tempo_label(float $tempo): string
-    {
+    public static function tempo_label(float $tempo): string {
         return 'x' . rtrim(rtrim(number_format($tempo, 2, '.', ''), '0'), '.');
     }
 }

@@ -1,4 +1,18 @@
 <?php
+// This file is part of Moodle - https://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
 namespace mod_tarsuscoach\local\index;
 
@@ -49,8 +63,7 @@ class tracker
      *
      * @throws blocked_exception|transport_exception
      */
-    public function process(\stdClass $row): void
-    {
+    public function process(\stdClass $row): void {
         switch ($row->status) {
             case status::PENDING:
             case status::PENDING_REINDEX:
@@ -71,8 +84,7 @@ class tracker
      * always preceded by an untrack, which clears whatever the brain still
      * holds under this id. Untracking an unknown id is a no-op.
      */
-    private function process_upload(\stdClass $row): void
-    {
+    private function process_upload(\stdClass $row): void {
         // Re-extract from current state so the upload carries what is there now.
         $material = $this->resolver->resolve_by_resource_id($row->resourceid);
         if ($material === null) {
@@ -107,13 +119,12 @@ class tracker
     /**
      * Ask the brain whether an upload has been ingested.
      */
-    private function process_confirmation(\stdClass $row): void
-    {
+    private function process_confirmation(\stdClass $row): void {
         $result = $this->pipeline->execute(fn() => $this->client->get_resource_status($row->resourceid));
 
         if (($result['status'] ?? '') === status::INDEXED) {
             $this->repo->mark_indexed($row->resourceid, (string) ($result['bitref'] ?? $row->bitref), $row->contenthash);
-        } elseif (($result['status'] ?? '') === status::NOT_INDEXED) {
+        } else if (($result['status'] ?? '') === status::NOT_INDEXED) {
             if (status::can_transition($row->status, status::NOT_INDEXED)) {
                 $this->repo->set_status($row->resourceid, status::NOT_INDEXED);
             }
@@ -127,8 +138,7 @@ class tracker
      * @param \stdClass[] $rows Rows marked for deletion.
      * @throws blocked_exception|transport_exception
      */
-    public function process_deletions(array $rows): void
-    {
+    public function process_deletions(array $rows): void {
         $resourceids = [];
         foreach ($rows as $row) {
             if ($row !== null) {
@@ -152,8 +162,7 @@ class tracker
      *
      * @throws blocked_exception|transport_exception
      */
-    public function untrack_container(int $containerref): void
-    {
+    public function untrack_container(int $containerref): void {
         $assetid = resource_id::asset_id($containerref);
         $this->pipeline->execute(fn() => $this->client->untrack_assets([$assetid]));
     }

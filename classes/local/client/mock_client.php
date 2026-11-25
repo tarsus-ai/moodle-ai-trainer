@@ -1,4 +1,18 @@
 <?php
+// This file is part of Moodle - https://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
 namespace mod_tarsuscoach\local\client;
 
@@ -42,14 +56,12 @@ class mock_client implements client_interface
      * @param int  $simulatestatus When non-zero, every call throws a
      *                             transport_exception with this HTTP status.
      */
-    public function __construct(bool $async = true, int $simulatestatus = 0)
-    {
+    public function __construct(bool $async = true, int $simulatestatus = 0) {
         $this->async = $async;
         $this->simulatestatus = $simulatestatus;
     }
 
-    protected function maybe_fail(): void
-    {
+    protected function maybe_fail(): void {
         if ($this->simulatestatus !== 0) {
             throw new transport_exception($this->simulatestatus, 'mock simulated failure');
         }
@@ -59,8 +71,7 @@ class mock_client implements client_interface
     // material
     // ------------------------------------------------------------------
 
-    public function track_resource(array $resource): array
-    {
+    public function track_resource(array $resource): array {
         $this->maybe_fail();
 
         $resourceid = (string) ($resource['resource_id'] ?? 'mock-resource');
@@ -71,8 +82,7 @@ class mock_client implements client_interface
         ];
     }
 
-    public function untrack_resource(array $resourceids): array
-    {
+    public function untrack_resource(array $resourceids): array {
         $this->maybe_fail();
 
         $result = [];
@@ -82,8 +92,7 @@ class mock_client implements client_interface
         return $result;
     }
 
-    public function untrack_assets(array $assetids): array
-    {
+    public function untrack_assets(array $assetids): array {
         $this->maybe_fail();
 
         $result = [];
@@ -93,8 +102,7 @@ class mock_client implements client_interface
         return $result;
     }
 
-    public function get_resource_status(string $resourceid): array
-    {
+    public function get_resource_status(string $resourceid): array {
         $this->maybe_fail();
 
         return [
@@ -103,8 +111,7 @@ class mock_client implements client_interface
         ];
     }
 
-    public function check_tracked_resources(array $resourceids): array
-    {
+    public function check_tracked_resources(array $resourceids): array {
         $this->maybe_fail();
 
         $result = [];
@@ -118,8 +125,7 @@ class mock_client implements client_interface
         return $result;
     }
 
-    public function list_voices(): array
-    {
+    public function list_voices(): array {
         $this->maybe_fail();
 
         return [
@@ -131,8 +137,7 @@ class mock_client implements client_interface
         ];
     }
 
-    public function list_brains(): array
-    {
+    public function list_brains(): array {
         $this->maybe_fail();
 
         return [
@@ -164,8 +169,7 @@ class mock_client implements client_interface
     // conversation
     // ------------------------------------------------------------------
 
-    public function generate_widgets(array $params): array
-    {
+    public function generate_widgets(array $params): array {
         $this->maybe_fail();
         $state = $this->load($params);
 
@@ -235,15 +239,13 @@ class mock_client implements client_interface
     /**
      * One of the bundled interactive demo pages, in the user's language.
      */
-    private static function page(string $name, bool $de): string
-    {
+    private static function page(string $name, bool $de): string {
         $file = dirname(__DIR__, 3) . '/assets/mock/' . $name . '.html';
         $html = is_file($file) ? (string) file_get_contents($file) : '';
         return str_replace('{{lang}}', $de ? 'de' : 'en', $html);
     }
 
-    public function generate_practice_widget(array $params): array
-    {
+    public function generate_practice_widget(array $params): array {
         $this->maybe_fail();
         $state = $this->load($params);
 
@@ -284,8 +286,7 @@ class mock_client implements client_interface
         ];
     }
 
-    public function generate_learn_widget(array $params): array
-    {
+    public function generate_learn_widget(array $params): array {
         $this->maybe_fail();
         $state = $this->load($params);
         $de = self::de($params);
@@ -304,7 +305,7 @@ class mock_client implements client_interface
                     ['id' => 'g3', 'objective' => $de ? 'Das Gelernte anwenden' : 'Apply what you learned', 'taxonomylevel' => 'ANWENDEN', 'done' => false],
                 ],
             ];
-        } elseif ($step > self::STACKS) {
+        } else if ($step > self::STACKS) {
             $items[] = [
                 'kind' => 'complete',
                 'id' => 'mock-complete',
@@ -349,8 +350,7 @@ class mock_client implements client_interface
      * @param array<string, mixed> $state
      * @return array<string, mixed>
      */
-    private function mock_stack(array &$state, int $step, bool $de, bool $interactive = false): array
-    {
+    private function mock_stack(array &$state, int $step, bool $de, bool $interactive = false): array {
         $stackid = 'mock-stack-' . $step . '-' . substr(sha1(uniqid('', true)), 0, 6);
         $svg = 'data:image/svg+xml;base64,' . base64_encode(
             '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 150"><rect width="240" height="150" rx="14" fill="#efeafb"/>'
@@ -409,8 +409,7 @@ class mock_client implements client_interface
         ];
     }
 
-    public function evaluate_practice_answer(array $params): array
-    {
+    public function evaluate_practice_answer(array $params): array {
         $this->maybe_fail();
         $state = $this->load($params);
         $de = self::de($params);
@@ -457,7 +456,7 @@ class mock_client implements client_interface
             $result['feedback'] = $de ? $question['explain_de'] : $question['explain_en'];
             $stored = ['useranswers' => array_map(static fn($v, $k) => ['variable' => $k, 'answer' => $v], $given, array_keys($given)),
                 'answers' => $answers];
-        } elseif ($type === 'tradeCostingQuestionWidget') {
+        } else if ($type === 'tradeCostingQuestionWidget') {
             // The learner's table comes as rows of cell values in column order.
             $rows = array_values(array_map(static fn($row): array => array_values(array_map('strval', (array) $row)), (array) ($params['usertable'] ?? [])));
             $right = 0;
@@ -490,7 +489,7 @@ class mock_client implements client_interface
             $result['answertable'] = $answertable;
             $result['feedback'] = $de ? $question['explain_de'] : $question['explain_en'];
             $stored = ['usertable' => $result['usertable'], 'answertable' => $answertable];
-        } elseif ($type === 'openQuestionWidget') {
+        } else if ($type === 'openQuestionWidget') {
             $given = trim((string) ($params['useranswer'] ?? ''));
             $score = 15.0;
             foreach ((array) $question['keywords'] as $keyword) {
@@ -554,8 +553,7 @@ class mock_client implements client_interface
         return $result + ['progress' => self::progress_of($state)];
     }
 
-    public function retrieve_feed(array $params): array
-    {
+    public function retrieve_feed(array $params): array {
         $this->maybe_fail();
         $state = $this->load($params);
 
@@ -589,8 +587,7 @@ class mock_client implements client_interface
         ];
     }
 
-    public function get_usage(int $start, int $end): array
-    {
+    public function get_usage(int $start, int $end): array {
         $this->maybe_fail();
         // The demo brain charges one credit per request the local ledger
         // counted, split over the services the real usage report names.
@@ -614,15 +611,15 @@ class mock_client implements client_interface
             $key = 'questionGeneration';
             if (strpos($op, 'voice') !== false) {
                 $key = 'audioTranscription';
-            } elseif (strpos($op, 'discuss') !== false) {
+            } else if (strpos($op, 'discuss') !== false) {
                 $key = 'voiceCall';
-            } elseif (strpos($op, 'ask') !== false) {
+            } else if (strpos($op, 'ask') !== false) {
                 $key = 'answeredQuery';
-            } elseif (strpos($op, 'eval') !== false || strpos($op, 'check') !== false) {
+            } else if (strpos($op, 'eval') !== false || strpos($op, 'check') !== false) {
                 $key = 'answerEvaluation';
-            } elseif (strpos($op, 'audio') !== false) {
+            } else if (strpos($op, 'audio') !== false) {
                 $key = 'audioGeneration';
-            } elseif (strpos($op, 'learn') !== false) {
+            } else if (strpos($op, 'learn') !== false) {
                 $key = 'bitsGeneration';
             }
             $services[$key][2] += $credits;
@@ -636,14 +633,12 @@ class mock_client implements client_interface
         return ['total' => $total, 'items' => $items];
     }
 
-    public function reset_conversation(string $contextid, string $userid): void
-    {
+    public function reset_conversation(string $contextid, string $userid): void {
         $this->maybe_fail();
         config::set(self::key($contextid, $userid), null);
     }
 
-    public function generate_stack_audio(array $params): array
-    {
+    public function generate_stack_audio(array $params): array {
         $this->maybe_fail();
 
         return [
@@ -654,8 +649,7 @@ class mock_client implements client_interface
         ];
     }
 
-    public function start_discuss(array $params): array
-    {
+    public function start_discuss(array $params): array {
         $this->maybe_fail();
         $file = dirname(__DIR__, 3) . '/assets/mock/live.html';
         $page = is_file($file) ? (string) file_get_contents($file) : '';
@@ -663,8 +657,7 @@ class mock_client implements client_interface
         return ['page' => $page, 'progress' => self::progress_of($this->load($params))];
     }
 
-    public function get_references(array $params): array
-    {
+    public function get_references(array $params): array {
         $this->maybe_fail();
         $svg = base64_encode('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 120"><rect width="200" height="120" rx="12" fill="#e6f2e1"/>'
             . '<path d="M20 60 Q100 8 180 60 Q100 112 20 60z" fill="#7fbf6a"/><path d="M24 60H176" stroke="#4d8f3c" stroke-width="3"/></svg>');
@@ -687,8 +680,7 @@ Grünes Licht wird reflektiert."],
         return $out;
     }
 
-    public function get_context_statistics(string $contextid, array $userids): array
-    {
+    public function get_context_statistics(string $contextid, array $userids): array {
         $this->maybe_fail();
         $result = [];
         foreach ($userids as $userid) {
@@ -701,8 +693,7 @@ Grünes Licht wird reflektiert."],
         return $result;
     }
 
-    public function get_user_analytics(string $contextid, string $userid, int $start, int $end): array
-    {
+    public function get_user_analytics(string $contextid, string $userid, int $start, int $end): array {
         $this->maybe_fail();
         $raw = config::fresh(self::key($contextid, $userid));
         $state = $raw !== null ? json_decode($raw, true) : null;
@@ -724,8 +715,7 @@ Grünes Licht wird reflektiert."],
     // State
     // ------------------------------------------------------------------
 
-    private static function key(string $contextid, string $userid): string
-    {
+    private static function key(string $contextid, string $userid): string {
         return 'mock_' . sha1($contextid . '|' . $userid);
     }
 
@@ -733,8 +723,7 @@ Grünes Licht wird reflektiert."],
      * @param array<string, mixed> $params
      * @return array<string, mixed>
      */
-    private function load(array $params): array
-    {
+    private function load(array $params): array {
         $raw = config::fresh(self::key((string) ($params['contextid'] ?? ''), (string) ($params['userid'] ?? '')));
         $state = $raw !== null ? json_decode($raw, true) : null;
         if (!is_array($state)) {
@@ -748,8 +737,7 @@ Grünes Licht wird reflektiert."],
      * @param array<string, mixed> $params
      * @param array<string, mixed> $state
      */
-    private function save(array $params, array $state): void
-    {
+    private function save(array $params, array $state): void {
         // Keep the stored history bounded.
         if (count($state['feed']) > 300) {
             $state['feed'] = array_slice($state['feed'], -300);
@@ -764,8 +752,7 @@ Grünes Licht wird reflektiert."],
      * @param array<string, mixed> $state
      * @return array<string, float>
      */
-    private static function progress_of(array $state): array
-    {
+    private static function progress_of(array $state): array {
         $xp = round((float) ($state['xp'] ?? 0), 2);
         $units = round((float) ($state['units'] ?? 0), 2);
         $practice = round($xp / self::XP_TOTAL * 100, 2);
@@ -784,13 +771,11 @@ Grünes Licht wird reflektiert."],
     /**
      * @param array<string, mixed> $params
      */
-    private static function de(array $params): bool
-    {
+    private static function de(array $params): bool {
         return ($params['userlanguage'] ?? 'de') === 'de';
     }
 
-    private static function label(string $value, bool $de): string
-    {
+    private static function label(string $value, bool $de): string {
         if ($value === 'true') {
             return $de ? 'Wahr' : 'True';
         }
@@ -800,8 +785,7 @@ Grünes Licht wird reflektiert."],
         return $value;
     }
 
-    private static function same_number(string $given, string $expected): bool
-    {
+    private static function same_number(string $given, string $expected): bool {
         $normalise = static function (string $value): ?float {
             $value = str_replace([' ', '€', '%', "\u{00a0}"], '', $value);
             if (preg_match('/^-?\d{1,3}(\.\d{3})+(,\d+)?$/', $value)) {
@@ -822,8 +806,7 @@ Grünes Licht wird reflektiert."],
      * @param array<string, mixed> $question
      * @return array<string, mixed>
      */
-    private static function public_question(string $id, array $question): array
-    {
+    private static function public_question(string $id, array $question): array {
         // A task table as Tarsus sends it: rows of cells under named
         // columns, '?' where the learner fills in.
         $table = [];
@@ -854,8 +837,7 @@ Grünes Licht wird reflektiert."],
      *
      * @return array<int, array<string, mixed>>
      */
-    private static function question_bank(bool $de): array
-    {
+    private static function question_bank(bool $de): array {
         return [
             [
                 'type' => 'singleChoiceQuestionWidget',
@@ -921,8 +903,7 @@ Grünes Licht wird reflektiert."],
      * A short, quiet two-tone chime as a base64 WAV, so the narration
      * control has something audible to play in demo mode.
      */
-    private static function tone(): string
-    {
+    private static function tone(): string {
         $rate = 16000;
         $samples = '';
         $length = (int) ($rate * 1.2);

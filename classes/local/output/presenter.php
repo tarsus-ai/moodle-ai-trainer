@@ -1,4 +1,18 @@
 <?php
+// This file is part of Moodle - https://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
 namespace mod_tarsuscoach\local\output;
 
@@ -32,16 +46,14 @@ final class presenter
         status::ERROR => 'danger',
     ];
 
-    public static function badge_class(string $status): string
-    {
+    public static function badge_class(string $status): string {
         return 'tarsus-badge tarsus-badge--' . (self::BADGES[$status] ?? 'neutral');
     }
 
     /**
      * Whether a call is pending for the resource.
      */
-    public static function is_inflight(string $status): bool
-    {
+    public static function is_inflight(string $status): bool {
         // pendingreindex is not in flight: it is a stable "content changed"
         // state that waits for the teacher (or the cron job).
         return in_array($status, [status::PENDING, status::PENDING_CONFIRMATION, status::PENDING_DELETION], true);
@@ -50,8 +62,7 @@ final class presenter
     /**
      * @return string[] Subset of index, reindex, remove, retry.
      */
-    public static function actions_for(string $status, int $age = 0): array
-    {
+    public static function actions_for(string $status, int $age = 0): array {
         switch ($status) {
             case status::NOT_INDEXED:
                 return ['index'];
@@ -74,8 +85,7 @@ final class presenter
      *
      * @return array<string, mixed>
      */
-    public static function present(string $resourceid, string $status, int $timemodified = 0): array
-    {
+    public static function present(string $resourceid, string $status, int $timemodified = 0): array {
         $age = $timemodified > 0 ? max(0, time() - $timemodified) : 0;
         $actions = self::actions_for($status, $age);
         return [

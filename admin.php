@@ -118,7 +118,7 @@ if ($action !== '') {
             $ok = false;
             if ($brainid !== '') {
                 try {
-                    foreach (client_factory::get_client()->list_brains() as $brain) {
+                    foreach ((new pipeline())->execute(fn() => client_factory::get_client()->list_brains()) as $brain) {
                         if (
                             (string) $brain['brainid'] === $brainid
                             && !empty($brain['active'])
@@ -397,11 +397,14 @@ switch ($tab) {
     case 'brains':
         $current = config::brain_id();
         try {
-            $brains = client_factory::get_client()->list_brains();
+            $brains = (new pipeline())->execute(fn() => client_factory::get_client()->list_brains());
         } catch (configuration_exception $e) {
             echo $OUTPUT->notification($t($e->langkey), 'info');
             break;
-        } catch (transport_exception | blocked_exception $e) {
+        } catch (blocked_exception $e) {
+            echo $OUTPUT->notification($t('guardrail_blocked_' . $e->reason), 'warning');
+            break;
+        } catch (transport_exception $e) {
             echo $OUTPUT->notification($t('transport_error') . ' ' . s($e->getMessage()), 'error');
             break;
         }

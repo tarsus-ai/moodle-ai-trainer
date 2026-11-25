@@ -17,6 +17,7 @@
 namespace mod_tarsuscoach\local\support;
 
 use mod_tarsuscoach\local\client\client_factory;
+use mod_tarsuscoach\local\guardrail\pipeline;
 
 /**
  * The brain's voices: a cached catalogue and the choice for a learner.
@@ -56,9 +57,10 @@ final class voices
         }
 
         try {
-            $voices = client_factory::get_client()->list_voices();
+            // Through the guardrails like every call: the kill switch, the breaker and the rate limit apply.
+            $voices = (new pipeline())->execute(fn() => client_factory::get_client()->list_voices());
         } catch (\Throwable $e) {
-            // An unreachable brain keeps the last known list, however old.
+            // An unreachable or blocked brain keeps the last known list, however old.
             return is_array($cached) ? $cached : [];
         }
         if ($voices !== []) {

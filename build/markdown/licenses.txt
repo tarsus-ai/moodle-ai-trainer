@@ -1,4 +1,4 @@
-Libraries bundled in tarsus-markdown.min.js
+Libraries bundled in amd/src/markdown.js
 
 ========================================================================
 @ungap/structured-clone 1.4.0 (ISC)

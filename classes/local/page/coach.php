@@ -40,16 +40,6 @@ final class coach {
     /** Materials listed per page of the teacher's list (one brain call per page). */
     public const PAGE_SIZE = 10;
 
-    /** @var string[] Requests of the coach that only need the right to use it. */
-    public const LEARNER_ACTIONS = [
-        'feed', 'ask', 'askVoice', 'practiceNext', 'practiceCheck', 'learnNext', 'audio', 'discuss', 'references', 'progress',
-    ];
-
-    /** @var string[] Requests that need the right to manage the activity. */
-    public const TEACHER_ACTIONS = [
-        'stats', 'history', 'analytics', 'settings', 'saveSettings', 'action', 'include', 'sync',
-    ];
-
     /** @var string[] Interface texts of the coach. */
     public const CHAT_STRINGS = [
         'a11y_you_asked', 'a11y_question', 'a11y_learning_unit', 'a11y_working', 'a11y_answered', 'a11y_correct', 'a11y_incorrect', 'a11y_partial',
@@ -99,19 +89,16 @@ final class coach {
     ];
 
     /**
-     * Request addresses of the coach (or the materials list), each carrying
-     * the session key.
+     * The external functions of the coach (or the materials list) by the
+     * name the browser uses for them (core/ajax).
      *
-     * @param int $cmid The course module.
-     * @param string[] $actions Key in the browser => request.
+     * @param string[] $actions Key in the browser => function, without the component prefix.
      * @return array
      */
-    public static function endpoints(int $cmid, array $actions): array {
+    public static function endpoints(array $actions): array {
         $endpoints = [];
-        foreach ($actions as $key => $action) {
-            $endpoints[$key] = (new \moodle_url('/mod/tarsuscoach/ajax.php', [
-                'id' => $cmid, 'action' => $action, 'sesskey' => sesskey(),
-            ]))->out(false);
+        foreach ($actions as $key => $function) {
+            $endpoints[$key] = 'mod_tarsuscoach_' . $function;
         }
         return $endpoints;
     }
@@ -152,26 +139,27 @@ final class coach {
         $modes = $settings->available_modes();
         return [
             'kind' => 'chat',
-            'endpoints' => self::endpoints((int) $cm->id, [
-                'feed' => 'feed',
+            'cmid' => (int) $cm->id,
+            'endpoints' => self::endpoints([
+                'feed' => 'get_feed',
                 'ask' => 'ask',
-                'askVoice' => 'askVoice',
-                'practiceNext' => 'practiceNext',
-                'practiceCheck' => 'practiceCheck',
-                'learnNext' => 'learnNext',
-                'audio' => 'audio',
-                'discuss' => 'discuss',
-                'references' => 'references',
-                'progress' => 'progress',
+                'askVoice' => 'ask_voice',
+                'practiceNext' => 'next_question',
+                'practiceCheck' => 'check_answer',
+                'learnNext' => 'next_learning_unit',
+                'audio' => 'get_audio',
+                'discuss' => 'start_call',
+                'references' => 'get_references',
+                'progress' => 'push_progress',
             ]),
             // The teacher's panels: settings, evaluation, history.
             'teacher' => $teacher ? [
-                'endpoints' => self::endpoints((int) $cm->id, [
-                    'stats' => 'stats',
-                    'history' => 'history',
-                    'analytics' => 'analytics',
-                    'settings' => 'settings',
-                    'saveSettings' => 'saveSettings',
+                'endpoints' => self::endpoints([
+                    'stats' => 'get_statistics',
+                    'history' => 'get_history',
+                    'analytics' => 'get_analytics',
+                    'settings' => 'get_settings',
+                    'saveSettings' => 'save_settings',
                 ]),
                 'exportUrl' => (new \moodle_url('/mod/tarsuscoach/export.php', ['id' => $cm->id]))->out(false),
                 'settingsUrl' => (new \moodle_url('/course/modedit.php', ['update' => $cm->id, 'return' => 1]))->out(false),
@@ -183,7 +171,7 @@ final class coach {
             // Spoken questions in Ask a question (package and switch).
             'voice' => $settings->voice_input_active(),
             'voiceMaxSeconds' => self::VOICE_MAX_SECONDS,
-            'voiceMaxBytes' => platform::upload_limit(),
+            'voiceMaxBytes' => platform::voice_limit(),
             // "View sources" at the answers.
             'references' => $settings->referencesenabled,
             // The result in percent: the experience points' share while

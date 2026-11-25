@@ -130,7 +130,8 @@ $pager = views::pager($page, $pages, static function (int $target) use ($cm): st
 
 $config = [
     'kind' => 'materials',
-    'endpoints' => coach::endpoints((int) $cm->id, ['action' => 'action', 'include' => 'include', 'sync' => 'sync']),
+    'cmid' => (int) $cm->id,
+    'endpoints' => coach::endpoints(['action' => 'material_action', 'include' => 'set_material_included', 'sync' => 'sync_materials']),
     'batchLimit' => client_interface::BATCH_LIMIT,
     'strings' => coach::strings(coach::MATERIAL_STRINGS),
 ];
@@ -145,6 +146,5 @@ if ($help !== '') {
     echo html_writer::div($help, 'tarsus-app tarsus-help-row');
 }
 echo views::materials('tarsus-materials-' . $tarsus->id, $pageentries, $pager, $config, $counts);
-// Deferred, see platform::deferred_scripts().
-echo platform::deferred_scripts(['js/tarsus.js']);
+$PAGE->requires->js_call_amd('mod_tarsuscoach/coach', 'init');
 echo $OUTPUT->footer();

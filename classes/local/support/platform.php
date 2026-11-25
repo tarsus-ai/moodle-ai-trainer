@@ -65,28 +65,6 @@ final class platform {
     }
 
     /**
-     * The plugin's scripts as deferred script tags, for the page body.
-     *
-     * Moodle prints a script added with $PAGE->requires->js() between its
-     * own start-up code and the rest of the page, where the message drawer
-     * follows. Such a script stops the browser until it has loaded, and
-     * meanwhile Moodle's start-up code may look for the drawer before it
-     * exists (Moodle 5: "Cannot read properties of undefined"; before, the
-     * drawer just does not open on that page). Deferred scripts load
-     * alongside the page and run once it has been read, in the order given.
-     *
-     * @param string[] $relative Paths below the plugin's assets folder.
-     * @return string HTML.
-     */
-    public static function deferred_scripts(array $relative): string {
-        $html = '';
-        foreach ($relative as $path) {
-            $html .= \html_writer::tag('script', '', ['src' => self::asset_url($path), 'defer' => 'defer']);
-        }
-        return $html;
-    }
-
-    /**
      * The plugin's release (version.php), for the user agent and cache busting.
      *
      * @return string
@@ -156,41 +134,6 @@ final class platform {
     }
 
     /**
-     * Send a JSON response and stop.
-     *
-     * @param array $data The response.
-     * @param int $status The HTTP status.
-     */
-    public static function send_json(array $data, int $status = 200): void {
-        if (self::$completeJson !== null) {
-            $data = (self::$completeJson)($data);
-        }
-        $json = json_encode($data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PARTIAL_OUTPUT_ON_ERROR);
-        if ($json === false) {
-            $json = '{"ok":false,"error":"encoding"}';
-        }
-        if (!headers_sent()) {
-            http_response_code($status);
-            header('Content-Type: application/json; charset=utf-8');
-            header('Cache-Control: no-store');
-        }
-        echo $json;
-        exit;
-    }
-
-    /** @var callable|null What completes every JSON response of this request. */
-    private static $completeJson = null;
-
-    /**
-     * Complete every JSON response of this request before it is sent.
-     *
-     * @param callable $complete Takes the response array, returns it completed.
-     */
-    public static function complete_json(callable $complete): void {
-        self::$completeJson = $complete;
-    }
-
-    /**
      * Send a generated file as a download and stop.
      *
      * @param string $filename The file name the browser shows.
@@ -203,20 +146,19 @@ final class platform {
     }
 
     /**
-     * The largest upload this server accepts, in bytes: the smaller of
-     * PHP's upload_max_filesize and post_max_size (0 for one means no limit).
+     * The largest recording a spoken question may have, in bytes. It
+     * travels base64 encoded (a third larger) inside one request, so it
+     * must fit post_max_size with room for the rest of the request (0 means
+     * no limit).
      *
      * @return int
      */
-    public static function upload_limit(): int {
-        $limits = [];
-        foreach (['upload_max_filesize', 'post_max_size'] as $key) {
-            $bytes = self::ini_bytes((string) ini_get($key));
-            if ($bytes > 0) {
-                $limits[] = $bytes;
-            }
+    public static function voice_limit(): int {
+        $post = self::ini_bytes((string) ini_get('post_max_size'));
+        if ($post <= 0) {
+            return 0;
         }
-        return $limits === [] ? 0 : min($limits);
+        return max(1, (int) floor(($post - 65536) * 3 / 4));
     }
 
     /**
@@ -243,20 +185,6 @@ final class platform {
                 $number *= 1024;
         }
         return (int) $number;
-    }
-
-    /**
-     * The JSON payload the plugin's scripts send as the "payload" field.
-     *
-     * @return array
-     */
-    public static function json_payload(): array {
-        $raw = optional_param('payload', '', PARAM_RAW);
-        if (!is_string($raw) || $raw === '') {
-            return [];
-        }
-        $decoded = json_decode($raw, true);
-        return is_array($decoded) ? $decoded : [];
     }
 
     /**

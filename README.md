@@ -29,6 +29,9 @@
 
 ---
 
+> [!WARNING]
+> **Please do not install versions 1.0.0 and 1.0.1.** They are replaced: they are called `mod_tarsus`, a name another Moodle plugin also uses, and their live call page is not sealed off from Moodle. The plugin is being reworked as *Tarsus coach* (`mod_tarsuscoach`); this page describes it once the new version is out.
+
 Tarsus is an AI learning coach for training providers, companies and universities. It explains, lets learners practise, talks with them and answers their questions – always from the organisation's own documents, at the right level for each person. **Tarsus for Moodle** brings this coach into Moodle as an activity (`mod_tarsus`): a *Tarsus* activity sits in a course section like a quiz or a forum, uses only the course material the teacher has indexed and included, and reports to Moodle's gradebook and activity completion. The conversations run in the Tarsus brain; the plugin shows exactly what Tarsus sends and keeps only the figures Moodle needs. It is the same coach as [Tarsus for ILIAS](https://github.com/tarsus-ai/ilias-ai-trainer).
 
 > This repository contains **no API keys and no brain IDs**. The plugin starts in demo mode; the credentials for a real brain are entered in Moodle's site administration and stay in the Moodle database – the browsers of learners and teachers never receive the API key. See [Getting access](#getting-access).

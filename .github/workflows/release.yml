@@ -17,6 +17,10 @@ on:
         description: "Build a published version again, e.g. v1.0.0: its release and tag are deleted first, then it is built from the newest commit that declares it"
         required: false
         default: ""
+      withdraw:
+        description: "Versions to mark as replaced, e.g. 1.0.0 1.0.1: each becomes a pre-release with a warning above its notes; nothing is deleted"
+        required: false
+        default: ""
 
 permissions:
   contents: write
@@ -37,4 +41,5 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           REBUILD: ${{ inputs.rebuild }}
+          WITHDRAW: ${{ inputs.withdraw }}
         run: bash .github/scripts/release.sh

@@ -23,6 +23,25 @@ git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 versions=$(grep -oE '^## \[[0-9]+\.[0-9]+\.[0-9]+\]' CHANGELOG.md | tr -d '#[] ' | tac)
 highest=$(echo "$versions" | tail -n 1)
 
+# Versions to mark as replaced, asked for by hand (workflow_dispatch, e.g.
+# "1.0.0 1.0.1"): each release becomes a pre-release - so never "Latest" -
+# with a warning above its notes. Nothing is deleted: the tag and zip stay.
+withdrawn_note='> **Replaced – please do not install.** This version is called `mod_tarsus`, a name another Moodle plugin also uses, and its live call page is not sealed off from Moodle. The plugin is being reworked as *Tarsus coach* (`mod_tarsuscoach`).'
+for v in ${WITHDRAW:-}; do
+    tag="v$v"
+    if ! gh release view "$tag" >/dev/null 2>&1; then
+        echo "no release $tag to withdraw"
+        continue
+    fi
+    body=$(gh release view "$tag" --json body --jq .body)
+    case "$body" in
+        "$withdrawn_note"*) printf '%s\n' "$body" > "withdrawn-$v.md" ;;
+        *) printf '%s\n\n%s\n' "$withdrawn_note" "$body" > "withdrawn-$v.md" ;;
+    esac
+    gh release edit "$tag" --prerelease --notes-file "withdrawn-$v.md"
+    echo "withdrew $tag"
+done
+
 for v in $versions; do
     tag="v$v"
     if [ -n "${REBUILD:-}" ] && [ "$REBUILD" = "$tag" ]; then

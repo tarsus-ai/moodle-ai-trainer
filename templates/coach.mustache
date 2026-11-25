@@ -1,0 +1,140 @@
+{{!
+    This file is part of Moodle - https://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+}}
+{{!
+    @template mod_tarsuscoach/coach
+
+    The coach: feed, progress bar, composer with the mode switch, the
+    recorder for spoken questions, the bar of the live interaction, and the
+    panel that slides in from the right. The cards in the feed and the
+    panel's content are rendered by the coach script (mod_tarsuscoach/coach).
+
+    Classes required for JS:
+    * tarsus-hidden - toggled to show and hide parts.
+
+    Data attributes required for JS:
+    * data-config - the coach script's configuration.
+    * data-region, data-action, data-mode, data-panel - the parts the script finds and the buttons it answers.
+
+    Context variables required for this template:
+    * id - The id of the coach's root element.
+    * config - The coach script's configuration, as JSON.
+    * help - The help button (mod_tarsuscoach/help), or empty.
+    * demo - Whether the plugin runs in demo mode.
+    * teacher - Whether the user may manage the activity.
+    * panels - The teacher's panels: panel, icon, label.
+    * voice - Whether spoken questions are on.
+    * voicebuttons - The recorder's buttons: action, icon, label, record.
+    * discuss - Whether the live interaction is on.
+    * modes - The modes: mode, icon, label.
+    * icons - The other icons, as SVG: jumptop, reply, close, send, mic, keyboard, discuss.
+
+    Example context (json):
+    {
+        "id": "tarsus-chat-1",
+        "config": "{\"modes\":[\"ask\"]}",
+        "help": "",
+        "demo": true,
+        "teacher": true,
+        "panels": [{"panel": "settings", "icon": "", "label": "Settings"}],
+        "voice": true,
+        "voicebuttons": [{"action": "voice-start", "icon": "", "label": "Record", "record": true}],
+        "discuss": true,
+        "modes": [{"mode": "ask", "icon": "", "label": "Ask"}],
+        "icons": {"jumptop": "", "reply": "", "close": "", "send": "", "mic": "", "keyboard": "", "discuss": ""}
+    }
+}}
+<div class="tarsus-app tarsus-chat-box" id="{{id}}" role="region" aria-label="{{#cleanstr}}a11y_region, mod_tarsuscoach{{/cleanstr}}" data-config="{{config}}">
+    <a class="tarsus-skip" href="#{{id}}-composer" data-action="skip-input">{{#cleanstr}}a11y_skip, mod_tarsuscoach{{/cleanstr}}</a>
+    {{#demo}}
+    <div class="tarsus-demo-note" role="note">{{#cleanstr}}demo_note, mod_tarsuscoach{{/cleanstr}}</div>
+    {{/demo}}
+    {{#teacher}}
+    <div class="tarsus-teacher-bar" role="group" aria-label="{{#cleanstr}}teacher_tools, mod_tarsuscoach{{/cleanstr}}">
+        {{#panels}}
+        <button type="button" class="tarsus-btn tarsus-btn--sm tarsus-teacher-bar__btn" data-action="panel" data-panel="{{panel}}">{{{icon}}}<span>{{label}}</span></button>
+        {{/panels}}
+    </div>
+    {{/teacher}}
+    <div class="tarsus-top-dock">
+        {{{help}}}
+        <button type="button" class="tarsus-jump-top tarsus-hidden" data-action="jump-top" title="{{#cleanstr}}jump_top, mod_tarsuscoach{{/cleanstr}}" aria-label="{{#cleanstr}}jump_top, mod_tarsuscoach{{/cleanstr}}">{{{icons.jumptop}}}</button>
+    </div>
+    <div class="tarsus-progress tarsus-hidden" data-region="progress" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-label="{{#cleanstr}}practice_progress, mod_tarsuscoach{{/cleanstr}}"><div class="tarsus-progress__fill" data-region="progress-fill"></div></div>
+    <h2 class="tarsus-sr-only">{{#cleanstr}}a11y_feed, mod_tarsuscoach{{/cleanstr}}</h2>
+    <div class="tarsus-chat-flow" data-region="flow">
+        <div class="tarsus-feed-older tarsus-hidden" data-region="feed-older"><span class="tarsus-spinner" aria-hidden="true"></span></div>
+        <div class="tarsus-feed-loading"><span class="tarsus-spinner" aria-hidden="true"></span><span>{{#cleanstr}}loading_history, mod_tarsuscoach{{/cleanstr}}</span></div>
+    </div>
+    <form class="tarsus-chat-form" data-region="composer" id="{{id}}-composer" tabindex="-1" aria-label="{{#cleanstr}}a11y_composer, mod_tarsuscoach{{/cleanstr}}" action="#" autocomplete="off">
+        <div class="tarsus-chat-alert tarsus-hidden" role="alert" data-region="alert"></div>
+        <div class="tarsus-reply-chip tarsus-hidden" data-region="reply-chip">
+            {{{icons.reply}}}
+            <span class="tarsus-reply-chip__title" data-region="reply-title"></span>
+            <button type="button" class="tarsus-reply-chip__clear" data-action="reply-clear" title="{{#cleanstr}}chat_reply_clear, mod_tarsuscoach{{/cleanstr}}" aria-label="{{#cleanstr}}chat_reply_clear, mod_tarsuscoach{{/cleanstr}}">{{{icons.close}}}</button>
+        </div>
+        <textarea class="tarsus-chat-input" rows="1" maxlength="4000" placeholder="{{#cleanstr}}chat_placeholder, mod_tarsuscoach{{/cleanstr}}" aria-label="{{#cleanstr}}chat_placeholder, mod_tarsuscoach{{/cleanstr}}"></textarea>
+        {{#voice}}
+        <div class="tarsus-voice tarsus-hidden" data-region="voice" data-state="idle">
+            <span class="tarsus-voice__dot" aria-hidden="true"></span>
+            <span class="tarsus-voice__state" data-region="voice-state" aria-live="polite">{{#cleanstr}}voice_question, mod_tarsuscoach{{/cleanstr}}</span>
+            <span class="tarsus-voice__time" data-region="voice-time">0:00</span>
+            <span class="tarsus-voice__wave" data-region="voice-wave" aria-hidden="true"></span>
+            <audio class="tarsus-hidden" data-region="voice-audio" preload="auto"></audio>
+            <span class="tarsus-voice__actions">
+                {{#voicebuttons}}
+                <button type="button" class="tarsus-voice__btn{{#record}} tarsus-voice__btn--record{{/record}}" data-action="{{action}}">{{{icon}}}<span>{{label}}</span></button>
+                {{/voicebuttons}}
+            </span>
+        </div>
+        {{/voice}}
+        {{#discuss}}
+        <div class="tarsus-live-bar tarsus-hidden" data-region="live-bar">
+            <span class="tarsus-live-bar__text" data-region="live-text">{{#cleanstr}}live_intro, mod_tarsuscoach{{/cleanstr}}</span>
+            <button type="button" class="tarsus-btn tarsus-btn--primary" data-action="live-start">{{{icons.discuss}}}<span data-region="live-label">{{#cleanstr}}live_start, mod_tarsuscoach{{/cleanstr}}</span><span class="tarsus-spinner tarsus-spinner--light tarsus-hidden" data-region="live-spinner" aria-hidden="true"></span></button>
+        </div>
+        {{/discuss}}
+        <div class="tarsus-composer-row">
+            <div class="tarsus-composer-left">
+                <div class="tarsus-mode-switch__group" role="group" aria-label="{{#cleanstr}}mode_switch, mod_tarsuscoach{{/cleanstr}}">
+                    {{#modes}}
+                    <button type="button" class="tarsus-mode-switch__btn" data-mode="{{mode}}" aria-pressed="false">{{{icon}}}<span>{{label}}</span></button>
+                    {{/modes}}
+                </div>
+                <span class="tarsus-xp-badge tarsus-hidden" data-region="xp-badge"><span data-region="xp-earned">0</span>&nbsp;/&nbsp;<span data-region="xp-total">0</span>&nbsp;<span data-region="xp-unit">{{#cleanstr}}xp, mod_tarsuscoach{{/cleanstr}}</span></span>
+                <span class="tarsus-grade-chip tarsus-hidden" data-region="grade-chip" title="{{#cleanstr}}grade_title, mod_tarsuscoach{{/cleanstr}}"></span>
+            </div>
+            <div class="tarsus-composer-right">
+                {{#voice}}
+                <button type="button" class="tarsus-btn tarsus-btn--ghost tarsus-voice-toggle tarsus-hidden" data-action="voice-toggle" title="{{#cleanstr}}voice_to_voice, mod_tarsuscoach{{/cleanstr}}" aria-label="{{#cleanstr}}voice_to_voice, mod_tarsuscoach{{/cleanstr}}"><span data-region="voice-toggle-mic">{{{icons.mic}}}</span><span class="tarsus-hidden" data-region="voice-toggle-text">{{{icons.keyboard}}}</span><span class="tarsus-voice-toggle__label" data-region="voice-toggle-label">{{#cleanstr}}voice_to_voice, mod_tarsuscoach{{/cleanstr}}</span></button>
+                {{/voice}}
+                <button class="tarsus-btn tarsus-btn--primary tarsus-practice-next tarsus-hidden" type="button" data-action="next"><span data-region="practice-label">{{#cleanstr}}practice_start, mod_tarsuscoach{{/cleanstr}}</span><span class="tarsus-practice-next__icon">{{{icons.send}}}</span><span class="tarsus-spinner tarsus-spinner--light tarsus-hidden" data-region="next-spinner" aria-hidden="true"></span></button>
+                <button class="tarsus-btn tarsus-btn--primary tarsus-chat-submit" type="submit"><span class="tarsus-spinner tarsus-spinner--light tarsus-hidden" data-region="send-spinner" aria-hidden="true"></span><span>{{#cleanstr}}send, mod_tarsuscoach{{/cleanstr}}</span>{{{icons.send}}}</button>
+            </div>
+        </div>
+    </form>
+    <div class="tarsus-sr-only" data-region="announcer" role="status" aria-live="polite" aria-atomic="true"></div>
+    <div class="tarsus-drawer" data-region="tarsus-drawer" hidden>
+        <div class="tarsus-drawer__backdrop" data-action="drawer-close"></div>
+        <div class="tarsus-drawer__panel" role="dialog" aria-modal="true" aria-labelledby="{{id}}-drawer-title" tabindex="-1">
+            <div class="tarsus-drawer__head">
+                <h2 class="tarsus-drawer__title" id="{{id}}-drawer-title" data-region="drawer-title"></h2>
+                <button type="button" class="tarsus-drawer__close" data-action="drawer-close" title="{{#cleanstr}}panel_close, mod_tarsuscoach{{/cleanstr}}" aria-label="{{#cleanstr}}panel_close, mod_tarsuscoach{{/cleanstr}}">{{{icons.close}}}</button>
+            </div>
+            <div class="tarsus-drawer__body" data-region="drawer-body"></div>
+        </div>
+    </div>
+</div>

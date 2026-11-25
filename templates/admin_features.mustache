@@ -1,0 +1,68 @@
+{{!
+    This file is part of Moodle - https://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+}}
+{{!
+    @template mod_tarsuscoach/admin_features
+
+    Which features each plan includes, the current plan marked: the table of
+    the partner agreement, on the administrator's plan page.
+
+    Classes required for JS:
+    * none
+
+    Data attributes required for JS:
+    * none
+
+    Context variables required for this template:
+    * plans - The plans, one per column: label (language string), current.
+    * features - The features, one per row: label (language string), cells (badge, text, current).
+
+    Example context (json):
+    {
+        "plans": [{"label": "Ask", "current": true}, {"label": "Practice", "current": false}],
+        "features": [{
+            "label": "Questions about the course",
+            "cells": [{"badge": "success", "text": "Yes", "current": true}, {"badge": "success", "text": "Yes", "current": false}]
+        }]
+    }
+}}
+<details class="tarsus-details tarsus-details--plan">
+    <summary>{{#str}}plan_features_title, mod_tarsuscoach{{/str}}</summary>
+    <p class="tarsus-muted">{{#str}}plan_features_desc, mod_tarsuscoach{{/str}}</p>
+    <div class="tarsus-table-wrap">
+        <table class="tarsus-table tarsus-table--features">
+            <thead>
+                <tr>
+                    <th>{{#str}}plan_feature, mod_tarsuscoach{{/str}}</th>
+                    {{#plans}}
+                    <th class="tarsus-center{{#current}} tarsus-th--current{{/current}}">{{{label}}}{{#current}}<br><span class="tarsus-badge tarsus-badge--info">{{#str}}plan_current, mod_tarsuscoach{{/str}}</span>{{/current}}</th>
+                    {{/plans}}
+                </tr>
+            </thead>
+            <tbody>
+                {{#features}}
+                <tr>
+                    <td>{{{label}}}</td>
+                    {{#cells}}
+                    <td class="tarsus-center{{#current}} tarsus-td--current{{/current}}"><span class="tarsus-badge tarsus-badge--{{badge}}">{{{text}}}</span></td>
+                    {{/cells}}
+                </tr>
+                {{/features}}
+            </tbody>
+        </table>
+    </div>
+    <p class="tarsus-muted">{{#str}}plan_features_note, mod_tarsuscoach{{/str}}</p>
+</details>

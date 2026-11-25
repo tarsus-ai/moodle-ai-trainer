@@ -38,7 +38,6 @@ use mod_tarsuscoach\local\guardrail\pipeline;
 use mod_tarsuscoach\local\index\reconciler;
 use mod_tarsuscoach\local\index\repository;
 use mod_tarsuscoach\local\index\status;
-use mod_tarsuscoach\local\output\html;
 use mod_tarsuscoach\local\output\views;
 use mod_tarsuscoach\local\support\budget;
 use mod_tarsuscoach\local\support\config;
@@ -253,22 +252,22 @@ function mod_tarsuscoach_usage_panel(): string {
     $rows = [
         [$t('plan_billing'), $tarsusbilled ? $t('plan_billing_tarsus') : $t('plan_billing_partner')],
         [$t('plan_included'), plan::is_pay_as_you_grow()
-            ? ($tarsusbilled ? $t('plan_payg_note_tarsus') : $t('plan_payg_note', ['price' => html::e(plan::money(plan::price_per_request()))]))
+            ? ($tarsusbilled ? $t('plan_payg_note_tarsus') : $t('plan_payg_note', ['price' => s(plan::money(plan::price_per_request()))]))
             : ($tarsusbilled
                 ? $t('plan_included_value_tarsus', ['credits' => number_format(plan::included_credits())])
-                : $t('plan_included_value', ['credits' => number_format(plan::included_credits()), 'price' => html::e(plan::money(plan::price_per_request()))]))],
+                : $t('plan_included_value', ['credits' => number_format(plan::included_credits()), 'price' => s(plan::money(plan::price_per_request()))]))],
         [$t('usage_remote'), $remote === null
             ? $t('usage_remote_none')
-            : $t('usage_remote_value', ['credits' => budget::format($remote['credits']), 'fetched' => html::e(views::date($remote['fetched']))])],
+            : $t('usage_remote_value', ['credits' => budget::format($remote['credits']), 'fetched' => s(views::date($remote['fetched']))])],
         [$t('monthly_limit'), budget::has_limit()
             ? $t('monthly_limit_value', ['limit' => budget::format(budget::limit()), 'remaining' => budget::format(budget::remaining())])
             : $t('no_limit')],
         [$t('usage_charged'), $overage['charged'] > 0
             ? ($tarsusbilled
                 ? $t('usage_charged_value_tarsus', ['requests' => budget::format($overage['charged'])])
-                : $t('usage_charged_value', ['requests' => budget::format($overage['charged']), 'cost' => html::e(plan::money($overage['cost']))]))
+                : $t('usage_charged_value', ['requests' => budget::format($overage['charged']), 'cost' => s(plan::money($overage['cost']))]))
             : $t('usage_charged_none')],
-        [$t('usage_reset'), html::e(views::date(budget::next_month_start()))],
+        [$t('usage_reset'), s(views::date(budget::next_month_start()))],
     ];
     return views::plan_usage([
         'plan' => plan::label() . (plan::is_configured() ? '' : ' (' . $t('plan_default_note') . ')'),
@@ -287,26 +286,27 @@ function mod_tarsuscoach_usage_panel(): string {
  * @return string
  */
 function mod_tarsuscoach_feature_panel(): string {
+    global $OUTPUT;
     $t = static fn(string $key, array $params = []): string => platform::txt($key, $params);
     $current = plan::current();
-    $html = '<details class="tarsus-details tarsus-details--plan"><summary>' . $t('plan_features_title') . '</summary>'
-        . '<p class="tarsus-muted">' . $t('plan_features_desc') . '</p>'
-        . '<div class="tarsus-table-wrap"><table class="tarsus-table tarsus-table--features"><thead><tr><th>' . $t('plan_feature') . '</th>';
-    foreach ([plan::ASK, plan::PRACTICE, plan::LEARN, plan::PAYG] as $plan) {
-        $html .= '<th class="tarsus-center' . ($plan === $current ? ' tarsus-th--current' : '') . '">' . $t('plan_' . $plan . '_short')
-            . ($plan === $current ? '<br><span class="tarsus-badge tarsus-badge--info">' . $t('plan_current') . '</span>' : '') . '</th>';
+    $plans = [plan::ASK, plan::PRACTICE, plan::LEARN, plan::PAYG];
+    $context = ['plans' => [], 'features' => []];
+    foreach ($plans as $plan) {
+        $context['plans'][] = ['label' => $t('plan_' . $plan . '_short'), 'current' => $plan === $current];
     }
-    $html .= '</tr></thead><tbody>';
     foreach (plan::ALL_FEATURES as $feature) {
-        $html .= '<tr><td>' . $t('plan_feature_' . $feature) . '</td>';
-        foreach ([plan::ASK, plan::PRACTICE, plan::LEARN, plan::PAYG] as $plan) {
+        $cells = [];
+        foreach ($plans as $plan) {
             $yes = plan::allows($feature, $plan);
-            $html .= '<td class="tarsus-center' . ($plan === $current ? ' tarsus-td--current' : '') . '">'
-                . '<span class="tarsus-badge tarsus-badge--' . ($yes ? 'success' : 'muted') . '">' . get_string($yes ? 'yes' : 'no') . '</span></td>';
+            $cells[] = [
+                'badge' => $yes ? 'success' : 'muted',
+                'text' => get_string($yes ? 'yes' : 'no'),
+                'current' => $plan === $current,
+            ];
         }
-        $html .= '</tr>';
+        $context['features'][] = ['label' => $t('plan_feature_' . $feature), 'cells' => $cells];
     }
-    return $html . '</tbody></table></div><p class="tarsus-muted">' . $t('plan_features_note') . '</p></details>';
+    return $OUTPUT->render_from_template('mod_tarsuscoach/admin_features', $context);
 }
 
 /**
@@ -384,27 +384,29 @@ switch ($tab) {
         } else if (!in_array($current, $ids, true)) {
             echo $OUTPUT->notification($t('brain_missing', ['brain' => s($current)]), 'error');
         }
-        $html = '<div class="tarsus-app"><p class="tarsus-muted tarsus-sandbox-note">' . $t('brain_sandbox_note') . '</p>'
-            . '<div class="tarsus-table-wrap"><table class="tarsus-table"><thead><tr>'
-            . '<th>' . $t('brain_col_id') . '</th><th>' . $t('brain_col_status') . '</th><th>' . $t('brain_col_language') . '</th>'
-            . '<th>' . $t('brain_col_tag') . '</th><th>' . $t('brain_col_created') . '</th><th>' . $t('brain_col_action') . '</th>'
-            . '</tr></thead><tbody>';
+        $list = [];
         foreach ($brains as $brain) {
             $id = (string) $brain['brainid'];
             $deleted = strpos($id, 'deleted-') === 0;
             $active = !empty($brain['active']) && !$deleted;
             $inuse = $id === $current;
             $state = $deleted ? ['muted', 'brain_deleted'] : ($active ? ['success', 'brain_active'] : ['neutral', 'brain_inactive']);
-            $html .= '<tr><td><code>' . s($id) . '</code>'
-                . ($inuse ? ' <span class="tarsus-badge tarsus-badge--info">' . $t('brain_inuse') . '</span>' : '') . '</td>'
-                . '<td><span class="tarsus-badge tarsus-badge--' . $state[0] . '">' . $t($state[1]) . '</span></td>'
-                . '<td>' . s((string) $brain['language']) . '</td>'
-                . '<td>' . s((string) $brain['tag']) . '</td>'
-                . '<td class="tarsus-nowrap">' . ((int) $brain['timecreated'] > 0 ? s(views::date((int) $brain['timecreated'])) : '&ndash;') . '</td><td>'
-                . ($active && !$inuse ? mod_tarsuscoach_action_button($url, 'activatebrain', $t('brain_activate'), false, ['brainid' => $id]) : '')
-                . '</td></tr>';
+            $created = (int) $brain['timecreated'];
+            $list[] = [
+                'id' => $id,
+                'inuse' => $inuse,
+                'badge' => $state[0],
+                'state' => $t($state[1]),
+                'language' => (string) $brain['language'],
+                'tag' => (string) $brain['tag'],
+                'hascreated' => $created > 0,
+                'created' => $created > 0 ? views::date($created) : '',
+                'button' => $active && !$inuse
+                    ? mod_tarsuscoach_action_button($url, 'activatebrain', $t('brain_activate'), false, ['brainid' => $id])
+                    : '',
+            ];
         }
-        echo $html . '</tbody></table></div></div>';
+        echo $OUTPUT->render_from_template('mod_tarsuscoach/admin_brains', ['brains' => $list]);
         break;
 
     case 'deletions':
@@ -414,17 +416,21 @@ switch ($tab) {
             break;
         }
         echo $OUTPUT->notification($t('deletions_pending', ['count' => count($rows)]), 'info');
-        $html = '<div class="tarsus-app">' . mod_tarsuscoach_action_button($url, 'retrydeletions', $t('deletions_retry'), true)
-            . '<div class="tarsus-table-wrap"><table class="tarsus-table"><thead><tr>'
-            . '<th>' . $t('deletions_resource') . '</th><th>' . $t('deletions_container') . '</th><th>' . $t('deletions_since') . '</th>'
-            . '</tr></thead><tbody>';
+        $list = [];
         foreach ($rows as $row) {
             $course = $DB->get_record('course', ['id' => (int) $row->containerref], 'id, fullname');
-            $title = $course ? format_string($course->fullname) . ' (' . $course->id . ')' : $t('container_gone', ['ref' => (int) $row->containerref]);
-            $html .= '<tr><td><code>' . s($row->resourceid) . '</code></td><td>' . s($title) . '</td>'
-                . '<td class="tarsus-nowrap">' . s(views::date((int) $row->timemodified)) . '</td></tr>';
+            $list[] = [
+                'resourceid' => (string) $row->resourceid,
+                'title' => $course
+                    ? format_string($course->fullname) . ' (' . $course->id . ')'
+                    : $t('container_gone', ['ref' => (int) $row->containerref]),
+                'since' => views::date((int) $row->timemodified),
+            ];
         }
-        echo $html . '</tbody></table></div></div>';
+        echo $OUTPUT->render_from_template('mod_tarsuscoach/admin_deletions', [
+            'retry' => mod_tarsuscoach_action_button($url, 'retrydeletions', $t('deletions_retry'), true),
+            'rows' => $list,
+        ]);
         break;
 
     case 'status':
@@ -446,46 +452,36 @@ switch ($tab) {
                 'limit' => config::rate_limit(),
             ])],
         ];
-        $html = '<div class="tarsus-app"><div class="tarsus-dashboard__bulk mb-3">'
-            . mod_tarsuscoach_action_button($url, 'testconnection', $t('status_test'), true)
-            . mod_tarsuscoach_action_button($url, 'resetbreaker', $t('status_reset_breaker'))
-            . mod_tarsuscoach_action_button($url, 'refreshusage', $t('usage_refresh'))
-            . mod_tarsuscoach_action_button($url, 'refreshvoices', $t('voice_refresh'))
-            . '</div>';
-        $html .= mod_tarsuscoach_usage_panel();
-        $html .= '<h3 class="tarsus-h3">' . $t('status_guardrails') . '</h3><div class="tarsus-table-wrap"><table class="tarsus-table"><tbody>';
+        $buttons = [
+            mod_tarsuscoach_action_button($url, 'testconnection', $t('status_test'), true),
+            mod_tarsuscoach_action_button($url, 'resetbreaker', $t('status_reset_breaker')),
+            mod_tarsuscoach_action_button($url, 'refreshusage', $t('usage_refresh')),
+            mod_tarsuscoach_action_button($url, 'refreshvoices', $t('voice_refresh')),
+        ];
+        $usage = mod_tarsuscoach_usage_panel();
+        $guardrails = [];
         foreach ($rows as [$label, $value]) {
-            $html .= '<tr><th scope="row" style="width:30%">' . $label . '</th><td>' . s($value) . '</td></tr>';
+            $guardrails[] = ['label' => $label, 'value' => $value];
         }
-        $html .= '</tbody></table></div>';
-
         // Index map totals.
-        $html .= '<h3 class="tarsus-h3">' . $t('status_index') . '</h3>';
-        $counts = (new repository())->count_by_status();
-        if ($counts === []) {
-            $html .= '<p class="tarsus-muted">' . $t('status_index_none') . '</p>';
-        } else {
-            $html .= '<div class="tarsus-table-wrap"><table class="tarsus-table"><tbody>';
-            foreach ($counts as $status => $count) {
-                $html .= '<tr><th scope="row" style="width:30%">' . s(status::label((string) $status)) . '</th><td>' . (int) $count . '</td></tr>';
-            }
-            $html .= '</tbody></table></div>';
+        $index = [];
+        foreach ((new repository())->count_by_status() as $status => $count) {
+            $index[] = ['label' => status::label((string) $status), 'count' => (int) $count];
         }
-
         // Requests of the last 24 hours.
-        $html .= '<h3 class="tarsus-h3">' . $t('status_usage') . '</h3>';
-        $summary = (new usage_meter())->summary(time() - 86400);
-        if ($summary === []) {
-            $html .= '<p class="tarsus-muted">' . $t('status_usage_none') . '</p>';
-        } else {
-            $html .= '<div class="tarsus-table-wrap"><table class="tarsus-table"><thead><tr><th>' . $t('status_operation') . '</th><th>'
-                . $t('status_calls') . '</th></tr></thead><tbody>';
-            foreach ($summary as $operation => $figures) {
-                $html .= '<tr><td>' . s($operation) . '</td><td>' . (int) $figures['calls'] . '</td></tr>';
-            }
-            $html .= '</tbody></table></div>';
+        $operations = [];
+        foreach ((new usage_meter())->summary(time() - 86400) as $operation => $figures) {
+            $operations[] = ['operation' => (string) $operation, 'calls' => (int) $figures['calls']];
         }
-        echo $html . '</div>';
+        echo $OUTPUT->render_from_template('mod_tarsuscoach/admin_status', [
+            'buttons' => $buttons,
+            'usage' => $usage,
+            'guardrails' => $guardrails,
+            'hasindex' => $index !== [],
+            'index' => $index,
+            'hasoperations' => $operations !== [],
+            'operations' => $operations,
+        ]);
         break;
 }
 

@@ -17,30 +17,18 @@
 namespace mod_tarsuscoach\local\output;
 
 /**
- * HTML helpers.
+ * HTML helpers for the templates' contexts.
  *
- * @author  Tarsus GmbH
- * @license GPL-3.0-or-later
+ * @package    mod_tarsuscoach
+ * @copyright  2026 Tarsus GmbH
+ * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-final class html
-{
-    /**
-     * Escape text for HTML. Curly braces become entities as well: the
-     * ILIAS template engine strips anything that looks like one of its own
-     * {PLACEHOLDERS} from the final page, formulas and JSON included.
-     */
-    public static function e(?string $text): string {
-        return str_replace(
-            ['{', '}'],
-            ['&#123;', '&#125;'],
-            htmlspecialchars((string) $text, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8')
-        );
-    }
-
+final class html {
     /**
      * A JSON value safe to embed in an HTML attribute or a script block.
      *
-     * @param mixed $value
+     * @param mixed $value The value.
+     * @return string
      */
     public static function json($value): string {
         return (string) json_encode(
@@ -50,14 +38,25 @@ final class html
     }
 
     /**
-     * An inline SVG icon from the plugin's icon set.
+     * An inline SVG icon from the plugin's icon set (the coach script draws
+     * the same icons).
+     *
+     * @param string $name The icon's name in icons::PATHS.
+     * @param string $class The icon's class.
+     * @return string The SVG, or '' for an unknown name.
      */
     public static function icon(string $name, string $class = 'tarsus-icon'): string {
         $path = icons::PATHS[$name] ?? '';
         if ($path === '') {
             return '';
         }
-        return '<svg class="' . self::e($class) . '" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false">'
-            . $path . '</svg>';
+        return \html_writer::tag('svg', $path, [
+            'class' => $class,
+            'viewBox' => '0 0 24 24',
+            'width' => '16',
+            'height' => '16',
+            'aria-hidden' => 'true',
+            'focusable' => 'false',
+        ]);
     }
 }

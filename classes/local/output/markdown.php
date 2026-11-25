@@ -41,7 +41,7 @@ final class markdown {
         if (trim($markdown) === '') {
             return '';
         }
-        return '<div class="tarsus-md">' . self::plain($markdown) . '</div>';
+        return \html_writer::div(self::plain($markdown), 'tarsus-md');
     }
 
     /**

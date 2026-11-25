@@ -1,0 +1,76 @@
+{{!
+    This file is part of Moodle - https://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+}}
+{{!
+    @template mod_tarsuscoach/admin_brains
+
+    The brains of the Tarsus account, on the administrator's Brains page,
+    with a button to use an active one.
+
+    Classes required for JS:
+    * none
+
+    Data attributes required for JS:
+    * none
+
+    Context variables required for this template:
+    * brains - The brains: id, inuse, badge, state (language string), language, tag, hascreated, created,
+      button (the button that uses the brain, or empty).
+
+    Example context (json):
+    {
+        "brains": [{
+            "id": "brain-1",
+            "inuse": true,
+            "badge": "success",
+            "state": "Active",
+            "language": "en",
+            "tag": "default",
+            "hascreated": true,
+            "created": "25 November 2026",
+            "button": ""
+        }]
+    }
+}}
+<div class="tarsus-app">
+    <p class="tarsus-muted tarsus-sandbox-note">{{#str}}brain_sandbox_note, mod_tarsuscoach{{/str}}</p>
+    <div class="tarsus-table-wrap">
+        <table class="tarsus-table">
+            <thead>
+                <tr>
+                    <th>{{#str}}brain_col_id, mod_tarsuscoach{{/str}}</th>
+                    <th>{{#str}}brain_col_status, mod_tarsuscoach{{/str}}</th>
+                    <th>{{#str}}brain_col_language, mod_tarsuscoach{{/str}}</th>
+                    <th>{{#str}}brain_col_tag, mod_tarsuscoach{{/str}}</th>
+                    <th>{{#str}}brain_col_created, mod_tarsuscoach{{/str}}</th>
+                    <th>{{#str}}brain_col_action, mod_tarsuscoach{{/str}}</th>
+                </tr>
+            </thead>
+            <tbody>
+                {{#brains}}
+                <tr>
+                    <td><code>{{id}}</code>{{#inuse}} <span class="tarsus-badge tarsus-badge--info">{{#str}}brain_inuse, mod_tarsuscoach{{/str}}</span>{{/inuse}}</td>
+                    <td><span class="tarsus-badge tarsus-badge--{{badge}}">{{{state}}}</span></td>
+                    <td>{{language}}</td>
+                    <td>{{tag}}</td>
+                    <td class="tarsus-nowrap">{{#hascreated}}{{created}}{{/hascreated}}{{^hascreated}}&ndash;{{/hascreated}}</td>
+                    <td>{{{button}}}</td>
+                </tr>
+                {{/brains}}
+            </tbody>
+        </table>
+    </div>
+</div>

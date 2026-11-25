@@ -4,6 +4,30 @@ All notable changes to the Tarsus plugin for Moodle. The plugin follows
 [semantic versioning](https://semver.org/); the version is `$plugin->release`
 in `version.php`.
 
+## [2.0.0] – 2026-11-25
+
+The coach as *Tarsus coach* (`mod_tarsuscoach`), reworked to Moodle's standards. It replaces 1.0.0 and 1.0.1, which were called `mod_tarsus` – a name another Moodle plugin also uses – so Moodle installs 2.0.0 as a plugin of its own: see *Coming from 1.0.0 or 1.0.1?* under [Updating](https://github.com/tarsus-ai/moodle-ai-trainer#updating) in the README.
+
+### Changed
+
+- **New name**: the plugin is `mod_tarsuscoach` in the folder `mod/tarsuscoach` (Moodle 5.1 and newer: `public/mod/tarsuscoach`), the activity is called *Tarsus coach* (*Tarsus-Coach*), its tables start with `tarsuscoach_`.
+- **The live interaction runs sealed off from Moodle**, like the AI-driven pages: its page runs in a sandboxed frame (`sandbox="allow-scripts allow-forms"`) and cannot reach Moodle, its cookies or the surrounding page. Browsers give such a frame no microphone, so the plugin's own script records it while a call runs and passes the sound on to the call.
+- **Moodle 4.5 to 5.3**, PHP 8.1 or newer. Moodle 4.1 to 4.4 are no longer supported.
+- **The coach talks to Moodle through external functions** (`mod_tarsuscoach_*`, listed in `db/services.php`) with Moodle's session and capability checks.
+- **Pages from Mustache templates**: the coach, the materials page, the help and the administration pages. The scripts are AMD modules that load only on the plugin's own pages.
+- **Every call to Tarsus goes through Moodle's `curl` class**: Moodle's web proxy and its list of blocked hosts apply.
+- **Moodle's dialogues** ask before a live conversation is ended and before material is removed, in place of the browser's.
+
+### Added
+
+- **Dark colour mode**: the coach, its panels and the plugin's pages turn dark where Moodle shows a page dark – in Moodle 5.3 once *Enable colour modes* is on in the Boost theme's *Experimental settings* and a person chooses *Dark*.
+- **Tests**: 60 PHPUnit tests and 8 Behat scenarios. Moodle's code checker finds no errors and no warnings; ESLint and Stylelint with Moodle's rules find nothing.
+
+### Fixed
+
+- **Kill switch**: while it is on, the voice list in the settings and the *Brains* page no longer ask the brain.
+- **Names** of courses, activities, groups and material go through Moodle's filters, so names in several languages show in the reader's language.
+
 ## [1.0.1] – 2026-11-24
 
 ### Fixed

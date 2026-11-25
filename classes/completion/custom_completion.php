@@ -14,16 +14,16 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
-namespace mod_tarsus\completion;
+namespace mod_tarsuscoach\completion;
 
 use core_completion\activity_custom_completion;
-use mod_tarsus\local\Activity\Scoring;
-use mod_tarsus\local\Activity\Settings;
+use mod_tarsuscoach\local\activity\scoring;
+use mod_tarsuscoach\local\activity\settings;
 
 /**
  * The activity's completion rule: the learner reaches a progress.
  *
- * @package    mod_tarsus
+ * @package    mod_tarsuscoach
  * @copyright  2026 Tarsus GmbH
  * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -36,9 +36,9 @@ class custom_completion extends activity_custom_completion {
      */
     public function get_state(string $rule): int {
         $this->validate_rule($rule);
-        $settings = Settings::load((int) $this->cm->instance);
-        $row = Scoring::row((int) $this->cm->instance, $this->userid);
-        return Scoring::lpStatus($settings, $row) === Scoring::LP_COMPLETED ? COMPLETION_COMPLETE : COMPLETION_INCOMPLETE;
+        $settings = settings::load((int) $this->cm->instance);
+        $row = scoring::row((int) $this->cm->instance, $this->userid);
+        return scoring::lp_status($settings, $row) === scoring::LP_COMPLETED ? COMPLETION_COMPLETE : COMPLETION_INCOMPLETE;
     }
 
     /**
@@ -57,7 +57,7 @@ class custom_completion extends activity_custom_completion {
      */
     public function get_custom_rule_descriptions(): array {
         $progress = (int) ($this->cm->customdata['customcompletionrules']['completionprogress'] ?? 0);
-        return ['completionprogress' => get_string('completionprogress_desc', 'mod_tarsus', $progress)];
+        return ['completionprogress' => get_string('completionprogress_desc', 'mod_tarsuscoach', $progress)];
     }
 
     /**

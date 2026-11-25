@@ -10,7 +10,7 @@
  * without an allowed address shows its alt text, and tables scroll
  * sideways on narrow screens.
  *
- * Built into the plugin's tarsus-markdown.min.js (npm run build).
+ * Built into the plugin's amd/src/markdown-lazy.js (npm run build); Moodle's build minifies it.
  *
  * @license GPL-3.0-or-later (this file); the bundled libraries are MIT.
  */
@@ -152,9 +152,11 @@ const processor = unified()
   .use(rehypeStringify)
   .freeze();
 
-window.TarsusMarkdown = {
+const TarsusMarkdown = {
   /** HTML of a Markdown text; '' for an empty one. */
   render(markdown) {
     return String(processor.processSync(String(markdown === undefined || markdown === null ? '' : markdown)));
   },
 };
+
+export default TarsusMarkdown;

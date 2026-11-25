@@ -1,6 +1,7 @@
 /**
  * Builds the plugin's Markdown renderer from entry.js:
- * - the script (one minified file, no loader needed),
+ * - the module amd/src/markdown-lazy.js (Moodle's build turns it into amd/build/markdown-lazy.min.js;
+ *   "-lazy" keeps it out of the bundle Moodle loads on every page of the site),
  * - the licences of every library inside it,
  * - KaTeX's stylesheet and fonts (woff2: every browser the plugin supports).
  *
@@ -18,9 +19,13 @@ const root = join(here, '..', '..');
 
 /** Where the plugin keeps the files (relative to its folder). */
 const TARGET = {
-  script: join(root, 'assets', 'js', 'vendor'),
+  script: join(root, 'amd', 'src'),
+  licences: here,
   katex: join(root, 'assets', 'vendor', 'katex'),
 };
+
+/** The module's file name. */
+const MODULE = 'markdown-lazy.js';
 
 const LICENSE_FILES = ['LICENSE', 'license', 'LICENSE.md', 'license.md', 'LICENSE.txt', 'license.txt', 'LICENCE'];
 
@@ -69,13 +74,13 @@ mkdirSync(TARGET.script, {recursive: true});
 const result = await build({
   entryPoints: [join(here, 'entry.js')],
   bundle: true,
-  minify: true,
-  format: 'iife',
+  minify: false,
+  format: 'esm',
   target: 'es2017',
   legalComments: 'eof',
   metafile: true,
-  banner: {js: '/* Tarsus Markdown (build/markdown): unified, remark, rehype and KaTeX, MIT licensed - see tarsus-markdown.licenses.txt */'},
-  outfile: join(TARGET.script, 'tarsus-markdown.min.js'),
+  banner: {js: '/* Tarsus Markdown (build/markdown): unified, remark, rehype and KaTeX, MIT licensed - see build/markdown/licenses.txt */'},
+  outfile: join(TARGET.script, MODULE),
 });
 
 // The licences of the bundled libraries.
@@ -86,13 +91,13 @@ for (const input of Object.keys(result.metafile.inputs)) {
     packages.add(name);
   }
 }
-const notices = ['Libraries bundled in tarsus-markdown.min.js', ''];
+const notices = ['Libraries bundled in amd/src/' + MODULE, ''];
 for (const name of [...packages].sort()) {
   const folder = join(here, 'node_modules', name);
   const meta = JSON.parse(readFileSync(join(folder, 'package.json'), 'utf8'));
   notices.push('='.repeat(72), name + ' ' + meta.version + ' (' + (meta.license || 'see below') + ')', '='.repeat(72), '', licenseText(folder, meta), '');
 }
-writeFileSync(join(TARGET.script, 'tarsus-markdown.licenses.txt'), notices.join('\n'));
+writeFileSync(join(TARGET.licences, 'licenses.txt'), notices.join('\n'));
 
 // KaTeX's stylesheet, fonts and licence.
 const katex = join(here, 'node_modules', 'katex');
@@ -106,4 +111,4 @@ for (const file of readdirSync(join(katex, 'dist', 'fonts'))) {
     copyFileSync(join(katex, 'dist', 'fonts', file), join(fonts, file));
   }
 }
-console.log('Built', packages.size, 'libraries into tarsus-markdown.min.js; KaTeX', JSON.parse(readFileSync(join(katex, 'package.json'), 'utf8')).version);
+console.log('Built', packages.size, 'libraries into amd/src/' + MODULE + '; KaTeX', JSON.parse(readFileSync(join(katex, 'package.json'), 'utf8')).version);

@@ -1,0 +1,99 @@
+{{!
+    This file is part of Moodle - https://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+}}
+{{!
+    @template mod_tarsuscoach/admin_status
+
+    The administrator's status page: the actions, the plan and usage panel,
+    the guardrails, the material in the brain and the last day's calls.
+
+    Classes required for JS:
+    * none
+
+    Data attributes required for JS:
+    * none
+
+    Context variables required for this template:
+    * buttons - The actions' buttons.
+    * usage - The plan and usage panel (mod_tarsuscoach/plan_usage).
+    * guardrails - The guardrails: label (language string), value.
+    * hasindex - Whether the brain holds any material.
+    * index - The material per status: label, count.
+    * hasoperations - Whether Tarsus was called in the last day.
+    * operations - The calls per operation: operation, calls.
+
+    Example context (json):
+    {
+        "buttons": [],
+        "usage": "",
+        "guardrails": [{"label": "Demo mode", "value": "Yes"}],
+        "hasindex": true,
+        "index": [{"label": "Indexed", "count": 3}],
+        "hasoperations": true,
+        "operations": [{"operation": "ask", "calls": 12}]
+    }
+}}
+<div class="tarsus-app">
+    <div class="tarsus-dashboard__bulk mb-3">
+        {{#buttons}}
+        {{{.}}}
+        {{/buttons}}
+    </div>
+    {{{usage}}}
+    <h3 class="tarsus-h3">{{#str}}status_guardrails, mod_tarsuscoach{{/str}}</h3>
+    <div class="tarsus-table-wrap">
+        <table class="tarsus-table">
+            <tbody>
+                {{#guardrails}}
+                <tr><th scope="row" style="width:30%">{{{label}}}</th><td>{{value}}</td></tr>
+                {{/guardrails}}
+            </tbody>
+        </table>
+    </div>
+    <h3 class="tarsus-h3">{{#str}}status_index, mod_tarsuscoach{{/str}}</h3>
+    {{^hasindex}}
+    <p class="tarsus-muted">{{#str}}status_index_none, mod_tarsuscoach{{/str}}</p>
+    {{/hasindex}}
+    {{#hasindex}}
+    <div class="tarsus-table-wrap">
+        <table class="tarsus-table">
+            <tbody>
+                {{#index}}
+                <tr><th scope="row" style="width:30%">{{label}}</th><td>{{count}}</td></tr>
+                {{/index}}
+            </tbody>
+        </table>
+    </div>
+    {{/hasindex}}
+    <h3 class="tarsus-h3">{{#str}}status_usage, mod_tarsuscoach{{/str}}</h3>
+    {{^hasoperations}}
+    <p class="tarsus-muted">{{#str}}status_usage_none, mod_tarsuscoach{{/str}}</p>
+    {{/hasoperations}}
+    {{#hasoperations}}
+    <div class="tarsus-table-wrap">
+        <table class="tarsus-table">
+            <thead>
+                <tr><th>{{#str}}status_operation, mod_tarsuscoach{{/str}}</th><th>{{#str}}status_calls, mod_tarsuscoach{{/str}}</th></tr>
+            </thead>
+            <tbody>
+                {{#operations}}
+                <tr><td>{{operation}}</td><td>{{calls}}</td></tr>
+                {{/operations}}
+            </tbody>
+        </table>
+    </div>
+    {{/hasoperations}}
+</div>

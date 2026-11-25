@@ -10,9 +10,9 @@
     <repository>https://github.com/KaTeX/KaTeX</repository>
   </library>
   <library>
-    <location>assets/js/vendor/tarsus-markdown.min.js</location>
+    <location>amd/src/markdown-lazy.js</location>
     <name>Tarsus Markdown (unified, remark-gfm, remark-math, rehype-katex, KaTeX)</name>
-    <description>React-Markdown's pipeline bundled for the browser. Sources in build/markdown; the licence of every bundled library in assets/js/vendor/tarsus-markdown.licenses.txt.</description>
+    <description>React-Markdown's pipeline bundled as an AMD module. Sources in build/markdown; the licence of every bundled library in build/markdown/licenses.txt.</description>
     <version>1.0.0</version>
     <license>MIT</license>
     <licenseversion></licenseversion>

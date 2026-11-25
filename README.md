@@ -12,7 +12,7 @@
 
 <p align="center">
   <a href="https://github.com/tarsus-ai/moodle-ai-trainer/releases/latest"><img alt="Latest release" src="https://img.shields.io/github/v/release/tarsus-ai/moodle-ai-trainer?label=release&color=1f4e79"></a>
-  <img alt="Moodle 4.1 to 5.3" src="https://img.shields.io/badge/Moodle-4.1%20to%205.3-f98012">
+  <img alt="Moodle 4.5 to 5.3" src="https://img.shields.io/badge/Moodle-4.5%20to%205.3-f98012">
   <img alt="Languages" src="https://img.shields.io/badge/UI-English%20%7C%20Deutsch-555">
   <a href="LICENSE"><img alt="Licence GPL-3.0-or-later" src="https://img.shields.io/badge/licence-GPL--3.0--or--later-2e7d32"></a>
 </p>
@@ -29,10 +29,10 @@
 
 ---
 
-> [!WARNING]
-> **Please do not install versions 1.0.0 and 1.0.1.** They are replaced: they are called `mod_tarsus`, a name another Moodle plugin also uses, and their live call page is not sealed off from Moodle. The plugin is being reworked as *Tarsus coach* (`mod_tarsuscoach`); this page describes it once the new version is out.
+> [!NOTE]
+> **Version 2.0.0 replaces 1.0.0 and 1.0.1.** Those were called `mod_tarsus`, a name another Moodle plugin also uses, and their live call page was not sealed off from Moodle. Version 2.0.0 is *Tarsus coach* (`mod_tarsuscoach`), a plugin of its own: installed 1.0.0 or 1.0.1? See [Updating](#updating).
 
-Tarsus is an AI learning coach for training providers, companies and universities. It explains, lets learners practise, talks with them and answers their questions – always from the organisation's own documents, at the right level for each person. **Tarsus for Moodle** brings this coach into Moodle as an activity (`mod_tarsus`): a *Tarsus* activity sits in a course section like a quiz or a forum, uses only the course material the teacher has indexed and included, and reports to Moodle's gradebook and activity completion. The conversations run in the Tarsus brain; the plugin shows exactly what Tarsus sends and keeps only the figures Moodle needs. It is the same coach as [Tarsus for ILIAS](https://github.com/tarsus-ai/ilias-ai-trainer).
+Tarsus is an AI learning coach for training providers, companies and universities. It explains, lets learners practise, talks with them and answers their questions – always from the organisation's own documents, at the right level for each person. **Tarsus for Moodle** brings this coach into Moodle as an activity (`mod_tarsuscoach`): a *Tarsus coach* activity sits in a course section like a quiz or a forum, uses only the course material the teacher has indexed and included, and reports to Moodle's gradebook and activity completion. The conversations run in the Tarsus brain; the plugin shows exactly what Tarsus sends and keeps only the figures Moodle needs. It is the same coach as [Tarsus for ILIAS](https://github.com/tarsus-ai/ilias-ai-trainer).
 
 > This repository contains **no API keys and no brain IDs**. The plugin starts in demo mode; the credentials for a real brain are entered in Moodle's site administration and stay in the Moodle database – the browsers of learners and teachers never receive the API key. See [Getting access](#getting-access).
 
@@ -94,9 +94,10 @@ The coach adapts to the **DQR level**, the **taxonomy stage** (Anderson & Krathw
 
 - The modes in the order Tarsus uses: **Build knowledge**, **Test knowledge**, **Live interaction**, **Ask a question**. Widgets form a centred column like in Tarsus.
 - **Spoken questions:** *Switch to voice input*, record, listen back, send – the answer shows the recording and the text Tarsus heard.
-- **Live interaction:** a voice call with the AI trainer; the page of the call may use the microphone.
+- **Live interaction:** a voice call with the AI trainer. The call runs sealed off from Moodle, like the AI trainer's other pages; the microphone is recorded by the plugin and passed on to the call.
 - **Screen readers and keyboard:** everything works without a mouse, and screen readers hear the answers, the results and every step – see [Accessibility](#accessibility-screen-readers-and-keyboard).
 - **English and German**, following the user's language in Moodle. A **help button** opens the support links and videos the administrator configured.
+- **Dark colour mode:** where Moodle shows a page dark, the coach, its panels and the plugin's pages are dark too – in Moodle 5.3 once the administrator switches on *Enable colour modes* in the Boost theme's *Experimental settings* and a person chooses *Dark*.
 
 ### For teachers
 
@@ -164,8 +165,8 @@ Until a brain is configured the plugin runs in **demo mode** with simulated answ
 
 ## Requirements
 
-- Moodle **4.1** to **5.3** with **PHP 8.1 or newer** (Moodle 4.1 also runs on older PHP; the plugin needs 8.1). PHP's `curl` and `dom` extensions, which Moodle needs anyway – Moodle checks all of this itself during the installation.
-- Tested: version 1.0.0 on Moodle 4.1 (PHP 8.1), 4.5 (PHP 8.2), 5.0 (PHP 8.2), 5.1, 5.2 and 5.3 (PHP 8.4), with PostgreSQL – see [Development](#development).
+- Moodle **4.5** to **5.3**, with the PHP version your Moodle needs (8.1 or newer) and PHP's `curl` and `dom` extensions, which Moodle needs anyway – Moodle checks all of this itself during the installation.
+- Tested: version 2.0.0 on Moodle 4.5 (PHP 8.2), 5.0 (PHP 8.2), 5.1, 5.2 and 5.3 (PHP 8.4), with PostgreSQL – see [Development](#development).
 - Your Moodle must be able to open HTTPS connections to the Tarsus server. If your Moodle reaches the internet through a proxy, the plugin uses the one entered in *Site administration › Server › HTTP › Web proxy*.
 - Moodle must be reached over **https://** for spoken questions and the live interaction: browsers allow the microphone only on secure pages.
 - Moodle's cron, which every Moodle needs anyway (see [Keep material up to date automatically](#keep-material-up-to-date-automatically)).
@@ -183,7 +184,7 @@ Is your Moodle in German? Everything is in the same place; the German names are 
 
 ### Part 1 – Download the plugin
 
-**1.** Open the [latest release](https://github.com/tarsus-ai/moodle-ai-trainer/releases/latest) and click **`Tarsus-moodle-plugin-1.0.0.zip`** under *Assets* (the number may be higher). Your browser saves the file, usually in your *Downloads* folder. Leave it as it is – do not unzip it.
+**1.** Open the [latest release](https://github.com/tarsus-ai/moodle-ai-trainer/releases/latest) and click **`Tarsus-moodle-plugin-2.0.0.zip`** under *Assets* (the number may be higher). Your browser saves the file, usually in your *Downloads* folder. Leave it as it is – do not unzip it.
 
 ### Part 2 – Install it in Moodle
 
@@ -215,7 +216,7 @@ Is your Moodle in German? Everything is in the same place; the German names are 
 
 ![The server meets all requirements](docs/screenshots/guide/g07_server_checks.png)
 
-**9.** Moodle shows Tarsus as *To be installed*. Click **Upgrade Moodle database now** (1) *(Aktualisierung der Datenbank starten)*.
+**9.** Moodle shows *Tarsus coach* as *To be installed*. Click **Upgrade Moodle database now** (1) *(Aktualisierung der Datenbank starten)*.
 
 ![Upgrade Moodle database now](docs/screenshots/guide/g08_upgrade.png)
 
@@ -241,7 +242,7 @@ Is your Moodle in German? Everything is in the same place; the German names are 
 
 ![Plugins](docs/screenshots/guide/g13_notifications.png)
 
-**15.** Scroll down to **Tarsus** – it is among the *Activity modules* *(Aktivitäten)*, in alphabetical order – and click **Plan & credits** (2) *(Plan & Credits)*.
+**15.** Scroll down to **Tarsus coach** *(Tarsus-Coach)* – it is among the *Activity modules* *(Aktivitäten)*, in alphabetical order – and click **Plan & credits** (2) *(Plan & Credits)*.
 
 ![Tarsus, then Plan & credits](docs/screenshots/guide/g14_plan_link.png)
 
@@ -267,7 +268,7 @@ The plugin is ready. Now give a course its coach.
 
 ![Add an activity or resource](docs/screenshots/guide/g19_add_activity.png)
 
-**20.** Click **Tarsus** (3).
+**20.** Click **Tarsus coach** (3) *(Tarsus-Coach)*.
 
 ![Tarsus](docs/screenshots/guide/g20_chooser.png)
 
@@ -303,8 +304,8 @@ Teachers additionally see the buttons **Settings**, **Evaluation** and **History
 Some Moodle sites switch off installing from the browser, or the web server may not write into Moodle's folders. Then whoever looks after the server puts the plugin in place:
 
 1. Download `Tarsus-moodle-plugin-<version>.zip` from the [latest release](https://github.com/tarsus-ai/moodle-ai-trainer/releases/latest).
-2. Unzip it into the `mod` folder inside the Moodle folder – in Moodle 5.1 and newer, into `public/mod`. The zip contains the folder `tarsus`, so you end up with `mod/tarsus` (or `public/mod/tarsus`).
-3. Give the `tarsus` folder to the user that owns Moodle's files, for example `sudo chown -R www-data:www-data tarsus`.
+2. Unzip it into the `mod` folder inside the Moodle folder – in Moodle 5.1 and newer, into `public/mod`. The zip contains the folder `tarsuscoach`, so you end up with `mod/tarsuscoach` (or `public/mod/tarsuscoach`).
+3. Give the `tarsuscoach` folder to the user that owns Moodle's files, for example `sudo chown -R www-data:www-data tarsuscoach`.
 4. In Moodle, open **Site administration › Notifications** *(Website-Administration › Systemnachrichten)* and continue with [step 9](#part-2--install-it-in-moodle). On the command line, `sudo -u www-data php admin/cli/upgrade.php` in the Moodle folder does the same.
 
 </details>
@@ -331,17 +332,23 @@ Without the cron, changed material is sent again when a teacher opens the *Mater
 2. In Moodle, open **Site administration › Plugins › Install plugins**, put the zip into the box and click **Install plugin from the ZIP file** – as in [steps 4 to 6](#part-2--install-it-in-moodle).
 3. Moodle says that the folder of Tarsus already exists and will be replaced – that is what an update does. Click **Continue**, **Continue** again after the server check, then **Upgrade Moodle database now** and **Continue**.
 
-Your settings, the indexed material, the learners' figures and their grades are kept. The [changelog](CHANGELOG.md) lists what changed in each version. Installed by hand? Replace the `tarsus` folder with the new one and open *Site administration › Notifications*.
+Your settings, the indexed material, the learners' figures and their grades are kept. The [changelog](CHANGELOG.md) lists what changed in each version. Installed by hand? Replace the `tarsuscoach` folder with the new one and open *Site administration › Notifications*.
+
+**Coming from 1.0.0 or 1.0.1?** Those versions were a plugin of another name – *Tarsus* (`mod_tarsus`, in the folder `mod/tarsus`) – so Moodle installs 2.0.0 next to it instead of updating it:
+
+1. Install 2.0.0 as under [Installation](#installation) and copy the details from the Tarsus e-mail into its settings again.
+2. Give your courses a *Tarsus coach* and include the material, as in [part 3](#part-3--give-a-course-its-coach).
+3. Remove the old plugin: **Site administration › Plugins › Plugins overview** *(Pluginübersicht)*, find *Tarsus* among the activity modules, click **Uninstall** *(Deinstallieren)* and confirm. Its activities, settings and figures are deleted with it. The conversations and the material it sent stay in the brain; [Tarsus](mailto:info@tarsus.ai) removes them on request.
 
 ## If something does not work
 
 | What you see | What to do |
 |---|---|
 | *Install plugins* is missing, or the check says Moodle cannot write to the `mod` folder | Install by hand – see *"Install plugins" is missing* under [part 3](#part-3--give-a-course-its-coach). |
-| The check says the plugin needs a newer Moodle or PHP | Tarsus needs Moodle 4.1 or newer and PHP 8.1 or newer. Ask whoever looks after your Moodle to update it. |
+| The check says the plugin needs a newer Moodle or PHP | Tarsus coach needs Moodle 4.5 or newer and PHP 8.1 or newer. Ask whoever looks after your Moodle to update it. |
 | *Test connection* says the API key or brain is not accepted | Copy the API key and brain ID again from the e-mail, without spaces, and save. If it persists, ask Tarsus whether the key is activated. |
 | *Test connection* says Tarsus cannot be reached | Your server may not reach the internet. Ask your IT to allow HTTPS connections from the Moodle server to the Tarsus address; if Moodle reaches the internet through a proxy, enter it in *Site administration › Server › HTTP › Web proxy* *(Web-Proxy)*. |
-| Tarsus is missing when you add an activity | Open **Site administration › Plugins › Activity modules › Manage activities** and switch Tarsus on (the eye). |
+| *Tarsus coach* is missing when you add an activity | Open **Site administration › Plugins › Activity modules › Manage activities** and switch *Tarsus coach* on (the eye). |
 | Learners read *The course materials are still being prepared* | Nothing is indexed and included yet, or Tarsus is still reading it. Check the *Materials* page ([steps 22 to 24](#part-3--give-a-course-its-coach)) and wait a few minutes. |
 | The microphone button is missing or does nothing | Use Moodle over `https://`, and allow the microphone when the browser asks. Spoken questions and the live interaction can also be switched off in the teacher's *Settings*. |
 | The coach still uses an old version of a file or page | The scheduled task sends changed material again within 15 minutes ([Keep material up to date automatically](#keep-material-up-to-date-automatically)). To do it at once, click **Re-index** *(Neu indexieren)* on the *Materials* page. A web link is read once: if only the page behind the same address changes, click **Re-index**. |
@@ -351,7 +358,7 @@ The plugin writes the details of every failed call to the web server's error log
 
 ## Configuration
 
-*Site administration › Plugins › Activity modules › Tarsus* has five pages:
+*Site administration › Plugins › Activity modules › Tarsus coach* has five pages:
 
 | Page | What it holds |
 |---|---|
@@ -396,7 +403,7 @@ Each activity has an interaction type, sent to the brain as `interaction_type` w
 - **trainer-driven** – the coach answers with text, formulas, tables, pictures and the usual question widgets.
 - **ai-driven** – the coach may additionally answer with HTML pages: animations, simulations, small tools (a rotating cylinder whose volume follows the sliders, a capacitor discharge curve with a marker, a diagram of a process, …), both in *Ask a question* and in *Build knowledge*.
 
-Pages are rendered in an `<iframe sandbox="allow-scripts allow-forms allow-pointer-lock">` with `srcdoc`, so they can run their scripts but cannot reach Moodle, its cookies or the surrounding page. They size themselves to their content; an *Enlarge* button opens a page in a dialog. The page of the **live interaction** is the one exception: it runs in a frame without the sandbox that may use the microphone (`allow="microphone; autoplay"`), because the call needs it. AI-driven interaction and the live interaction are available on the Build Knowledge and Pay as you grow packages.
+Pages are rendered in an `<iframe sandbox="allow-scripts allow-forms allow-pointer-lock">` with `srcdoc`, so they can run their scripts but cannot reach Moodle, its cookies or the surrounding page. They size themselves to their content; an *Enlarge* button opens a page in a dialog. The page of the **live interaction** runs sandboxed too (`sandbox="allow-scripts allow-forms"`). Browsers give a sandboxed page no microphone, so the plugin's own script records it (only while a call runs, and only for that frame) and hands the sound over through a message channel; a small script placed first in the call page stands in for the microphone there. A call that starts in another tab ends the running one. AI-driven interaction and the live interaction are available on the Build Knowledge and Pay as you grow packages.
 
 ## Grades and completion
 
@@ -449,7 +456,7 @@ The coach works **without a mouse** and **with screen readers** (NVDA, JAWS, Voi
 
 **Live interaction:** the call itself runs in a page Tarsus provides. Starting it, its frame and the mode around it work with the keyboard and are labelled; the focus moves into the call's frame when it starts.
 
-**How it was checked:** [axe-core](https://github.com/dequelabs/axe-core) (WCAG 2.0, 2.1 and 2.2, levels A and AA, plus best practices) on every screen – question and answer, sources, a question before and after **Check**, learning units, live interaction, the teacher's settings and evaluation panels and the materials page – reports no violations on Moodle 4.1, 4.5, 5.0, 5.1, 5.2 and 5.3 (Boost theme). A keyboard-only session was recorded with a virtual screen reader ([Guidepup](https://github.com/guidepup/virtual-screen-reader)); an excerpt:
+**How it was checked:** [axe-core](https://github.com/dequelabs/axe-core) (WCAG 2.0, 2.1 and 2.2, levels A and AA, plus best practices) on every screen – question and answer, sources, a question before and after **Check**, learning units, live interaction, the teacher's settings and evaluation panels and the materials page – reports no violations on Moodle 4.5, 5.0, 5.1, 5.2 and 5.3 (Boost theme), on Moodle 5.3 also in the dark colour mode. A keyboard-only session was recorded with a virtual screen reader ([Guidepup](https://github.com/guidepup/virtual-screen-reader)); an excerpt:
 
 ```text
 Tab                link, Skip to the input field
@@ -469,48 +476,53 @@ Found something that does not work with your screen reader? Please [open an issu
 ## Data and privacy
 
 - The plugin talks to the brain over HTTPS only; every call carries the installation's API key and brain ID – or, for an existing Tarsus customer, the API key and the license key – and passes the guardrail pipeline (kill switch → circuit breaker, which opens after five consecutive outages for five minutes → monthly credit limit → rate limit). Refusals from Tarsus are shown with their own clear message and do not trip the breaker; nothing is retried blindly.
-- The plugin keeps its data in six tables: `tarsus` (the activities and their settings), `tarsus_idx` (the index map of the material sent to the brain), `tarsus_inc` (the material each activity may use), `tarsus_prg` (the latest figures per learner), `tarsus_use` (a log of the requests sent) and `tarsus_grd` (the guardrail state), plus its settings in Moodle's configuration. Uninstalling the plugin removes them.
+- The plugin keeps its data in six tables: `tarsuscoach` (the activities and their settings), `tarsuscoach_material` (the index map of the material sent to the brain), `tarsuscoach_inclusion` (the material each activity may use), `tarsuscoach_progress` (the latest figures per learner), `tarsuscoach_usage` (a log of the requests sent) and `tarsuscoach_guardrail` (the guardrail state), plus its settings in Moodle's configuration. Uninstalling the plugin removes them.
 - Learners are sent to the brain under a **pseudonym** – an HMAC of the Moodle user id with a secret generated at installation – together with their display name and interface language. The conversation itself lives in the brain. *Reset chat history* *(Chat-Verlauf zurücksetzen)* erases the learner's own conversation in the brain and the local figures. A spoken question is sent to Tarsus as audio to be transcribed.
-- **Moodle's privacy tools** know the plugin: a data request (*Site administration › Users › Privacy and policies › Data requests* – *Datenschutz und Richtlinien › Datenanfragen*) exports a learner's figures and requests, and deleting a learner's data also erases their conversation in the brain.
-- Interactive pages from the brain run sandboxed (see above) and are never stored in Moodle beyond the conversation history the brain returns.
+- **Moodle's privacy tools** know the plugin: a data request (*Site administration › Users › Privacy and policies › Data requests* – *Datenschutz und Richtlinien › Datenanfragen*) exports a learner's figures and requests, and deleting a learner's data also erases their conversation in the brain – even while the kill switch is on, since the law requires the deletion.
+- Interactive pages and the live call page from the brain run sandboxed (see above) and are never stored in Moodle beyond the conversation history the brain returns.
 - The coach does not search the internet: it generates explanations and answers exclusively from the documents your organisation provides. Tarsus stores your content at Microsoft Azure in Germany, GDPR-compliant – and the entire stack can be deployed on-premise on request ([Getting access](#getting-access)).
 
 ## Development
 
 ```
-version.php                plugin version, release and the Moodle range (4.1 to 5.3)
+version.php                plugin version, release and the Moodle range (4.5 to 5.3)
 lib.php                    Moodle callbacks: features, gradebook, completion, reset, navigation
 mod_form.php               the activity's settings form
 view.php                   the coach
 materials.php              the course material: index and include
 admin.php                  Plan & credits, Brains, Deletions and Status
 settings.php               the Tarsus settings page
-ajax.php, export.php       the coach's requests, the CSV export
+export.php                 the CSV export
+amd/src/                   the coach's script and the Markdown renderer as AMD modules (amd/build: built with Moodle's grunt)
+templates/                 Mustache templates: the coach, the materials page, the help and the administration pages
+styles.css                 the plugin's styles, Moodle's dark colour mode included
 classes/
-  local/Activity/          settings, didactics, conversation state, scoring
-  local/Client/            HTTP client, demo (mock) client, client factory
-  local/Cron/, task/       the synchronisation task
-  local/Guardrail/         kill switch, breaker, budget, rate limit
-  local/Index/, Material/  material discovery and indexing state machine
-  local/Output/            views, shaper of brain responses, media checks, icons, Markdown
-  local/Page/, Service/    the coach page, learner, teacher and settings endpoints
-  local/Support/           configuration, package (Plan), budget, help links, Moodle glue
+  external/                the coach's requests as external functions (listed in db/services.php)
+  local/activity/          settings, didactics, conversation state, scoring
+  local/client/            HTTP client (Moodle's curl class), demo (mock) client, client factory
+  local/cron/, task/       the synchronisation task
+  local/guardrail/         kill switch, breaker, budget, rate limit
+  local/index/, material/  material discovery and indexing state machine
+  local/output/            views, shaper of brain responses, media checks, icons, Markdown
+  local/page/, service/    the coach page, learner, teacher and settings endpoints
+  local/support/           configuration, package (Plan), budget, help links, Moodle glue
   completion/, privacy/, form/, event/   Moodle APIs
 backup/moodle2/            backup and restore
-db/                        tables, upgrade steps, capabilities, the scheduled task
-assets/                    CSS, JavaScript, images and the demo mode's pages
-  js/vendor/, vendor/katex/  the bundled Markdown renderer and KaTeX's stylesheet and fonts
-build/markdown/            the renderer's sources: React-Markdown's pipeline with KaTeX (npm ci && npm run build)
+db/                        tables, upgrade steps, capabilities, external functions, the scheduled task
+assets/                    pictures, the demo mode's pages, KaTeX's stylesheet and fonts
+build/markdown/            the renderer's sources: React-Markdown's pipeline with KaTeX (npm ci && npm run build writes amd/src/markdown-lazy.js)
+tests/                     PHPUnit tests, Behat features and the test data generator
 lang/                      en, de
 docs/screenshots/          the pictures in this README (not in the release zip)
 ```
 
 - **Demo mode** (default after installation) makes the whole interface usable without a brain: the demo client answers with fixed samples for every call, including interactive pages, a demo live page and sources. All demo brain names start with `mock-`.
-- Version 1.0.0 was tested end to end with Playwright on Moodle 4.1 (PHP 8.1), 4.5 (PHP 8.2), 5.0 (PHP 8.2), 5.1, 5.2 and 5.3 (PHP 8.4), all on PostgreSQL, in demo mode: the activity created through its form with a completion rule, the four modes, sources, the teacher panels, formulas and tables, the administration pages, axe on every screen, a learner's grade and completion, the scheduled task, the privacy export and deletion, course reset, *Duplicate* and backup and restore – with every PHP message from the plugin's files recorded, deprecation notices included: none.
-- The installation from the release zip through *Install plugins* was recorded on Moodle 4.5 (the pictures above), the update to a newer version through the same page on Moodle 5.0, and the zip published on GitHub was installed the same way on Moodle 5.3. On Moodle 4.5 the plugin then ran against a live Tarsus brain, reached through Moodle's web proxy: leaving demo mode sent the course material to the brain by itself; questions with sources, a test question with feedback, learning objectives and a learning unit, the live interaction, an AI-driven page and the teacher panels worked as shown above; *Reset chat history* erased the conversations in the brain, and removing the material took it out of the brain again.
-- Version 1.0.1 ran the same checks on all six Moodle versions again, plus a test with the plugin's scripts slowed down as on a slow line, also on all six: Moodle's message drawer starts and opens on the coach and the *Materials* page, and the coach starts.
+- **Moodle's ways of doing things:** the coach talks to Moodle through external functions (`mod_tarsuscoach_*`, with Moodle's session and capability checks), its pages are Mustache templates, its scripts are AMD modules that load only on the plugin's own pages, and every call to Tarsus goes through Moodle's `curl` class – so Moodle's proxy settings and its list of blocked hosts apply.
+- **Tests:** 60 PHPUnit tests (the activity's lifecycle, gradebook and reset, the guardrails, the HTTP client, the external functions, the privacy provider, backup and restore, help links, pictures, Markdown and voices) and 8 Behat scenarios (the coach, the materials page, the administration pages). Run them as for any Moodle plugin: `vendor/bin/phpunit --testsuite mod_tarsuscoach_testsuite` and `php admin/tool/behat/cli/run.php --tags=@mod_tarsuscoach`.
+- **Coding style:** Moodle's code checker (moodle-cs 3.9.2, as used by moodle-plugin-ci) finds no errors and no warnings; ESLint and Stylelint with Moodle 5.3's rules find nothing either.
+- **Version 2.0.0** was tested end to end with Playwright on Moodle 4.5 (PHP 8.2), 5.0 (PHP 8.2), 5.1, 5.2 and 5.3 (PHP 8.4), all on PostgreSQL, in demo mode: the activity created through its form with a completion rule, the four modes, sources, spoken questions, formulas and tables, the teacher panels, the administration pages, Moodle's confirmation dialogues, axe on every screen, a learner's grade and completion, the scheduled task, the privacy export and deletion, course reset, *Duplicate* and backup and restore, and Moodle's message drawer with the plugin's scripts slowed down as on a slow line. Neither PHP's error log nor the pages showed a single message from the plugin's files, deprecation notices included. The installation from the release zip through *Install plugins* was recorded on Moodle 4.5 (the pictures above).
 - The renderer is React-Markdown's own pipeline (remark-gfm, remark-math, rehype-katex) bundled with esbuild; compared with React-Markdown 10 it gives identical output for 36 sample texts (formulas, tables, lists, links, HTML, footnotes).
-- **Releases** are published by the [Release workflow](.github/workflows/release.yml): raise `$plugin->version` and `$plugin->release` in `version.php`, add the version's section to `CHANGELOG.md` and push to `main` – the workflow tags the commit, builds `Tarsus-moodle-plugin-<version>.zip` (folder `tarsus`) with `git archive` (repository-only files such as `docs/` are left out) and creates the GitHub release with the changelog section as notes.
+- **Releases** are published by the [Release workflow](.github/workflows/release.yml): raise `$plugin->version` and `$plugin->release` in `version.php`, add the version's section to `CHANGELOG.md` and push to `main` – the workflow tags the commit, builds `Tarsus-moodle-plugin-<version>.zip` (folder `tarsuscoach`) with `git archive` (repository-only files such as `docs/` are left out) and creates the GitHub release with the changelog section as notes.
 
 Issues and pull requests are welcome.
 

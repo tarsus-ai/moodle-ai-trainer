@@ -14,16 +14,16 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
-namespace mod_tarsus\task;
+namespace mod_tarsuscoach\task;
 
-use mod_tarsus\local\Cron\Sweep;
+use mod_tarsuscoach\local\cron\sweep;
 
 /**
  * Keeps the brain in step with the course material: re-sends what was
  * edited, withdraws what was deleted, confirms what the brain finished
  * reading, and fetches the month's AI credit figure.
  *
- * @package    mod_tarsus
+ * @package    mod_tarsuscoach
  * @copyright  2026 Tarsus GmbH
  * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -34,14 +34,14 @@ class sync_brain extends \core\task\scheduled_task {
      * @return string
      */
     public function get_name() {
-        return get_string('task_sync', 'mod_tarsus');
+        return get_string('task_sync', 'mod_tarsuscoach');
     }
 
     /**
      * Run the sweep.
      */
     public function execute() {
-        $outcome = Sweep::run();
+        $outcome = sweep::run();
         mtrace($outcome['message']);
     }
 }

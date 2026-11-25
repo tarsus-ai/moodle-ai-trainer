@@ -17,7 +17,7 @@
 /**
  * Scheduled task: keep the brain in step with the course material.
  *
- * @package    mod_tarsus
+ * @package    mod_tarsuscoach
  * @copyright  2026 Tarsus GmbH
  * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -26,7 +26,7 @@ defined('MOODLE_INTERNAL') || die();
 
 $tasks = [
     [
-        'classname' => 'mod_tarsus\task\sync_brain',
+        'classname' => 'mod_tarsuscoach\task\sync_brain',
         'blocking' => 0,
         'minute' => '*/15',
         'hour' => '*',

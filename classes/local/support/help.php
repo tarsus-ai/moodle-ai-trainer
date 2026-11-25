@@ -1,0 +1,103 @@
+<?php
+// This file is part of Moodle - https://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+
+namespace mod_tarsuscoach\local\support;
+
+/**
+ * The support links and videos behind the help button, configured as one
+ * "Title | URL" line each. YouTube and Vimeo links play inside the panel;
+ * anything else opens in a new tab.
+ *
+ * @package    mod_tarsuscoach
+ * @copyright  2026 Tarsus GmbH
+ * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+final class help
+{
+    /** The setting that holds the links. */
+    public const KEY = 'help_links';
+
+    /**
+     * The configured links, ready for the help panel.
+     *
+     * @return array<int, array{title: string, url: string, embed: string}>
+     */
+    public static function links(): array {
+        return self::parse((string) config::get(self::KEY, ''));
+    }
+
+    /**
+     * The links of a "Title | URL" list: https only, at most 20. Empty
+     * lines and lines starting with # are skipped; without a title the
+     * host name stands in.
+     *
+     * @param string $raw The list, one link per line.
+     * @return array<int, array{title: string, url: string, embed: string}>
+     */
+    public static function parse(string $raw): array {
+        $links = [];
+        foreach (preg_split('/\R/', $raw) ?: [] as $line) {
+            $line = trim($line);
+            if ($line === '' || $line[0] === '#') {
+                continue;
+            }
+            $parts = array_map('trim', explode('|', $line, 2));
+            if (count($parts) === 2) {
+                [$title, $url] = $parts;
+            } else {
+                $title = '';
+                $url = $parts[0];
+            }
+            if (!preg_match('~^https://[^\s"\'<>]+$~i', $url)) {
+                continue;
+            }
+            if ($title === '') {
+                $title = (string) parse_url($url, PHP_URL_HOST);
+            }
+            $links[] = ['title' => mb_substr($title, 0, 120), 'url' => $url, 'embed' => self::embed_url($url)];
+            if (count($links) >= 20) {
+                break;
+            }
+        }
+        return $links;
+    }
+
+    /**
+     * The privacy-friendly player URL of a YouTube or Vimeo link, '' for others.
+     */
+    public static function embed_url(string $url): string {
+        $host = strtolower((string) parse_url($url, PHP_URL_HOST));
+        $path = (string) parse_url($url, PHP_URL_PATH);
+        parse_str((string) parse_url($url, PHP_URL_QUERY), $query);
+
+        if (preg_match('/(^|\.)youtube(-nocookie)?\.com$/', $host)) {
+            $id = '';
+            if (preg_match('~^/(embed|shorts|live)/([A-Za-z0-9_-]{6,20})~', $path, $m)) {
+                $id = $m[2];
+            } else if (isset($query['v']) && preg_match('/^[A-Za-z0-9_-]{6,20}$/', (string) $query['v'])) {
+                $id = (string) $query['v'];
+            }
+            return $id !== '' ? 'https://www.youtube-nocookie.com/embed/' . $id : '';
+        }
+        if ($host === 'youtu.be' && preg_match('~^/([A-Za-z0-9_-]{6,20})~', $path, $m)) {
+            return 'https://www.youtube-nocookie.com/embed/' . $m[1];
+        }
+        if (preg_match('/(^|\.)vimeo\.com$/', $host) && preg_match('~/(\d{5,})(?:/|$)~', $path, $m)) {
+            return 'https://player.vimeo.com/video/' . $m[1] . '?dnt=1';
+        }
+        return '';
+    }
+}

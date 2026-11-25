@@ -1,0 +1,78 @@
+{{!
+    This file is part of Moodle - https://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+}}
+{{!
+    @template mod_tarsuscoach/plan_usage
+
+    The administrator's panel of the plan and this month's AI credits.
+
+    Classes required for JS:
+    * none
+
+    Data attributes required for JS:
+    * none
+
+    Context variables required for this template:
+    * plan - The plan's name.
+    * usage - The usage bar (mod_tarsuscoach/usage_bar): level, label, width.
+    * rows - The figures: label and value, both HTML made by the plugin from its language strings.
+    * hasitems - Whether the brain reported its usage per service.
+    * items - The services that used credits: service, name, credits.
+
+    Example context (json):
+    {
+        "plan": "Ask",
+        "usage": {"level": "ok", "label": "120 of 1,000 AI credits used (12 %)", "width": "12.0"},
+        "rows": [{"label": "Billing", "value": "Through your partner"}],
+        "hasitems": true,
+        "items": [{"service": "ask", "name": "Questions", "credits": "120"}]
+    }
+}}
+<div class="tarsus-panel tarsus-panel--plan">
+    <div class="tarsus-plan-head">
+        <div>
+            <div class="tarsus-eyebrow">{{#cleanstr}}plan_current, mod_tarsuscoach{{/cleanstr}}</div>
+            <div class="tarsus-headline">{{plan}}</div>
+        </div>
+        <div class="tarsus-plan-head__usage">{{#usage}}{{> mod_tarsuscoach/usage_bar}}{{/usage}}</div>
+    </div>
+    <div class="tarsus-table-wrap">
+        <table class="tarsus-table">
+            <tbody>
+                {{#rows}}
+                <tr><th scope="row" style="width:30%">{{{label}}}</th><td>{{{value}}}</td></tr>
+                {{/rows}}
+            </tbody>
+        </table>
+    </div>
+    {{#hasitems}}
+    <details class="tarsus-details">
+        <summary>{{#cleanstr}}usage_breakdown, mod_tarsuscoach{{/cleanstr}}</summary>
+        <div class="tarsus-table-wrap">
+            <table class="tarsus-table">
+                <thead>
+                    <tr><th>{{#cleanstr}}usage_service, mod_tarsuscoach{{/cleanstr}}</th><th>{{#cleanstr}}usage_name, mod_tarsuscoach{{/cleanstr}}</th><th class="tarsus-num">{{#cleanstr}}status_credits, mod_tarsuscoach{{/cleanstr}}</th></tr>
+                </thead>
+                <tbody>
+                    {{#items}}
+                    <tr><td>{{service}}</td><td>{{name}}</td><td class="tarsus-num">{{credits}}</td></tr>
+                    {{/items}}
+                </tbody>
+            </table>
+        </div>
+    </details>
+    {{/hasitems}}
+</div>

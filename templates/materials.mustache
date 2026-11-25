@@ -1,0 +1,121 @@
+{{!
+    This file is part of Moodle - https://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+}}
+{{!
+    @template mod_tarsuscoach/materials
+
+    The teacher's list of the course material: status in the brain, whether
+    this activity may use it, and the actions. The coach script carries out
+    the actions and updates the rows.
+
+    Classes required for JS:
+    * none
+
+    Data attributes required for JS:
+    * data-config - the coach script's configuration.
+    * data-region, data-resourceid, data-action, data-bulk - the parts the script finds and the buttons it answers.
+
+    Context variables required for this template:
+    * id - The id of the list's root element.
+    * config - The coach script's configuration, as JSON.
+    * counttotal, countindexed, countincluded - The figures above the list.
+    * hasrows - Whether the course holds any material.
+    * rows - The material: resourceid, hasurl, url, objecttitle and title (HTML, from format_string), showtitle, typelabel, badgeclass,
+      statuslabel, inflight, included, caninclude, actions (action, modifier, visible, label).
+    * pager - The pager (mod_tarsuscoach/pager), or empty.
+    * icons - The icons, as SVG: refresh.
+
+    Example context (json):
+    {
+        "id": "tarsus-materials-1",
+        "config": "{\"kind\":\"materials\"}",
+        "counttotal": 1,
+        "countindexed": 1,
+        "countincluded": 1,
+        "hasrows": true,
+        "rows": [{
+            "resourceid": "moodle-resource-1",
+            "hasurl": true,
+            "url": "https://example.org/mod/resource/view.php?id=1",
+            "objecttitle": "Week 1",
+            "showtitle": true,
+            "title": "slides.pdf",
+            "typelabel": "File",
+            "badgeclass": "tarsus-badge tarsus-badge--success",
+            "statuslabel": "Indexed",
+            "inflight": false,
+            "included": true,
+            "caninclude": true,
+            "actions": [{"action": "reindex", "modifier": "", "visible": true, "label": "Index again"}]
+        }],
+        "pager": "",
+        "icons": {"refresh": ""}
+    }
+}}
+<div class="tarsus-app tarsus-dashboard" id="{{id}}" data-config="{{config}}">
+    <div class="tarsus-dashboard__intro">
+        <p>{{#cleanstr}}materials_intro, mod_tarsuscoach{{/cleanstr}}</p>
+        <div class="tarsus-dashboard__stats">
+            <span class="tarsus-stat"><strong>{{counttotal}}</strong> {{#cleanstr}}materials_count_total, mod_tarsuscoach{{/cleanstr}}</span>
+            <span class="tarsus-stat"><strong>{{countindexed}}</strong> {{#cleanstr}}materials_count_indexed, mod_tarsuscoach{{/cleanstr}}</span>
+            <span class="tarsus-stat"><strong>{{countincluded}}</strong> {{#cleanstr}}materials_count_included, mod_tarsuscoach{{/cleanstr}}</span>
+        </div>
+    </div>
+    {{^hasrows}}
+    <div class="tarsus-empty">{{#cleanstr}}no_materials, mod_tarsuscoach{{/cleanstr}}</div>
+    {{/hasrows}}
+    {{#hasrows}}
+    <div class="tarsus-dashboard__bulk" data-region="bulk">
+        <button type="button" class="tarsus-btn tarsus-btn--primary tarsus-btn--sm" data-bulk="index">{{#cleanstr}}bulk_index, mod_tarsuscoach{{/cleanstr}}</button>
+        <button type="button" class="tarsus-btn tarsus-btn--sm" data-bulk="include">{{#cleanstr}}bulk_include, mod_tarsuscoach{{/cleanstr}}</button>
+        <button type="button" class="tarsus-btn tarsus-btn--sm" data-bulk="sync">{{{icons.refresh}}}<span>{{#cleanstr}}bulk_sync, mod_tarsuscoach{{/cleanstr}}</span></button>
+        <span class="tarsus-spinner" data-region="bulk-spinner" hidden></span>
+        <span class="tarsus-dashboard__message" data-region="bulk-message" role="status"></span>
+    </div>
+    <p class="tarsus-muted tarsus-small">{{#cleanstr}}bulk_help, mod_tarsuscoach{{/cleanstr}}</p>
+    <div class="tarsus-table-wrap">
+        <table class="tarsus-table">
+            <thead>
+                <tr>
+                    <th scope="col">{{#cleanstr}}col_material, mod_tarsuscoach{{/cleanstr}}</th>
+                    <th scope="col">{{#cleanstr}}col_type, mod_tarsuscoach{{/cleanstr}}</th>
+                    <th scope="col">{{#cleanstr}}col_status, mod_tarsuscoach{{/cleanstr}}</th>
+                    <th scope="col">{{#cleanstr}}col_included, mod_tarsuscoach{{/cleanstr}}</th>
+                    <th scope="col">{{#cleanstr}}col_actions, mod_tarsuscoach{{/cleanstr}}</th>
+                </tr>
+            </thead>
+            <tbody>
+                {{#rows}}
+                <tr data-region="resource" data-resourceid="{{resourceid}}">
+                    <td>{{#hasurl}}<a href="{{url}}">{{{objecttitle}}}</a>{{/hasurl}}{{^hasurl}}{{{objecttitle}}}{{/hasurl}}{{#showtitle}}<div class="tarsus-muted tarsus-small">{{{title}}}</div>{{/showtitle}}</td>
+                    <td class="tarsus-nowrap">{{typelabel}}</td>
+                    <td class="tarsus-nowrap"><span class="{{badgeclass}}" data-region="status-badge">{{statuslabel}}</span><span class="tarsus-spinner tarsus-spinner--inline" data-region="status-spinner"{{^inflight}} hidden{{/inflight}}></span></td>
+                    <td><label class="tarsus-switch"><input type="checkbox" role="switch" data-region="include-toggle" aria-label="{{#cleanstr}}col_included, mod_tarsuscoach{{/cleanstr}}"{{#included}} checked{{/included}}{{^caninclude}} disabled{{/caninclude}}><span class="tarsus-switch__track" aria-hidden="true"></span></label></td>
+                    <td>
+                        <div class="tarsus-actions">
+                            {{#actions}}
+                            <button type="button" class="tarsus-btn tarsus-btn--sm {{modifier}}" data-action="{{action}}"{{^visible}} hidden{{/visible}}>{{label}}</button>
+                            {{/actions}}
+                        </div>
+                    </td>
+                </tr>
+                {{/rows}}
+            </tbody>
+        </table>
+    </div>
+    {{{pager}}}
+    {{/hasrows}}
+</div>

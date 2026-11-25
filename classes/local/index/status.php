@@ -1,0 +1,144 @@
+<?php
+// This file is part of Moodle - https://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+
+namespace mod_tarsuscoach\local\index;
+
+use mod_tarsuscoach\local\support\platform;
+
+/**
+ * Indexation status vocabulary and the allowed state-machine transitions.
+ *
+ *   notindexed -> pending -> pendingconfirmation -> indexed
+ * plus pendingreindex, pendingdeletion and error.
+ *
+ * @package    mod_tarsuscoach
+ * @copyright  2026 Tarsus GmbH
+ * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+final class status
+{
+    /** Tracked locally but not (yet) in the brain. */
+    public const NOT_INDEXED = 'notindexed';
+
+    /** Upload to the brain under way. */
+    public const PENDING = 'pending';
+
+    /** Uploaded; awaiting the brain's asynchronous confirmation. */
+    public const PENDING_CONFIRMATION = 'pendingconfirmation';
+
+    /** Live in the brain (content hash stored). */
+    public const INDEXED = 'indexed';
+
+    /** Content changed since it was indexed. */
+    public const PENDING_REINDEX = 'pendingreindex';
+
+    /** Marked for removal from the brain. */
+    public const PENDING_DELETION = 'pendingdeletion';
+
+    /** Upload/confirmation failed after the retry budget. */
+    public const ERROR = 'error';
+
+    /** @var string[] */
+    public const ALL = [
+        self::NOT_INDEXED,
+        self::PENDING,
+        self::PENDING_CONFIRMATION,
+        self::INDEXED,
+        self::PENDING_REINDEX,
+        self::PENDING_DELETION,
+        self::ERROR,
+    ];
+
+    /** @var array<string, string[]> Allowed transitions from each status. */
+    private const TRANSITIONS = [
+        self::NOT_INDEXED => [self::PENDING, self::PENDING_DELETION],
+        // The notindexed status is the revert target when a synchronous upload fails:
+        // with no background queue the row must never stay mid-flight.
+        self::PENDING => [
+            self::PENDING_CONFIRMATION,
+            self::INDEXED,
+            self::ERROR,
+            self::PENDING_DELETION,
+            self::NOT_INDEXED,
+        ],
+        // The brain is the source of truth: it may report a resource as
+        // simply absent ("failed"), which drops the row to the start state.
+        // When the connection moves to another brain, the upload is sent
+        // again there (reconciler::retarget()).
+        self::PENDING_CONFIRMATION => [
+            self::INDEXED,
+            self::PENDING,
+            self::NOT_INDEXED,
+            self::ERROR,
+            self::PENDING_DELETION,
+            self::PENDING_REINDEX,
+        ],
+        self::INDEXED => [self::PENDING_REINDEX, self::NOT_INDEXED, self::PENDING_DELETION],
+        // The pending status is reached mid-re-index: once the old bits are untracked
+        // the brain holds nothing, which is exactly what pending means.
+        self::PENDING_REINDEX => [
+            self::PENDING,
+            self::PENDING_CONFIRMATION,
+            self::INDEXED,
+            self::NOT_INDEXED,
+            self::ERROR,
+            self::PENDING_DELETION,
+        ],
+        // A pending deletion either completes, or reverts to indexed when
+        // it could not be delivered.
+        self::PENDING_DELETION => [self::NOT_INDEXED, self::INDEXED, self::ERROR],
+        // From error a manual retry re-enters the pipeline, or the row is
+        // dropped. The brain may also confirm the resource after the local
+        // retry budget ran out (slow ingestion): that self-heals.
+        self::ERROR => [
+            self::PENDING,
+            self::PENDING_REINDEX,
+            self::PENDING_DELETION,
+            self::NOT_INDEXED,
+            self::INDEXED,
+        ],
+    ];
+
+    /**
+     * Whether a string is one of the statuses.
+     *
+     * @param string $status The value to check.
+     * @return bool
+     */
+    public static function is_valid(string $status): bool {
+        return in_array($status, self::ALL, true);
+    }
+
+    /**
+     * Whether a transition is allowed; a no-op transition always is.
+     */
+    public static function can_transition(string $from, string $to): bool {
+        if ($from === $to) {
+            return true;
+        }
+        return in_array($to, self::TRANSITIONS[$from] ?? [], true);
+    }
+
+    /**
+     * The name of a status in the user's language.
+     *
+     * @param string $status The status.
+     * @return string
+     */
+    public static function label(string $status): string {
+        return platform::txt('status_' . $status);
+    }
+}

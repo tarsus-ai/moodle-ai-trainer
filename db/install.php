@@ -17,7 +17,7 @@
 /**
  * After installation: the plugin starts in demo mode.
  *
- * @package    mod_tarsus
+ * @package    mod_tarsuscoach
  * @copyright  2026 Tarsus GmbH
  * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -28,7 +28,7 @@
  *
  * @return bool
  */
-function xmldb_tarsus_install() {
-    set_config('last_target', 'demo', 'mod_tarsus');
+function xmldb_tarsuscoach_install() {
+    set_config('last_target', 'demo', 'mod_tarsuscoach');
     return true;
 }

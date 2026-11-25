@@ -17,18 +17,18 @@
 /**
  * Moodle's interface to the Tarsus activity.
  *
- * @package    mod_tarsus
+ * @package    mod_tarsuscoach
  * @copyright  2026 Tarsus GmbH
  * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-use mod_tarsus\local\Activity\Scoring;
-use mod_tarsus\local\Activity\Settings;
-use mod_tarsus\local\Index\Inclusions;
-use mod_tarsus\local\Service\SettingsApi;
+use mod_tarsuscoach\local\activity\scoring;
+use mod_tarsuscoach\local\activity\settings;
+use mod_tarsuscoach\local\index\inclusions;
+use mod_tarsuscoach\local\service\settings_api;
 
 /** The settings the activity form shares with the coach's settings panel. */
-const TARSUS_FORM_SETTINGS = [
+const TARSUSCOACH_FORM_SETTINGS = [
     'askenabled', 'testenabled', 'buildenabled', 'discussenabled', 'interactiontype', 'voiceinput',
     'referencesenabled', 'visualaccessibility', 'thinkinglevel', 'dqr', 'industry', 'anticheat',
     'conversationstyle', 'taxonomylevels', 'qtypes1', 'qtypes2', 'qtypes3', 'operators', 'learntempo',
@@ -41,7 +41,7 @@ const TARSUS_FORM_SETTINGS = [
  * @param string $feature A FEATURE_xx constant.
  * @return mixed
  */
-function tarsus_supports($feature) {
+function tarsuscoach_supports($feature) {
     switch ($feature) {
         case FEATURE_MOD_INTRO:
         case FEATURE_SHOW_DESCRIPTION:
@@ -55,7 +55,7 @@ function tarsus_supports($feature) {
         case FEATURE_GROUPINGS:
             return false;
         case FEATURE_MOD_PURPOSE:
-            // "Interactive content" exists from Moodle 4.4 on; before, "content".
+            // Moodle 4.4 added the purpose "Interactive content"; before, "content".
             return defined('MOD_PURPOSE_INTERACTIVECONTENT') ? constant('MOD_PURPOSE_INTERACTIVECONTENT') : MOD_PURPOSE_CONTENT;
         default:
             return null;
@@ -63,14 +63,14 @@ function tarsus_supports($feature) {
 }
 
 /**
- * The activity settings of the form, in the shape SettingsApi::apply() reads.
+ * The activity settings of the form, in the shape settings_api::apply() reads.
  *
  * @param stdClass $data The form data.
  * @return array
  */
-function tarsus_form_values(stdClass $data): array {
+function tarsuscoach_form_values(stdClass $data): array {
     $values = [];
-    foreach (TARSUS_FORM_SETTINGS as $name) {
+    foreach (TARSUSCOACH_FORM_SETTINGS as $name) {
         if (in_array($name, ['taxonomylevels', 'qtypes1', 'qtypes2', 'qtypes3'], true)) {
             // Checkbox groups arrive as name => 1 for each ticked option.
             $ticked = [];
@@ -80,8 +80,10 @@ function tarsus_form_values(stdClass $data): array {
                 }
             }
             $values[$name] = $ticked;
-        } else if (in_array($name, ['askenabled', 'testenabled', 'buildenabled', 'discussenabled', 'voiceinput',
-                'referencesenabled', 'visualaccessibility', 'anticheat', 'gifenabled'], true)) {
+        } else if (
+            in_array($name, ['askenabled', 'testenabled', 'buildenabled', 'discussenabled', 'voiceinput',
+                'referencesenabled', 'visualaccessibility', 'anticheat', 'gifenabled'], true)
+        ) {
             $values[$name] = !empty($data->$name);
         } else if (property_exists($data, $name)) {
             $values[$name] = $data->$name;
@@ -99,10 +101,10 @@ function tarsus_form_values(stdClass $data): array {
  * Store a new Tarsus activity.
  *
  * @param stdClass $data The form data.
- * @param mod_tarsus_mod_form|null $mform The form.
+ * @param mod_tarsuscoach_mod_form|null $mform The form.
  * @return int The new activity's id.
  */
-function tarsus_add_instance(stdClass $data, $mform = null): int {
+function tarsuscoach_add_instance(stdClass $data, $mform = null): int {
     global $DB;
     $now = time();
     $record = (object) [
@@ -114,17 +116,22 @@ function tarsus_add_instance(stdClass $data, $mform = null): int {
         'timecreated' => $now,
         'timemodified' => $now,
     ];
-    $data->id = $DB->insert_record('tarsus', $record);
+    $data->id = $DB->insert_record('tarsuscoach', $record);
 
-    $settings = new Settings((int) $data->id);
-    (new SettingsApi($settings))->apply(tarsus_form_values($data));
+    $settings = new settings((int) $data->id);
+    (new settings_api($settings))->apply(tarsuscoach_form_values($data));
     $settings->save();
 
-    $tarsus = $DB->get_record('tarsus', ['id' => $data->id], '*', MUST_EXIST);
+    $tarsus = $DB->get_record('tarsuscoach', ['id' => $data->id], '*', MUST_EXIST);
     $tarsus->cmidnumber = $data->cmidnumber ?? '';
-    tarsus_grade_item_update($tarsus);
+    tarsuscoach_grade_item_update($tarsus);
     if (!empty($data->completionexpected)) {
-        \core_completion\api::update_completion_date_event($data->coursemodule, 'tarsus', $data->id, $data->completionexpected);
+        \core_completion\api::update_completion_date_event(
+            $data->coursemodule,
+            'tarsuscoach',
+            $data->id,
+            $data->completionexpected
+        );
     }
     return (int) $data->id;
 }
@@ -133,13 +140,13 @@ function tarsus_add_instance(stdClass $data, $mform = null): int {
  * Store the edited settings of a Tarsus activity.
  *
  * @param stdClass $data The form data.
- * @param mod_tarsus_mod_form|null $mform The form.
+ * @param mod_tarsuscoach_mod_form|null $mform The form.
  * @return bool
  */
-function tarsus_update_instance(stdClass $data, $mform = null): bool {
+function tarsuscoach_update_instance(stdClass $data, $mform = null): bool {
     global $DB;
     $id = (int) $data->instance;
-    $DB->update_record('tarsus', (object) [
+    $DB->update_record('tarsuscoach', (object) [
         'id' => $id,
         'name' => $data->name,
         'intro' => $data->intro ?? '',
@@ -148,16 +155,16 @@ function tarsus_update_instance(stdClass $data, $mform = null): bool {
         'timemodified' => time(),
     ]);
 
-    $settings = Settings::load($id);
-    (new SettingsApi($settings))->apply(tarsus_form_values($data));
+    $settings = settings::load($id);
+    (new settings_api($settings))->apply(tarsuscoach_form_values($data));
     $settings->save();
 
-    $tarsus = $DB->get_record('tarsus', ['id' => $id], '*', MUST_EXIST);
+    $tarsus = $DB->get_record('tarsuscoach', ['id' => $id], '*', MUST_EXIST);
     $tarsus->cmidnumber = $data->cmidnumber ?? '';
-    tarsus_grade_item_update($tarsus);
+    tarsuscoach_grade_item_update($tarsus);
     // A changed threshold or mode changes every learner's grade and status.
-    Scoring::pushAll($id);
-    \core_completion\api::update_completion_date_event($data->coursemodule, 'tarsus', $id, $data->completionexpected ?? null);
+    scoring::push_all($id);
+    \core_completion\api::update_completion_date_event($data->coursemodule, 'tarsuscoach', $id, $data->completionexpected ?? null);
     return true;
 }
 
@@ -169,17 +176,17 @@ function tarsus_update_instance(stdClass $data, $mform = null): bool {
  * @param int $id The activity.
  * @return bool
  */
-function tarsus_delete_instance($id): bool {
+function tarsuscoach_delete_instance($id): bool {
     global $DB;
-    $tarsus = $DB->get_record('tarsus', ['id' => $id]);
+    $tarsus = $DB->get_record('tarsuscoach', ['id' => $id]);
     if (!$tarsus) {
         return false;
     }
-    Inclusions::forgetObject((int) $id);
-    Scoring::forgetObject((int) $id);
-    $DB->delete_records('tarsus_use', ['obj_id' => $id]);
-    tarsus_grade_item_delete($tarsus);
-    $DB->delete_records('tarsus', ['id' => $id]);
+    inclusions::forget_object((int) $id);
+    scoring::forget_object((int) $id);
+    $DB->delete_records('tarsuscoach_usage', ['tarsuscoachid' => $id]);
+    tarsuscoach_grade_item_delete($tarsus);
+    $DB->delete_records('tarsuscoach', ['id' => $id]);
     return true;
 }
 
@@ -190,7 +197,7 @@ function tarsus_delete_instance($id): bool {
  * @param array|string|null $grades Grades to write, 'reset' to reset them.
  * @return int A GRADE_UPDATE_xx constant.
  */
-function tarsus_grade_item_update(stdClass $tarsus, $grades = null): int {
+function tarsuscoach_grade_item_update(stdClass $tarsus, $grades = null): int {
     global $CFG;
     require_once($CFG->libdir . '/gradelib.php');
 
@@ -213,7 +220,7 @@ function tarsus_grade_item_update(stdClass $tarsus, $grades = null): int {
         $params['reset'] = true;
         $grades = null;
     }
-    return grade_update('mod/tarsus', $tarsus->course, 'mod', 'tarsus', $tarsus->id, 0, $grades, $params);
+    return grade_update('mod/tarsuscoach', $tarsus->course, 'mod', 'tarsuscoach', $tarsus->id, 0, $grades, $params);
 }
 
 /**
@@ -222,10 +229,10 @@ function tarsus_grade_item_update(stdClass $tarsus, $grades = null): int {
  * @param stdClass $tarsus The activity.
  * @return int A GRADE_UPDATE_xx constant.
  */
-function tarsus_grade_item_delete(stdClass $tarsus): int {
+function tarsuscoach_grade_item_delete(stdClass $tarsus): int {
     global $CFG;
     require_once($CFG->libdir . '/gradelib.php');
-    return grade_update('mod/tarsus', $tarsus->course, 'mod', 'tarsus', $tarsus->id, 0, null, ['deleted' => 1]);
+    return grade_update('mod/tarsuscoach', $tarsus->course, 'mod', 'tarsuscoach', $tarsus->id, 0, null, ['deleted' => 1]);
 }
 
 /**
@@ -236,10 +243,10 @@ function tarsus_grade_item_delete(stdClass $tarsus): int {
  * @param int $userid One learner, or 0 for all.
  * @return array User id => grade object.
  */
-function tarsus_get_user_grades(stdClass $tarsus, int $userid = 0): array {
+function tarsuscoach_get_user_grades(stdClass $tarsus, int $userid = 0): array {
     global $DB;
-    $settings = Settings::load((int) $tarsus->id);
-    $rows = $userid > 0 ? [$userid => Scoring::row((int) $tarsus->id, $userid)] : Scoring::rows((int) $tarsus->id);
+    $settings = settings::load((int) $tarsus->id);
+    $rows = $userid > 0 ? [$userid => scoring::row((int) $tarsus->id, $userid)] : scoring::rows((int) $tarsus->id);
     $grade = (int) ($tarsus->grade ?? 100);
     $scaleitems = 0;
     if ($grade < 0) {
@@ -248,7 +255,7 @@ function tarsus_get_user_grades(stdClass $tarsus, int $userid = 0): array {
     }
     $grades = [];
     foreach ($rows as $id => $row) {
-        $result = $row === null ? null : Scoring::grade($settings, $row);
+        $result = $row === null ? null : scoring::grade($settings, $row);
         if ($result === null) {
             $raw = null;
         } else if ($grade > 0) {
@@ -270,20 +277,20 @@ function tarsus_get_user_grades(stdClass $tarsus, int $userid = 0): array {
  * @param int $userid One learner, or 0 for all.
  * @param bool $nullifnone Whether to write an empty grade when there is none.
  */
-function tarsus_update_grades(stdClass $tarsus, $userid = 0, $nullifnone = true): void {
+function tarsuscoach_update_grades(stdClass $tarsus, $userid = 0, $nullifnone = true): void {
     global $CFG;
     require_once($CFG->libdir . '/gradelib.php');
     if ((int) ($tarsus->grade ?? 100) === 0) {
-        tarsus_grade_item_update($tarsus);
+        tarsuscoach_grade_item_update($tarsus);
         return;
     }
-    $grades = tarsus_get_user_grades($tarsus, (int) $userid);
+    $grades = tarsuscoach_get_user_grades($tarsus, (int) $userid);
     if ($grades) {
-        tarsus_grade_item_update($tarsus, $grades);
+        tarsuscoach_grade_item_update($tarsus, $grades);
     } else if ($userid && $nullifnone) {
-        tarsus_grade_item_update($tarsus, [(int) $userid => (object) ['userid' => (int) $userid, 'rawgrade' => null]]);
+        tarsuscoach_grade_item_update($tarsus, [(int) $userid => (object) ['userid' => (int) $userid, 'rawgrade' => null]]);
     } else {
-        tarsus_grade_item_update($tarsus);
+        tarsuscoach_grade_item_update($tarsus);
     }
 }
 
@@ -298,11 +305,11 @@ function tarsus_update_grades(stdClass $tarsus, $userid = 0, $nullifnone = true)
  * @param float $newmax New maximum.
  * @return bool
  */
-function tarsus_rescale_activity_grades($course, $cm, $oldmin, $oldmax, $newmin, $newmax): bool {
+function tarsuscoach_rescale_activity_grades($course, $cm, $oldmin, $oldmax, $newmin, $newmax): bool {
     global $DB;
     // Grades are recomputed from the brain's figures, not stored here.
-    $tarsus = $DB->get_record('tarsus', ['id' => $cm->instance], '*', MUST_EXIST);
-    tarsus_update_grades($tarsus);
+    $tarsus = $DB->get_record('tarsuscoach', ['id' => $cm->instance], '*', MUST_EXIST);
+    tarsuscoach_update_grades($tarsus);
     return true;
 }
 
@@ -313,16 +320,16 @@ function tarsus_rescale_activity_grades($course, $cm, $oldmin, $oldmax, $newmin,
  * @param stdClass $coursemodule The course module.
  * @return cached_cm_info|false
  */
-function tarsus_get_coursemodule_info($coursemodule) {
+function tarsuscoach_get_coursemodule_info($coursemodule) {
     global $DB;
-    $tarsus = $DB->get_record('tarsus', ['id' => $coursemodule->instance], 'id, name, intro, introformat, completionprogress');
+    $tarsus = $DB->get_record('tarsuscoach', ['id' => $coursemodule->instance], 'id, name, intro, introformat, completionprogress');
     if (!$tarsus) {
         return false;
     }
     $info = new cached_cm_info();
     $info->name = $tarsus->name;
     if ($coursemodule->showdescription) {
-        $info->content = format_module_intro('tarsus', $tarsus, $coursemodule->id, false);
+        $info->content = format_module_intro('tarsuscoach', $tarsus, $coursemodule->id, false);
     }
     if ($coursemodule->completion == COMPLETION_TRACKING_AUTOMATIC) {
         $info->customdata['customcompletionrules']['completionprogress'] = (int) $tarsus->completionprogress;
@@ -336,14 +343,14 @@ function tarsus_get_coursemodule_info($coursemodule) {
  * @param cm_info|stdClass $cm The course module.
  * @return array
  */
-function mod_tarsus_get_completion_active_rule_descriptions($cm): array {
+function mod_tarsuscoach_get_completion_active_rule_descriptions($cm): array {
     if (empty($cm->customdata['customcompletionrules']) || $cm->completion != COMPLETION_TRACKING_AUTOMATIC) {
         return [];
     }
     $descriptions = [];
     $progress = (int) ($cm->customdata['customcompletionrules']['completionprogress'] ?? 0);
     if ($progress > 0) {
-        $descriptions[] = get_string('completionprogress_desc', 'mod_tarsus', $progress);
+        $descriptions[] = get_string('completionprogress_desc', 'mod_tarsuscoach', $progress);
     }
     return $descriptions;
 }
@@ -356,15 +363,15 @@ function mod_tarsus_get_completion_active_rule_descriptions($cm): array {
  * @param stdClass|cm_info $cm The course module.
  * @param context_module $context Its context.
  */
-function tarsus_view(stdClass $tarsus, stdClass $course, $cm, context_module $context): void {
+function tarsuscoach_view(stdClass $tarsus, stdClass $course, $cm, context_module $context): void {
     global $CFG;
     require_once($CFG->libdir . '/completionlib.php');
-    $event = \mod_tarsus\event\course_module_viewed::create([
+    $event = \mod_tarsuscoach\event\course_module_viewed::create([
         'objectid' => $tarsus->id,
         'context' => $context,
     ]);
     $event->add_record_snapshot('course', $course);
-    $event->add_record_snapshot('tarsus', $tarsus);
+    $event->add_record_snapshot('tarsuscoach', $tarsus);
     $event->trigger();
     $completion = new completion_info($course);
     $completion->set_module_viewed($cm);
@@ -376,17 +383,17 @@ function tarsus_view(stdClass $tarsus, stdClass $course, $cm, context_module $co
  * @param settings_navigation $settings The settings navigation.
  * @param navigation_node $node The activity's node.
  */
-function tarsus_extend_settings_navigation(settings_navigation $settings, navigation_node $node): void {
+function tarsuscoach_extend_settings_navigation(settings_navigation $settings, navigation_node $node): void {
     $cm = $settings->get_page()->cm;
-    if (!$cm || !has_capability('mod/tarsus:manage', $cm->context)) {
+    if (!$cm || !has_capability('mod/tarsuscoach:manage', $cm->context)) {
         return;
     }
     $node->add(
-        get_string('tab_materials', 'mod_tarsus'),
-        new moodle_url('/mod/tarsus/materials.php', ['id' => $cm->id]),
+        get_string('tab_materials', 'mod_tarsuscoach'),
+        new moodle_url('/mod/tarsuscoach/materials.php', ['id' => $cm->id]),
         navigation_node::TYPE_SETTING,
         null,
-        'mod_tarsus_materials'
+        'mod_tarsuscoach_materials'
     );
 }
 
@@ -395,9 +402,9 @@ function tarsus_extend_settings_navigation(settings_navigation $settings, naviga
  *
  * @param MoodleQuickForm $mform The reset form.
  */
-function tarsus_reset_course_form_definition(&$mform): void {
-    $mform->addElement('header', 'tarsusheader', get_string('modulenameplural', 'mod_tarsus'));
-    $mform->addElement('advcheckbox', 'reset_tarsus_progress', get_string('resetprogress', 'mod_tarsus'));
+function tarsuscoach_reset_course_form_definition(&$mform): void {
+    $mform->addElement('header', 'tarsuscoachheader', get_string('modulenameplural', 'mod_tarsuscoach'));
+    $mform->addElement('advcheckbox', 'reset_tarsuscoach_progress', get_string('resetprogress', 'mod_tarsuscoach'));
 }
 
 /**
@@ -406,8 +413,8 @@ function tarsus_reset_course_form_definition(&$mform): void {
  * @param stdClass $course The course.
  * @return array
  */
-function tarsus_reset_course_form_defaults($course): array {
-    return ['reset_tarsus_progress' => 1];
+function tarsuscoach_reset_course_form_defaults($course): array {
+    return ['reset_tarsuscoach_progress' => 1];
 }
 
 /**
@@ -416,23 +423,23 @@ function tarsus_reset_course_form_defaults($course): array {
  * @param stdClass $data The reset form data.
  * @return array The status lines.
  */
-function tarsus_reset_userdata($data): array {
+function tarsuscoach_reset_userdata($data): array {
     global $DB;
     $status = [];
-    if (empty($data->reset_tarsus_progress)) {
+    if (empty($data->reset_tarsuscoach_progress)) {
         return $status;
     }
-    $ids = $DB->get_fieldset_select('tarsus', 'id', 'course = ?', [$data->courseid]);
+    $ids = $DB->get_fieldset_select('tarsuscoach', 'id', 'course = ?', [$data->courseid]);
     foreach ($ids as $id) {
-        Scoring::forgetObject((int) $id);
-        $tarsus = $DB->get_record('tarsus', ['id' => $id]);
+        scoring::forget_object((int) $id);
+        $tarsus = $DB->get_record('tarsuscoach', ['id' => $id]);
         if ($tarsus) {
-            tarsus_grade_item_update($tarsus, 'reset');
+            tarsuscoach_grade_item_update($tarsus, 'reset');
         }
     }
     $status[] = [
-        'component' => get_string('modulenameplural', 'mod_tarsus'),
-        'item' => get_string('resetprogress', 'mod_tarsus'),
+        'component' => get_string('modulenameplural', 'mod_tarsuscoach'),
+        'item' => get_string('resetprogress', 'mod_tarsuscoach'),
         'error' => false,
     ];
     return $status;
@@ -446,21 +453,21 @@ function tarsus_reset_userdata($data): array {
  *
  * @param string $name The setting's full name.
  */
-function mod_tarsus_connection_changed($name): void {
-    $before = (string) get_config('mod_tarsus', 'last_target');
-    $now = \mod_tarsus\local\Support\Config::target();
+function mod_tarsuscoach_connection_changed($name): void {
+    $before = (string) get_config('mod_tarsuscoach', 'last_target');
+    $now = \mod_tarsuscoach\local\support\config::target();
     if ($before === $now) {
         return;
     }
-    set_config('last_target', $now, 'mod_tarsus');
+    set_config('last_target', $now, 'mod_tarsuscoach');
     try {
-        $count = (new \mod_tarsus\local\Index\Reconciler())->retarget();
+        $count = (new \mod_tarsuscoach\local\index\reconciler())->retarget();
     } catch (\Throwable $e) {
-        \mod_tarsus\local\Support\Platform::log('retarget after a connection change: ' . $e->getMessage(), 'error');
+        \mod_tarsuscoach\local\support\platform::log('retarget after a connection change: ' . $e->getMessage(), 'error');
         return;
     }
     if ($count > 0) {
-        \core\notification::info(get_string('retarget_notice', 'mod_tarsus', (object) ['count' => $count]));
+        \core\notification::info(get_string('retarget_notice', 'mod_tarsuscoach', (object) ['count' => $count]));
     }
 }
 
@@ -469,8 +476,8 @@ function mod_tarsus_connection_changed($name): void {
  *
  * @param string $name The setting's full name.
  */
-function mod_tarsus_avatar_changed($name): void {
-    \mod_tarsus\local\Support\Avatar::fromSetting();
+function mod_tarsuscoach_avatar_changed($name): void {
+    \mod_tarsuscoach\local\support\avatar::from_setting();
 }
 
 /**
@@ -485,14 +492,14 @@ function mod_tarsus_avatar_changed($name): void {
  * @param array $options Options.
  * @return bool
  */
-function tarsus_pluginfile($course, $cm, $context, $filearea, $args, $forcedownload, array $options = []) {
+function tarsuscoach_pluginfile($course, $cm, $context, $filearea, $args, $forcedownload, array $options = []) {
     if ($context->contextlevel !== CONTEXT_SYSTEM || $filearea !== 'robotavatar') {
         return false;
     }
     require_login();
     $filename = array_pop($args);
     $filepath = $args ? '/' . implode('/', $args) . '/' : '/';
-    $file = get_file_storage()->get_file($context->id, 'mod_tarsus', 'robotavatar', 0, $filepath, $filename);
+    $file = get_file_storage()->get_file($context->id, 'mod_tarsuscoach', 'robotavatar', 0, $filepath, $filename);
     if (!$file || $file->is_directory()) {
         return false;
     }

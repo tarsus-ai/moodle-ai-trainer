@@ -4,6 +4,17 @@ All notable changes to the Tarsus plugin for Moodle. The plugin follows
 [semantic versioning](https://semver.org/); the version is `$plugin->release`
 in `version.php`.
 
+## [2.0.1] – 2026-11-28
+
+Two small fixes.
+
+### Fixed
+
+- A picture now opens in the enlarged view also after an interactive page was enlarged before. Until now, the picture did not open until the page was reloaded.
+- **Test connection** (*Status* tab of the Tarsus administration) says clearly when Tarsus does not accept the API key, the brain ID or the license key, and what to do. Until now, it said "Could not contact the brain. Please try again in a moment." – which did not help.
+
+To update, install the new zip as under [Updating](https://github.com/tarsus-ai/moodle-ai-trainer#updating) in the README. Your settings, the indexed material, the learners' figures and their grades are kept.
+
 ## [2.0.0] – 2026-11-25
 
 The coach as *Tarsus coach* (`mod_tarsuscoach`), reworked to Moodle's standards. It replaces 1.0.0 and 1.0.1, which were called `mod_tarsus` – a name another Moodle plugin also uses – so Moodle installs 2.0.0 as a plugin of its own: see *Coming from 1.0.0 or 1.0.1?* under [Updating](https://github.com/tarsus-ai/moodle-ai-trainer#updating) in the README.

@@ -42,6 +42,22 @@ final class messages
     ];
 
     /**
+     * Whether Tarsus refused the connection itself: it does not accept the
+     * API key, the brain ID or the license key.
+     *
+     * @param transport_exception $e The failure.
+     * @return bool
+     */
+    public static function refuses_access(transport_exception $e): bool {
+        foreach (self::ACCESS as $sentence) {
+            if ($e->says($sentence)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
      * The user's message for a failed call to Tarsus. The details go to the
      * log.
      *

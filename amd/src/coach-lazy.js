@@ -2696,7 +2696,8 @@ Chat.prototype.turnSlide = function(card, dir) {
 };
 
 Chat.prototype.openLightbox = function(src, title) {
-    var dialog = document.querySelector('.tarsus-lightbox');
+    // The picture view; an enlarged page has its own dialog (.tarsus-lightbox--page).
+    var dialog = document.querySelector('.tarsus-lightbox:not(.tarsus-lightbox--page)');
     if (!dialog) {
         dialog = document.createElement('dialog');
         dialog.className = 'tarsus-lightbox';

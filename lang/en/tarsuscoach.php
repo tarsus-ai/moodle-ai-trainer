@@ -582,6 +582,7 @@ $string['status_pendingreindex'] = 'Content changed';
 $string['status_plan'] = 'Booked package';
 $string['status_reset_breaker'] = 'Reset circuit breaker';
 $string['status_test'] = 'Test connection';
+$string['status_test_access'] = 'Tarsus does not accept the API key, the brain ID or the license key. Copy them again from the Tarsus e-mail – without spaces at the start or the end – and save. If the message stays, ask Tarsus whether the key is activated.';
 $string['status_test_ok'] = 'The brain answered: {$a->count} brain(s) reachable.';
 $string['status_usage'] = 'Usage in the last 24 hours';
 $string['status_usage_none'] = 'No calls were recorded.';

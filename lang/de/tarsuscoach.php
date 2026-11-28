@@ -582,6 +582,7 @@ $string['status_pendingreindex'] = 'Inhalt geändert';
 $string['status_plan'] = 'Gebuchtes Paket';
 $string['status_reset_breaker'] = 'Schutzschalter zurücksetzen';
 $string['status_test'] = 'Verbindung testen';
+$string['status_test_access'] = 'Tarsus akzeptiert den API-Schlüssel, die Brain-ID oder den Lizenzschlüssel nicht. Kopieren Sie sie noch einmal aus der E-Mail von Tarsus – ohne Leerzeichen am Anfang oder Ende – und speichern Sie. Bleibt die Meldung, fragen Sie bei Tarsus nach, ob der Schlüssel freigeschaltet ist.';
 $string['status_test_ok'] = 'Das Brain hat geantwortet: {$a->count} Brain(s) erreichbar.';
 $string['status_usage'] = 'Nutzung der letzten 24 Stunden';
 $string['status_usage_none'] = 'Es wurden keine Aufrufe aufgezeichnet.';

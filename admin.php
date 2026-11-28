@@ -39,6 +39,7 @@ use mod_tarsuscoach\local\index\reconciler;
 use mod_tarsuscoach\local\index\repository;
 use mod_tarsuscoach\local\index\status;
 use mod_tarsuscoach\local\output\views;
+use mod_tarsuscoach\local\service\messages;
 use mod_tarsuscoach\local\support\budget;
 use mod_tarsuscoach\local\support\config;
 use mod_tarsuscoach\local\support\plan;
@@ -74,6 +75,13 @@ if ($action !== '') {
                 redirect($statusurl, $t($e->langkey), null, notification::NOTIFY_ERROR);
             } catch (blocked_exception $e) {
                 redirect($statusurl, $t('guardrail_blocked_' . $e->reason), null, notification::NOTIFY_ERROR);
+            } catch (transport_exception $e) {
+                if (messages::refuses_access($e)) {
+                    // Tarsus refuses the key, the brain or the license key: say so instead of "try again".
+                    platform::log('test connection: ' . $e->getMessage() . ' - ' . $e->body);
+                    redirect($statusurl, $t('status_test_access'), null, notification::NOTIFY_ERROR);
+                }
+                redirect($statusurl, $t('transport_error') . ' ' . s($e->getMessage()), null, notification::NOTIFY_ERROR);
             } catch (\Throwable $e) {
                 if ($e instanceof \moodle_exception && !($e instanceof \dml_exception)) {
                     throw $e;

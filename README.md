@@ -428,7 +428,7 @@ A result that falls back to 0 – after *Reset chat history*, or a connection to
 
 ## Accessibility: screen readers and keyboard
 
-The coach works **without a mouse** and **with screen readers** (NVDA, JAWS, VoiceOver, TalkBack). It follows WCAG 2.2 level AA and the WAI-ARIA patterns for dialogs, radio groups and live regions – in every mode, in the teacher's panels and on the materials page.
+The coach works **without a mouse** and **with screen readers** (NVDA, JAWS, VoiceOver, TalkBack). It is built to WCAG 2.2 level AA and follows the WAI-ARIA patterns for dialogs, radio groups and live regions – in every mode, in the teacher's panels and on the materials page. Automated checks find no violations (see *How it was checked* below). An audit by an accessibility expert – needed for a formal report under EN 301 549 or Germany's BITV 2.0 – has not been done yet (see *Not covered yet*).
 
 **Keys**
 
@@ -439,7 +439,7 @@ The coach works **without a mouse** and **with screen readers** (NVDA, JAWS, Voi
 | <kbd>Shift</kbd>+<kbd>Enter</kbd> | A new line in a question. |
 | <kbd>Space</kbd> | Presses a button, ticks a checkbox. |
 | Arrow keys | Choose an answer option of a question. |
-| <kbd>Esc</kbd> | Closes a side panel, a picture or the help. In the input field: drops the *Ask about this* reference. |
+| <kbd>Esc</kbd> | Closes a side panel, a picture or the help; in a confirmation dialogue, it cancels. In the input field: drops the *Ask about this* reference. |
 
 **What a screen reader says**
 
@@ -450,13 +450,14 @@ The coach works **without a mouse** and **with screen readers** (NVDA, JAWS, Voi
 - **Check** puts the focus on the verdict – "Correct.", "Not correct." or "Partly correct: 60 %" – and reads the feedback, the experience points and the result. Right and wrong are words and a ✓ or ✗, never a colour alone. Pressing **Check** with nothing chosen says so and puts the focus on the first open field.
 - In a learning unit, the focus goes to the slide's title and the slide is read. **Next** says "Slide 2 of 5" and reads the slide; the focus stays on the button.
 - Side panels (sources, settings, evaluation, history) are dialogs: the focus moves in, <kbd>Tab</kbd> stays inside, <kbd>Esc</kbd> closes them and the focus returns to the button that opened them. Pictures and enlarged pages are dialogs too.
+- Before a step that cannot be undone – ending a running live conversation by switching the mode, removing material on the materials page – Moodle's own dialogue asks: the focus moves into it and its question is read, <kbd>Tab</kbd> stays inside, <kbd>Esc</kbd> cancels and the focus returns to the button.
 - While Tarsus answers, the input field keeps the focus; you never lose your place.
 
 **For teachers:** switch on **Accessible content** *(Barrierefreie Inhalte)* in the activity's settings. Tarsus then describes in words what pictures, diagrams and simulations show, so learners who cannot see them get the same information.
 
 **Live interaction:** the call itself runs in a page Tarsus provides. Starting it, its frame and the mode around it work with the keyboard and are labelled; the focus moves into the call's frame when it starts.
 
-**How it was checked:** [axe-core](https://github.com/dequelabs/axe-core) (WCAG 2.0, 2.1 and 2.2, levels A and AA, plus best practices) on every screen – question and answer, sources, a question before and after **Check**, learning units, live interaction, the teacher's settings and evaluation panels and the materials page – reports no violations on Moodle 4.5, 5.0, 5.1, 5.2 and 5.3 (Boost theme), on Moodle 5.3 also in the dark colour mode. A keyboard-only session was recorded with a virtual screen reader ([Guidepup](https://github.com/guidepup/virtual-screen-reader)); an excerpt:
+**How it was checked (version 2.0.1):** [axe-core](https://github.com/dequelabs/axe-core) (WCAG 2.0, 2.1 and 2.2, levels A and AA, plus best practices) on every screen – question and answer, sources, a question before and after **Check**, learning units, live interaction, the teacher's settings and evaluation panels and the materials page – reports no violations on Moodle 4.5, 5.0, 5.1, 5.2 and 5.3 (Boost theme), on Moodle 5.3 also in the dark colour mode. Moodle's confirmation dialogues were checked with the keyboard alone and with axe on Moodle 4.5 and 5.3. A keyboard-only run checks where the focus lands – after a new question, after **Check**, in a learning unit, after closing a panel or a dialogue. A keyboard-only session was recorded with a virtual screen reader ([Guidepup](https://github.com/guidepup/virtual-screen-reader)); an excerpt:
 
 ```text
 Tab                link, Skip to the input field
@@ -470,6 +471,13 @@ Tab, Enter         Correct. (heading) – Correct! Well spotted. 2 / 12 XP, Resu
 Enter on "View sources"   dialog, References, modal
 Esc                button, View sources
 ```
+
+**Not covered yet**
+
+- Tests by people with NVDA, JAWS, VoiceOver and TalkBack – the session above uses a virtual screen reader.
+- The WCAG criteria that need a person's judgement, for example whether labels, instructions and messages are clear.
+- Zoom to 400 % (320 pixels wide), wider text spacing and Windows' high-contrast mode.
+- What Tarsus generates: AI-driven pages, simulations and the live call page. The plugin shows them but cannot check them; with *Accessible content* on, Tarsus describes them in words.
 
 Found something that does not work with your screen reader? Please [open an issue](https://github.com/tarsus-ai/moodle-ai-trainer/issues) – it is fixed with priority.
 
@@ -521,6 +529,7 @@ docs/screenshots/          the pictures in this README (not in the release zip)
 - **Tests:** 60 PHPUnit tests (the activity's lifecycle, gradebook and reset, the guardrails, the HTTP client, the external functions, the privacy provider, backup and restore, help links, pictures, Markdown and voices) and 8 Behat scenarios (the coach, the materials page, the administration pages). Run them as for any Moodle plugin: `vendor/bin/phpunit --testsuite mod_tarsuscoach_testsuite` and `php admin/tool/behat/cli/run.php --tags=@mod_tarsuscoach`.
 - **Coding style:** Moodle's code checker (moodle-cs 3.9.2, as used by moodle-plugin-ci) finds no errors and no warnings; ESLint and Stylelint with Moodle 5.3's rules find nothing either.
 - **Version 2.0.0** was tested end to end with Playwright on Moodle 4.5 (PHP 8.2), 5.0 (PHP 8.2), 5.1, 5.2 and 5.3 (PHP 8.4), all on PostgreSQL, in demo mode: the activity created through its form with a completion rule, the four modes, sources, spoken questions, formulas and tables, the teacher panels, the administration pages, Moodle's confirmation dialogues, axe on every screen, a learner's grade and completion, the scheduled task, the privacy export and deletion, course reset, *Duplicate* and backup and restore, and Moodle's message drawer with the plugin's scripts slowed down as on a slow line. Neither PHP's error log nor the pages showed a single message from the plugin's files, deprecation notices included. The installation from the release zip through *Install plugins* was recorded on Moodle 4.5 (the pictures above).
+- **Version 2.0.1** ran the same end-to-end tests again on all five Moodle versions, axe on every screen included (on Moodle 5.3 also in the dark colour mode), plus a keyboard check of Moodle's confirmation dialogues on 4.5 and 5.3 and the update from the published 2.0.0 zip through *Install plugins* on all five: the activity, the learners' figures, the grades and the settings were kept.
 - The renderer is React-Markdown's own pipeline (remark-gfm, remark-math, rehype-katex) bundled with esbuild; compared with React-Markdown 10 it gives identical output for 36 sample texts (formulas, tables, lists, links, HTML, footnotes).
 - **Releases** are published by the [Release workflow](.github/workflows/release.yml): raise `$plugin->version` and `$plugin->release` in `version.php`, add the version's section to `CHANGELOG.md` and push to `main` – the workflow tags the commit, builds `Tarsus-moodle-plugin-<version>.zip` (folder `tarsuscoach`) with `git archive` (repository-only files such as `docs/` are left out) and creates the GitHub release with the changelog section as notes.
 
